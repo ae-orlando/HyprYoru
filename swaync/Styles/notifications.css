@@ -1,0 +1,128 @@
+/* Rofi-blended glass — matches ~/.config/rofi/shared/colors.rasi + launcher.rasi/applets.rasi
+ * Palette comes from matugen (@surface, @surface_container, @on_surface, @primary).
+ * Glass: semi-transparent so Hypr blur shows through.
+ * Enable blur: decoration:blur:enabled = true + layerrule blur, swaync-control-center
+ */
+
+@define-color text            @on_surface;
+@define-color background      @surface;
+@define-color background-alt  @surface_container;
+@define-color selected        @primary;
+@define-color hover           @secondary;
+@define-color urgent          @error;
+@define-color border          @outline_variant;
+@define-color on-selected     @surface;
+
+* {
+  color: @text;
+  all: unset;
+  font-size: 14px;
+  font-family: "JetBrains Mono Nerd Font", "JetBrainsMono Nerd Font Propo", monospace;
+  transition: 200ms;
+}
+
+.notification-row {
+  outline: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Floating popup — glass version of rofi applets.rasi (25px window, flat) */
+.floating-notifications.background .notification-row .notification-background {
+  background: alpha(@background-alt, 0.75);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  border: 1.5px solid alpha(@selected, 0.35);
+  border-radius: 18px;
+  margin: 12px;
+  padding: 0;
+}
+
+.floating-notifications.background .notification-row .notification-background .notification {
+  padding: 6px;
+  border-radius: 14px;
+}
+
+.floating-notifications.background .notification-row .notification-background .notification.critical {
+  border: 2px solid @urgent;
+}
+
+.floating-notifications.background .notification-row .notification-background .notification .notification-content {
+  margin: 14px;
+}
+
+.floating-notifications.background .notification-row .notification-background .notification > *:last-child > * {
+  min-height: 3.4em;
+}
+
+.floating-notifications.background .notification-row .notification-background .notification > *:last-child > * .notification-action {
+  border-radius: 12px;
+  background: alpha(@text, 0.08);
+  margin: 6px;
+  padding: 8px 16px;
+  border: 1px solid alpha(@text, 0.08);
+}
+
+.floating-notifications.background .notification-row .notification-background .notification > *:last-child > * .notification-action label {
+  margin: auto;
+  padding: 0;
+}
+
+.floating-notifications.background .notification-row .notification-background .notification > *:last-child > * .notification-action:hover {
+  background: alpha(@selected, 0.2);
+  border: 1px solid alpha(@selected, 0.4);
+}
+
+.floating-notifications.background .notification-row .notification-background .notification > *:last-child > * .notification-action:active {
+  background: @selected;
+  color: @on-selected;
+  border-color: @selected;
+}
+
+.image {
+  margin: 10px 20px 10px 0;
+}
+
+.summary {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.body {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  line-height: 1.5;
+}
+
+.floating-notifications.background .notification-row .notification-background .close-button {
+  margin: 8px;
+  padding: 0;
+  min-width: 28px;
+  min-height: 28px;
+  border-radius: 10px;
+  background: alpha(@text, 0.08);
+  border: 1px solid transparent;
+}
+
+.floating-notifications.background .notification-row .notification-background .close-button label {
+  margin: auto;
+  padding: 0;
+}
+
+.floating-notifications.background .notification-row .notification-background .close-button:hover {
+  background: @selected;
+  color: @on-selected;
+}
+
+.floating-notifications.background .notification-row .notification-background .close-button:active {
+  background: @selected;
+  color: @on-selected;
+}
+
+.notification.critical progress {
+  background: @urgent;
+}
+
+.notification.low progress,
+.notification.normal progress {
+  background: @selected;
+}

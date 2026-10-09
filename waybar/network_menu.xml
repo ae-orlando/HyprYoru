@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkMenu" id="menu">
+    <child>
+      <object class="GtkMenuItem" id="wifi-on">
+        <property name="label">Wi-Fi On</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="wifi-off">
+        <property name="label">Wi-Fi Off</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="wwan-on">
+        <property name="label">Mobile Broadband On</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="wwan-off">
+        <property name="label">Mobile Broadband Off</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="hotspot-on">
+        <property name="label">Hotspot On</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="hotspot-off">
+        <property name="label">Hotspot Off</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkSeparatorMenuItem" id="delimiter1"/>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="rescan">
+        <property name="label">Rescan Wi-Fi</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="connection-editor">
+        <property name="label">Connection Editor</property>
+      </object>
+    </child>
+  </object>
+</interface>

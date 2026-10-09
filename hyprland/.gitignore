@@ -1,0 +1,3 @@
+# local backup, not part of the config
+*.bak
+hyprland.lua.monolith.bak

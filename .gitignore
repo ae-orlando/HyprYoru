@@ -1,0 +1,8 @@
+# User-local state: needed live on the system, never committed.
+gtk-setting/gtk-3.0/bookmarks
+zsh/.zsh_history
+zsh/.zcompdump*
+# Local backups.
+*.bak
+*.back
+*.bak-*

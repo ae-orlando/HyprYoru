@@ -1,0 +1,70 @@
+[config]
+version_check = false
+fallback_color = "#4f6786"
+prefer = "closest-to-fallback"
+contrast = 0.0
+
+[config.wallpaper]
+set = true
+command = "awww img --transition-type center --transition-duration 2 {{ image }}"
+
+# --- Hyprland lua colors (consumed by general.lua via require("modules.colors")) ---
+[templates.hypr]
+input_path = "~/.config/matugen/templates/hypr-colors.lua"
+output_path = "~/.config/hypr/modules/colors.lua"
+
+# --- Hyprlock color variables (sourced by hyprlock.conf) ---
+[templates.hyprlock]
+input_path = "~/.config/matugen/templates/hyprlock-colors.conf"
+output_path = "~/.config/hypr/hyprlock-colors.conf"
+
+# --- Waybar (one-dark variable mapping; style.css imports matugen.css first) ---
+[templates.waybar]
+input_path = "~/.config/matugen/templates/waybar-matugen.css"
+output_path = "~/.config/waybar/colors/matugen.css"
+
+# --- SwayNC (already imports matugen/colors.css in style.css) ---
+[templates.swaync]
+input_path = "~/.config/matugen/templates/swaync-colors.css"
+output_path = "~/.config/swaync/matugen/colors.css"
+
+# --- Kitty ---
+[templates.kitty]
+input_path = "~/.config/matugen/templates/kitty-colors.conf"
+output_path = "~/.config/kitty/themes/Matugen.conf"
+post_hook = "pkill -SIGUSR1 kitty || true"
+
+# --- Rofi shared palette (imported by launcher theme) ---
+[templates.rofi]
+input_path = "~/.config/matugen/templates/rofi-colors.rasi"
+output_path = "~/.config/rofi/shared/colors.rasi"
+
+# --- GTK 3/4 ---
+[templates.gtk3]
+input_path = "~/.config/matugen/templates/gtk-colors.css"
+output_path = "~/.config/gtk-3.0/colors.css"
+
+[templates.gtk4]
+input_path = "~/.config/matugen/templates/gtk-colors.css"
+output_path = "~/.config/gtk-4.0/colors.css"
+
+# --- Qt6CT ---
+[templates.qt6ct]
+input_path = "~/.config/matugen/templates/qtct-colors.conf"
+output_path = "~/.config/qt6ct/colors/matugen.conf"
+
+# --- btop ---
+[templates.btop]
+input_path = "~/.config/matugen/templates/btop.theme"
+output_path = "~/.config/btop/themes/matugen.theme"
+post_hook = "pkill -USR2 btop 2>/dev/null || true"
+
+# --- Neovim palette for matugen.nvim (opt-in, NikaVim repo untouched) ---
+[templates.nvim]
+input_path = "~/.config/matugen/templates/nvim-colors.json"
+output_path = "~/.config/matugen/themes/nvim-colors.json"
+
+# --- OpenCode theme ---
+[templates.opencode]
+input_path = "~/.config/matugen/templates/opencode-colors.json"
+output_path = "~/.config/opencode/themes/matugen.json"

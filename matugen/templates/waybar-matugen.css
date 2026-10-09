@@ -1,0 +1,24 @@
+/*
+* Waybar Colors
+* Generated with Matugen from {{image}}
+* Maps Material You palette to one-dark variable names expected by colors/style.css
+*/
+@define-color bg0 {{colors.surface.default.hex}};
+@define-color bg1 {{colors.surface_container.default.hex}};
+@define-color bg2 {{colors.surface_container_high.default.hex}};
+@define-color bg3 {{colors.surface_variant.default.hex}};
+@define-color bg4 {{colors.outline.default.hex}};
+
+@define-color red    {{colors.error.default.hex}};
+@define-color orange {{colors.tertiary_fixed.default.hex}};
+@define-color yellow {{colors.secondary_fixed.default.hex}};
+@define-color green  {{colors.secondary.default.hex}};
+@define-color aqua   {{colors.tertiary.default.hex}};
+@define-color blue   {{colors.primary.default.hex}};
+@define-color purple {{colors.primary_fixed.default.hex}};
+
+@define-color fg {{colors.on_surface.default.hex}};
+
+@define-color grey0 {{colors.outline.default.hex}};
+@define-color grey1 {{colors.on_surface_variant.default.hex}};
+@define-color grey2 {{colors.on_surface.default.hex}};
