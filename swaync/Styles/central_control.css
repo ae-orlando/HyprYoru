@@ -130,6 +130,11 @@
   color: @on-selected;
 }
 
+.control-center .notification-row .notification-background .close-button:active {
+  background: @selected;
+  color: @on-selected;
+}
+
 .control-center .notification-row .notification-background .notification > *:last-child > * .notification-action:hover {
   background: alpha(@selected, 0.25);
   border-color: alpha(@selected, 0.4);

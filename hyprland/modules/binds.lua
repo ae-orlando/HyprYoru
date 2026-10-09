@@ -173,7 +173,7 @@ hl.bind(
 )
 hl.bind(shiftMod .. " + N", hl.dsp.exec_cmd("swaync-client -t -sw"), { description = "Toggle notification center" })
 
--- Wallpaper picker (waypaper GUI) + system palette via post_command (matugen)
+-- Wallpaper picker (waypaper GUI, selector only) + system palette via post_command (matugen)
 hl.bind(mainMod .. " + W", hl.dsp.exec_cmd("waypaper"), { description = "Pick wallpaper + regenerate palette" })
 hl.bind(
 	shiftMod .. " + W",

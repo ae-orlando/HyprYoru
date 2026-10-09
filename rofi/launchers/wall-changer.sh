@@ -20,6 +20,19 @@ if [ "${#IMG_FILES[@]}" -eq 0 ]; then
     exit 1
 fi
 
+# --- Random mode: pick without menu (used by SHIFT+SUPER+W) ---
+if [ "${1:-}" = "--random" ]; then
+    WALLPAPER_PATH="$(printf '%s\n' "${IMG_FILES[@]}" | shuf -n 1)"
+    if [ -z "$WALLPAPER_PATH" ] || [ ! -f "$WALLPAPER_PATH" ]; then
+        notify-send "Error" "No images found in $WALLDIR"
+        exit 1
+    fi
+    if "$HOME/.config/hypr/scripts/set-wall.sh" "$WALLPAPER_PATH"; then
+        notify-send "Wallpaper Changed" "$(basename "$WALLPAPER_PATH") applied (random)."
+    fi
+    exit 0
+fi
+
 # --- 2. Generate Thumbnails & Rofi Input ---
 # Map display name -> full path and select by name (-format s). Selecting by
 # rofi index (-format i) is wrong once you type to filter: the index refers to

@@ -27,12 +27,6 @@
   "hide-on-clear": false,
   "hide-on-action": false,
   "script-fail-notify": true,
-  "scripts": {
-    "example-script": {
-      "exec": "echo 'Do something...'",
-      "urgency": "Normal"
-    }
-  },
   "notification-visibility": {
     "example-name": {
       "state": "muted",
@@ -67,7 +61,7 @@
     },
     "mpris": {
       "image-size": 96,
-      "image-radius": 19,
+      "image-radius": 12,
       "show-album-art": "playing",
       "blacklist": [],
       "autohide": false,

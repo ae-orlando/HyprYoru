@@ -32,14 +32,14 @@
   background: alpha(@background-alt, 0.75);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   border: 1.5px solid alpha(@selected, 0.35);
-  border-radius: 18px;
+  border-radius: 16px;
   margin: 12px;
   padding: 0;
 }
 
 .floating-notifications.background .notification-row .notification-background .notification {
   padding: 6px;
-  border-radius: 14px;
+  border-radius: 12px;
 }
 
 .floating-notifications.background .notification-row .notification-background .notification.critical {
