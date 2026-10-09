@@ -17,22 +17,44 @@ fi
 # ========================================
 ##typeset -A ZSH_HIGHLIGHT_STYLES
 
-# Commands and built-in functions (Magenta, follows terminal palette)
+# ==========================================
+# Token colors (8-color ANSI only: values resolve through the terminal
+# palette, so highlighting follows the wallpaper via matugen/Kitty)
+# ========================================
+
+# Executables (Magenta)
 ZSH_HIGHLIGHT_STYLES[command]='fg=magenta,bold'
 ZSH_HIGHLIGHT_STYLES[builtin]='fg=magenta,bold'
-ZSH_HIGHLIGHT_STYLES[alias]='fg=magenta,bold'
+ZSH_HIGHLIGHT_STYLES[function]='fg=magenta,bold'
+ZSH_HIGHLIGHT_STYLES[hashed-command]='fg=magenta,bold'
+
+# User shortcuts (Cyan, distinct from real commands)
+ZSH_HIGHLIGHT_STYLES[alias]='fg=cyan'
+ZSH_HIGHLIGHT_STYLES[suffix-alias]='fg=cyan'
+ZSH_HIGHLIGHT_STYLES[global-alias]='fg=cyan'
+
+# Elevated/destructive first words (Red, plain: bold is reserved for errors)
+ZSH_HIGHLIGHT_STYLES[precommand]='fg=red'
 
 # Options and flags like -h or --help (Blue)
 ZSH_HIGHLIGHT_STYLES[single-hyphen-option]='fg=blue'
 ZSH_HIGHLIGHT_STYLES[double-hyphen-option]='fg=blue'
 
-# Valid paths and strings (Green)
+# Valid paths and strings (Green; partial paths light up while typing)
 ZSH_HIGHLIGHT_STYLES[path]='fg=green,underline'
+ZSH_HIGHLIGHT_STYLES[path_prefix]='fg=green'
 ZSH_HIGHLIGHT_STYLES[single-quoted-argument]='fg=green'
 ZSH_HIGHLIGHT_STYLES[double-quoted-argument]='fg=green'
 
-# Unknown commands / Errors (Red)
-ZSH_HIGHLIGHT_STYLES[unknown-token]='fg=red,bold'
-
-# Variables (Yellow)
+# Shell chrome: keywords, separators, redirections (Yellow)
+ZSH_HIGHLIGHT_STYLES[reserved-word]='fg=yellow'
+ZSH_HIGHLIGHT_STYLES[commandseparator]='fg=yellow'
+ZSH_HIGHLIGHT_STYLES[redirection]='fg=yellow'
 ZSH_HIGHLIGHT_STYLES[assign]='fg=yellow'
+ZSH_HIGHLIGHT_STYLES[history-expansion]='fg=yellow,bold'
+
+# Patterns (Cyan, same family as shortcuts)
+ZSH_HIGHLIGHT_STYLES[globbing]='fg=cyan'
+
+# Unknown commands / Errors (Red, bold: highest severity)
+ZSH_HIGHLIGHT_STYLES[unknown-token]='fg=red,bold'

@@ -6,6 +6,9 @@
 # (e.g. after ~/.config/hypr/scripts/set-wall.sh runs).
 
 if [[ -f "$ZDOTDIR/generated/colors.sh" ]]; then
+  # eza uses terminal colors by design (no EZA_COLORS): make sure no stale
+  # export survives from earlier sessions in long-lived shells.
+  unset EZA_COLORS
   source "$ZDOTDIR/generated/colors.sh"
   _matugen_colors_mtime=$(stat -c %Y "$ZDOTDIR/generated/colors.sh" 2>/dev/null)
 
