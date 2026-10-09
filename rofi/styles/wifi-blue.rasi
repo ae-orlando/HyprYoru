@@ -68,7 +68,7 @@ window {
     border-color:                @border-colour;
     cursor:                      "default";
     /* Backgroud Colors */
-    background-color:            #151218BF;
+    background-color:            var(scrim);
     /* Backgroud Image */
     //background-image:          url("/path/to/image.png", none);
     /* Simple Linear Gradient */

@@ -6,6 +6,7 @@
  * Rofi Theme File
  * Rofi Version: 1.7.3
  **/
+@import "~/.config/rofi/shared/colors.rasi"
 
 /*****----- Configuration -----*****/
 configuration {
@@ -21,13 +22,13 @@ configuration {
 
 /*****----- Global Properties -----*****/
 * {
-    font:                        "JetBrainsMono Nerd Font Propo 10";
-    background:                  #180F39;
-    background-alt:              #32197D;
-    foreground:                  #FFFFFF;
-    selected:                    #FF00F1;
-    active:                      #9878FF;
-    urgent:                      #7D0075;
+    font:                        "GoMono Nerd Font Propo 10";
+    background:                  var(surface);
+    background-alt:              var(surface-container);
+    foreground:                  var(on-surface);
+    selected:                    var(primary);
+    active:                      var(secondary);
+    urgent:                      var(error);
 }
 
 /*****----- Main Window -----*****/

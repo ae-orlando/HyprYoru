@@ -18,7 +18,7 @@
   color: @text;
   all: unset;
   font-size: 14px;
-  font-family: "JetBrains Mono Nerd Font", "JetBrainsMono Nerd Font Propo", monospace;
+  font-family: "GoMono Nerd Font", "GoMono Nerd Font Propo", monospace;
   transition: 200ms;
 }
 
@@ -215,7 +215,7 @@
 }
 
 .widget-buttons-grid > flowbox > flowboxchild > button label {
-  font-family: "JetBrains Mono Nerd Font", monospace;
+  font-family: "GoMono Nerd Font", monospace;
   font-size: 22px;
   opacity: 1;
   margin: auto;

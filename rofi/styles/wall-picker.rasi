@@ -39,7 +39,7 @@ window {
     height: 400px;
     width: 80%;
     transparency: "real";
-    background-color: #151218BF;
+    background-color: var(scrim);
     border: 0px solid;
     border-radius: 32px;
     border-color: @border-colour;

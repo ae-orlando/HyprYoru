@@ -53,4 +53,6 @@
     selected:       var(primary);
     active:         var(secondary);
     urgent:         var(error);
+    /* Translucent window scrim: surface at 75% alpha (was #151218BF) */
+    scrim:          #0f1512BF;
 }

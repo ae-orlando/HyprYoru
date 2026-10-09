@@ -63,7 +63,7 @@ window {
     border-radius:               24px;
     border-color:                @border-colour;
     cursor:                      "default";
-    background-color:            #151218BF;
+    background-color:            var(scrim);
 }
 
 /*****----- Main Box -----*****/

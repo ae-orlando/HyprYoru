@@ -67,7 +67,7 @@ window {
     enabled:                     true;
     border-radius:               35px;
     cursor:                      "default";
-    background-color:            #151218BF;
+    background-color:            var(scrim);
     border:                      2px solid;
     border-colour:               @border-colour;
 }
