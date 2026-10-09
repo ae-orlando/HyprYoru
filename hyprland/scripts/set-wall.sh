@@ -2,7 +2,7 @@
 # Set wallpaper + regenerate system-wide matugen palette.
 # Usage: set-wall.sh [/path/to/wallpaper] [--pick]
 #   No args      -> restore last wallpaper (or default anime3.png)
-#   --pick       -> rofi filebrowser picker on ~/Pictures/wallpapers
+#   --pick       -> rofi list picker on ~/Pictures/wallpapers
 set -euo pipefail
 
 WALL_DIR="$HOME/Pictures/wallpapers"

@@ -1,5 +1,5 @@
--- Monitors.
--- See https://wiki.hypr.land/Configuring/Basics/Monitors/
+-- Primary output + fallback for anything else hot-plugged.
+-- https://wiki.hypr.land/Configuring/Basics/Monitors/
 hl.monitor({
 	output = "eDP-1",
 	mode = "1920x1080@60.02",
@@ -7,7 +7,7 @@ hl.monitor({
 	scale = "1",
 })
 
--- Fallback for any other / hot-plugged monitor (see example hyprland.lua).
+-- Fallback for any other / hot-plugged monitor.
 hl.monitor({
 	output = "",
 	mode = "preferred",

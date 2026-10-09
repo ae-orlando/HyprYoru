@@ -6,3 +6,10 @@ zsh/.zcompdump*
 *.bak
 *.back
 *.bak-*
+# Editor and merge debris.
+*~
+*.swp
+*.swo
+*.orig
+*.rej
+.DS_Store

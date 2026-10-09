@@ -1,20 +1,10 @@
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
--- HYPRLAND CONFIG - ENTRY POINT                            --
---                                                          --
--- The configuration is split into topic modules (as the    --
--- wiki recommends). To change something, edit the module   --
--- and run `hyprctl reload` (or log out and back in).       --
---                                                          --
---   modules/colors.lua     -> color palette                        --
---   modules/env.lua        -> environment variables                --
---   modules/monitors.lua   -> monitor setup                        --
---   modules/general.lua    -> look & feel, animations, misc        --
---   modules/layouts.lua    -> dwindle / master / scrolling         --
---   modules/input.lua      -> keyboard, touchpad, gestures         --
---   modules/rules.lua      -> window & workspace rules             --
---   modules/binds.lua      -> keybindings                          --
---   modules/autostart.lua  -> apps started with the compositor     --
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+-- Hyprland entry point (Lua, see https://wiki.hypr.land/Configuring/Start/).
+-- One topic per module; edit a module, then `hyprctl reload`.
+--   colors    palette (matugen-generated, do not edit by hand)
+--   env       environment variables          monitors  outputs
+--   general   look, animations, misc         layouts   dwindle/master/scrolling
+--   input     keyboard, touchpad, gestures   rules     windows, workspaces
+--   binds     keybindings                    autostart compositor startup
 
 
 -- See https://wiki.hypr.land/Configuring/Start/

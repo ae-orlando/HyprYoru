@@ -1,11 +1,4 @@
--- ========================================
--- Autostart
--- ========================================
-
--- NOTE: hyprlauncher (the launcher bound to SUPER+R) only appears on demand,
--- so it is NOT autostarted here.
-
-
+-- Autostart: apps launched once with the compositor.
 
 hl.on("hyprland.start", function()
     hl.exec_cmd("hyprctl setcursor Bibata-Modern-Classic 24")               -- cursor theme

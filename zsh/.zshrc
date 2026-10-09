@@ -1,31 +1,32 @@
-# ==========================================================
-# P10 Quick Prompt
-# ===========================================================
+# =====================
+# Instant prompt (p10k)
+# =====================
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
-# ===========================================================
-# Modules loaded before Oh My Zsh (environment, plugins)
-# ===========================================================
+
+# =====================
+# Pre OMZ: env, plugins
+# =====================
 for f in "$ZDOTDIR"/conf.d/pre/*.zsh(N); do
   source "$f"
 done
 
-# ===================================
-# Oh My Zsh
-# ====================================
+# ========
+# OMZ
+# ========
 source "$ZSH/oh-my-zsh.sh"
 
-# ============================================================
-# Modules loaded after Oh My Zsh (override its defaults)
-# ============================================================
+# ==========================
+# Post OMZ: overrides, theme
+# ==========================
 for f in "$ZDOTDIR"/conf.d/post/*.zsh(N); do
   source "$f"
 done
 
-# ==============================================================
-# Powerlevel10k configuration (lives in $ZDOTDIR so only the zsh
-# symlink is needed on fresh installs; ~/.p10k.zsh kept as fallback)
+# ==========================
+# p10k config ($ZDOTDIR first)
+# ==========================
 if [[ -f "$ZDOTDIR/.p10k.zsh" ]]; then
   source "$ZDOTDIR/.p10k.zsh"
 elif [[ -f ~/.p10k.zsh ]]; then

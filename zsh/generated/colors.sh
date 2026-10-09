@@ -5,5 +5,11 @@
 # eza intentionally uses terminal colors (built-in default theme, ANSI slots),
 # so existing output repaints instantly on palette reload. No EZA_COLORS here.
 
+# --- zsh-autosuggestions ghost text (whisper: visible, never competes) ---
+# Kitty maps color8 to surface, so the plugin default `fg=8` is invisible.
+# outline_variant is the faintest readable role on surface; outline proved
+# too present, on_surface_variant read as real text.
+export MATUGEN_AUTOSUGGEST="#404944"
+
 # --- fzf (hex palette, colors only; layout/keys untouched) ---
 export FZF_DEFAULT_OPTS="--color=fg:#dee4df,bg:#0f1512,hl:#8ad6b7,fg+:#a6f2d2,bg+:#252b28,hl+:#8ad6b7,info:#bfc9c2,prompt:#8ad6b7,pointer:#8ad6b7,marker:#b3ccbf,spinner:#a6cce0,header:#a6cce0,border:#404944,gutter:#0f1512,query:#dee4df"

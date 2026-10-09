@@ -1,5 +1,5 @@
--- Keybindings.
--- See https://wiki.hypr.land/Configuring/Basics/Binds/ for more
+-- Keybindings (descriptions double as the cheatsheet).
+-- https://wiki.hypr.land/Configuring/Basics/Binds/
 
 -- Programs
 local terminal = "kitty"

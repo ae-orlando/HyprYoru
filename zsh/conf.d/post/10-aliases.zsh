@@ -1,19 +1,15 @@
-# =======================
-# ALIASES
-# =======================
+# ========
+# Aliases
+# ========
 
-# =+=+=+=+=+=+=+=+=+=+=++
 # eza
-# =======================
 alias ls="eza -a --color=always --group-directories-first --icons=always"
 alias l="eza -al --color=always --group-directories-first --icons=always"
 alias ll="eza -al --color=always --group-directories-first --icons=always --git"
 alias lt="eza -a --tree --level=2 --color=always --group-directories-first --icons=always"
 alias ltt="eza -a --tree --level=3 --color=always --group-directories-first --icons=always"
 
-# ================================
-# Navigation
-# ================================
+# Editing
 alias v="nvim"
 alias vi="nvim"
 alias vim="nvim"

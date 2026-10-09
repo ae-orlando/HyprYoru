@@ -5,3 +5,15 @@
 if [[ -f /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh ]]; then
   source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 fi
+
+# Ghost text color derives from matugen (see templates/shell-colors.sh):
+# the plugin default `fg=8` is invisible because Kitty maps color8 to the
+# surface/background color. Re-applied before each prompt so wallpaper
+# changes take effect in long-lived shells (after 15-matugen.zsh reloads
+# generated/colors.sh; hooks run in registration order).
+_autosuggest_apply_matugen() {
+  ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=${MATUGEN_AUTOSUGGEST:-242},bold"
+}
+_autosuggest_apply_matugen
+autoload -Uz add-zsh-hook
+add-zsh-hook precmd _autosuggest_apply_matugen

@@ -1,9 +1,7 @@
 -- Window and workspace rules.
--- See https://wiki.hypr.land/Configuring/Basics/Window-Rules/
--- and https://wiki.hypr.land/Configuring/Basics/Workspace-Rules/
+-- https://wiki.hypr.land/Configuring/Basics/Window-Rules/
 
--- "Smart gaps" / "No gaps when only"
--- uncomment all if you wish to use that.
+-- Opt-in "no gaps on single window" presets (uncomment to use).
 -- hl.workspace_rule({ workspace = "w[tv1]", gaps_out = 0, gaps_in = 0 })
 -- hl.workspace_rule({ workspace = "f[1]",   gaps_out = 0, gaps_in = 0 })
 -- hl.window_rule({
@@ -20,7 +18,7 @@
 -- })
 
 local suppressMaximizeRule = hl.window_rule({
-	-- Ignore maximize requests from all apps. You'll probably like this.
+	-- Ignore maximize requests from all apps.
 	name = "suppress-maximize-events",
 	match = { class = ".*" },
 
@@ -43,7 +41,7 @@ hl.window_rule({
 	no_focus = true,
 })
 
--- Layer rules also return a handle.
+-- Layer-rule example (disabled).
 -- local overlayLayerRule = hl.layer_rule({
 --     name  = "no-anim-overlay",
 --     match = { namespace = "^my-overlay$" },
@@ -68,12 +66,13 @@ hl.layer_rule({
 	ignore_alpha = 0.3,
 })
 
--- Hyprland-run windowrule
+-- Hyprland-run popup placement.
 hl.window_rule({
 	name = "move-hyprland-run",
 	match = { class = "hyprland-run" },
 
 	move = "20 monitor_h-120",
+	size = "600 80",
 	float = true,
 })
 
@@ -82,6 +81,16 @@ hl.window_rule({
 	match = { class = "[Ww]aypaper" },
 
 	float = true,
+	size = "900 600",
+	center = true,
+})
+
+-- Catch-all: center any other auto-floating windows so they
+-- don't spawn anchored fullscreen/top-left.
+hl.window_rule({
+	name = "center-floating-catchall",
+	match = { float = true },
+
 	center = true,
 })
 

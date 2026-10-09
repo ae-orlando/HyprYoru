@@ -12,10 +12,12 @@
     margin: 0;
 }
 
+/* Bar window: transparent, pills float above wallpaper */
 window#waybar {
     background: transparent;
 }
 
+/* Tooltips */
 tooltip {
     background: @bg0;
     border: 1px solid @bg3;
@@ -27,6 +29,7 @@ tooltip label {
     padding: 6px;
 }
 
+/* Workspaces */
 #workspaces {
     background-color: @bg0;
     padding: 5px 3px;
@@ -77,6 +80,7 @@ tooltip label {
     transition: all 0.3s ease-in-out;
 }
 
+/* Pills: shared shape, per-module colors below */
 #pulseaudio,
 #custom-mic,
 #custom-caps,
@@ -120,6 +124,7 @@ tooltip label {
     border-color: @blue;
 }
 
+/* Per-module accent colors */
 #custom-notification {
     color: @blue;
 }
@@ -223,6 +228,7 @@ tooltip label {
     color: @green;
 }
 
+/* Grouped system drawer */
 #system {
     color: @fg;
     background-color: @bg0;
@@ -242,10 +248,12 @@ tooltip label {
     margin: 0;
 }
 
+/* Clock */
 #clock {
     color: @blue;
 }
 
+/* Animation module */
 #custom-animation {
     color: @blue;
     font-size: 15px;
@@ -269,6 +277,7 @@ tooltip label {
     opacity: 0.6;
 }
 
+/* Power button */
 #custom-power {
     color: @orange;
     font-size: 18px;

@@ -1,5 +1,5 @@
--- Look and feel, animations and misc.
--- See https://wiki.hypr.land/Configuring/Basics/Variables/
+-- Look and feel, animations, misc.
+-- https://wiki.hypr.land/Configuring/Basics/Variables/
 
 local colors = require("modules.colors")
 
@@ -15,10 +15,11 @@ hl.config({
 			inactive_border = colors.inactive_border,
 		},
 
-		-- Set to true to enable resizing windows by clicking and dragging on borders and gaps
-		resize_on_border = false,
+		-- Resize by dragging borders and gaps.
+		resize_on_border = true,
+		extend_border_grab_area = 15,
 
-		-- Please see https://wiki.hypr.land/Configuring/Advanced-and-Cool/Tearing/ before you turn this on
+		-- Read https://wiki.hypr.land/Configuring/Advanced-and-Cool/Tearing/ first.
 		allow_tearing = false,
 
 		layout = "dwindle",
@@ -28,7 +29,7 @@ hl.config({
 		rounding = 10,
 		rounding_power = 3,
 
-		-- Change transparency of focused and unfocused windows
+		-- Window transparency (focused / unfocused).
 		active_opacity = 0.9,
 		inactive_opacity = 0.8,
 
@@ -55,7 +56,7 @@ hl.config({
 	},
 })
 
--- Curves, see https://wiki.hypr.land/Configuring/Advanced-and-Cool/Animations/
+-- Bezier curves and springs (https://wiki.hypr.land/Configuring/Advanced-and-Cool/Animations/).
 hl.curve("easeOutQuint", { type = "bezier", points = { { 0.23, 1 }, { 0.32, 1 } } })
 hl.curve("easeInOutCubic", { type = "bezier", points = { { 0.65, 0.05 }, { 0.36, 1 } } })
 hl.curve("linear", { type = "bezier", points = { { 0, 0 }, { 1, 1 } } })

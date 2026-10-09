@@ -8,22 +8,22 @@ contrast = 0.0
 set = true
 command = "awww img --transition-type center --transition-duration 2 {{ image }}"
 
-# --- Hyprland lua colors (consumed by general.lua via require("modules.colors")) ---
+# --- Hyprland Lua colors (general.lua imports modules.colors) ---
 [templates.hypr]
 input_path = "~/.config/matugen/templates/hypr-colors.lua"
 output_path = "~/.config/hypr/modules/colors.lua"
 
-# --- Hyprlock color variables (sourced by hyprlock.conf) ---
+# --- Hyprlock (hyprlock.conf sources hyprlock-colors.conf) ---
 [templates.hyprlock]
 input_path = "~/.config/matugen/templates/hyprlock-colors.conf"
 output_path = "~/.config/hypr/hyprlock-colors.conf"
 
-# --- Waybar (one-dark variable mapping; style.css imports matugen.css first) ---
+# --- Waybar (one-dark names; style.css imports matugen.css first) ---
 [templates.waybar]
 input_path = "~/.config/matugen/templates/waybar-matugen.css"
 output_path = "~/.config/waybar/colors/matugen.css"
 
-# --- SwayNC (already imports matugen/colors.css in style.css) ---
+# --- SwayNC (style.css already imports matugen/colors.css) ---
 [templates.swaync]
 input_path = "~/.config/matugen/templates/swaync-colors.css"
 output_path = "~/.config/swaync/matugen/colors.css"
@@ -34,7 +34,7 @@ input_path = "~/.config/matugen/templates/kitty-colors.conf"
 output_path = "~/.config/kitty/themes/Matugen.conf"
 post_hook = "pkill -SIGUSR1 kitty || true"
 
-# --- Rofi shared palette (imported by launcher theme) ---
+# --- Rofi (launcher theme imports shared/colors.rasi) ---
 [templates.rofi]
 input_path = "~/.config/matugen/templates/rofi-colors.rasi"
 output_path = "~/.config/rofi/shared/colors.rasi"
@@ -59,7 +59,7 @@ input_path = "~/.config/matugen/templates/btop.theme"
 output_path = "~/.config/btop/themes/matugen.theme"
 post_hook = "pkill -USR2 btop 2>/dev/null || true"
 
-# --- Neovim palette for matugen.nvim (opt-in, NikaVim repo untouched) ---
+# --- Neovim palette for matugen.nvim (opt-in; repo untouched) ---
 [templates.nvim]
 input_path = "~/.config/matugen/templates/nvim-colors.json"
 output_path = "~/.config/matugen/themes/nvim-colors.json"
