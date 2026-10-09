@@ -1,10 +1,10 @@
-# Dotfiles
+# HyprYoru
 
-Arch Linux + GDM + Hyprland (Lua) desktop configuration with a matugen-driven system palette and a one-shot reproducer script.
+Arch Linux + GDM + Hyprland (Lua) desktop configuration with a matugen-driven system palette and a one-shot reproducer script ([ae-orlando/HyprYoru](https://github.com/ae-orlando/HyprYoru/tree/main)).
 
 ## Overview
 
-This repo holds the full desktop config (Hyprland, Waybar, Rofi, SwayNC, Kitty, btop, GTK/Qt, Waypaper, Zsh, Fastfetch) plus `install.sh`, which reapplies it on a fresh Arch machine. Matugen is the palette hub: one wallpaper run regenerates all app themes.
+HyprYoru holds the full desktop config (Hyprland, Waybar, Rofi, SwayNC, Kitty, btop, GTK/Qt, Waypaper, Zsh, Fastfetch) plus `install.sh`, which reapplies it on a fresh Arch machine. Matugen is the palette hub: one wallpaper run regenerates all app themes.
 
 ## Prerequisites
 
@@ -15,9 +15,11 @@ This repo holds the full desktop config (Hyprland, Waybar, Rofi, SwayNC, Kitty, 
 
 ## Installation
 
-Run `install.sh` from the repo root:
+Clone HyprYoru, then run `install.sh` from the repo root:
 
 ```bash
+git clone https://github.com/ae-orlando/HyprYoru.git ~/Dev/dotfiles
+cd ~/Dev/dotfiles
 ./install.sh --dry-run
 ./install.sh --profile full --yes
 ```
