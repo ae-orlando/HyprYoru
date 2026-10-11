@@ -1,4 +1,7 @@
 -- Primary output + fallback for anything else hot-plugged.
+-- by ae. Orlando
+-- _______________________________________________________________________
+
 -- https://wiki.hypr.land/Configuring/Basics/Monitors/
 hl.monitor({
 	output = "eDP-1",

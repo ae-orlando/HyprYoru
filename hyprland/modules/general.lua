@@ -1,4 +1,7 @@
 -- Look and feel, animations, misc.
+-- by ae. Orlando
+-- _______________________________________________________________________
+
 -- https://wiki.hypr.land/Configuring/Basics/Variables/
 
 local colors = require("modules.colors")

@@ -5,6 +5,7 @@
 * NOTE: red/orange/yellow/green pinned to one-dark for warning/critical
 * legibility — tertiary_fixed/secondary_fixed pastels were indistinguishable.
 * Only bg/fg/grey/blue/aqua/purple follow the wallpaper.
+* by ae. Orlando
 */
 @define-color bg0 {{colors.surface.default.hex}};
 @define-color bg1 {{colors.surface_container.default.hex}};

@@ -2,6 +2,7 @@
  * Matches rofi launcher.rasi (palette from matugen: @primary border on @surface glass).
  * Adapted for glass: 24px radius, 2px translucent primary border, alpha backgrounds.
  * Requires Hypr blur on swaync-control-center + swaync-notification-window.
+ * by ae. Orlando
  */
 
 @define-color text            @on_surface;

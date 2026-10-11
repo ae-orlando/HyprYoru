@@ -1,4 +1,7 @@
 -- Keybindings (descriptions double as the cheatsheet).
+-- by ae. Orlando
+-- _______________________________________________________________________
+
 -- https://wiki.hypr.land/Configuring/Basics/Binds/
 
 -- Programs

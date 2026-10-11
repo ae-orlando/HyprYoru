@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# by ae. Orlando
+# _______________________________________________________________________
+
 # Toggle hyprsunset blue-light filter: 6500K (off/neutral) <-> 4000K (warm).
 # Requires: pacman -S hyprsunset (daemon autostarted, see autostart.lua)
 set -euo pipefail

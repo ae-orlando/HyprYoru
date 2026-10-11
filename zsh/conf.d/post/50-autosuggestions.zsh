@@ -1,6 +1,7 @@
 # =======================================
 # AUTO SUGGESTIONS
-# =======================================
+# by ae. Orlando
+# _______________________________________________________________________
 
 if [[ -f /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh ]]; then
   source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh

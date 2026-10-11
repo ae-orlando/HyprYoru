@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# by ae. Orlando
+# _______________________________________________________________________
 
 dir="$HOME/.config/rofi/styles"
 theme='wifi-blue'

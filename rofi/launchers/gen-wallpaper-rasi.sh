@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# by ae. Orlando
+# _______________________________________________________________________
+
 # Generate rofi wallpaper-image variables for the yoru-main theme.
 # Mirrors ML4W generate_image_variants: downscaled + blurred wallpaper variant,
 # referenced with height scaling exactly like the reference implementation.

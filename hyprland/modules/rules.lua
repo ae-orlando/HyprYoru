@@ -1,4 +1,7 @@
 -- Window and workspace rules.
+-- by ae. Orlando
+-- _______________________________________________________________________
+
 -- https://wiki.hypr.land/Configuring/Basics/Window-Rules/
 
 -- Opt-in "no gaps on single window" presets (uncomment to use).

@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# Rofi bluetooth device menu (bluetoothctl).
+# by ae. Orlando
+# _______________________________________________________________________
+
 # Constants
 divider="---------"
 goback="Back"

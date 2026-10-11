@@ -1,6 +1,7 @@
 # ========
 # Aliases
-# ========
+# by ae. Orlando
+# _______________________________________________________________________
 
 # eza
 alias ls="eza -a --color=always --group-directories-first --icons=always"

@@ -1,3 +1,6 @@
+# by ae. Orlando
+# _______________________________________________________________________
+
 * {
     primary: {{colors.primary.default.hex}};
     primary-fixed: {{colors.primary_fixed.default.hex}};

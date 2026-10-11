@@ -1,4 +1,7 @@
 -- Layout settings (one block per enabled layout).
+-- by ae. Orlando
+-- _______________________________________________________________________
+
 -- https://wiki.hypr.land/Configuring/Basics/Variables/
 
 -- Dwindle (https://wiki.hypr.land/Configuring/Layouts/Dwindle-Layout/)

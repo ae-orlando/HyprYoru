@@ -1,4 +1,6 @@
 -- Autostart: apps launched once with the compositor.
+-- by ae. Orlando
+-- _______________________________________________________________________
 
 hl.on("hyprland.start", function()
     hl.exec_cmd("hyprctl setcursor Bibata-Modern-Classic 24")               -- cursor theme

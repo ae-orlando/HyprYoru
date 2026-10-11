@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# by ae. Orlando
+# _______________________________________________________________________
 
 # --- Configuration ---
 # System wallpaper dir (229 wallpapers). Falls back to repo walls.

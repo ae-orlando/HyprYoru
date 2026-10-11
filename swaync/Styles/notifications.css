@@ -2,6 +2,7 @@
  * Palette comes from matugen (@surface, @surface_container, @on_surface, @primary).
  * Glass: semi-transparent so Hypr blur shows through.
  * Enable blur: decoration:blur:enabled = true + layerrule blur, swaync-control-center
+ * by ae. Orlando
  */
 
 @define-color text            @on_surface;

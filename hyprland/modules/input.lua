@@ -1,4 +1,7 @@
 -- Input: keyboard, touchpad, gestures.
+-- by ae. Orlando
+-- _______________________________________________________________________
+
 -- https://wiki.hypr.land/Configuring/Basics/Variables/
 
 hl.config({

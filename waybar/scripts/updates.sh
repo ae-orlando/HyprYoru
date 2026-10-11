@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# by ae. Orlando
+# _______________________________________________________________________
+
 # Pending Arch update count for waybar custom/updates.
 # Repo checked every poll; AUR cached for 2h (yay -Qu is slow).
 # Emits error state instead of a false "up to date" when checks fail.

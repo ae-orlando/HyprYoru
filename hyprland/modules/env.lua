@@ -1,4 +1,7 @@
 -- Environment variables.
+-- by ae. Orlando
+-- _______________________________________________________________________
+
 -- https://wiki.hypr.land/Configuring/Advanced-and-Cool/Environment-variables/
 
 hl.env("XCURSOR_THEME", "Bibata-Modern-Classic")

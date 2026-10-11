@@ -1,6 +1,7 @@
 /*
 * Css Colors
 * Generated with Matugen from {{image}}
+* by ae. Orlando
 */
 <* for name, value in colors *>
     @define-color {{name}} {{value.default.hex}};

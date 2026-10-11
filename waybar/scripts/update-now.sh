@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# by ae. Orlando
+# _______________________________________________________________________
+
 # Full system update for waybar custom/updates on-click.
 # Refreshes the module immediately afterwards instead of waiting for the next poll.
 kitty -e yay -Syu

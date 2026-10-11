@@ -1,6 +1,8 @@
 # ============
 # Paths, editor
-# ============
+# by ae. Orlando
+# _______________________________________________________________________
+
 export ZSH="$HOME/.oh-my-zsh"
 export EDITOR="nvim"
 export VISUAL="nvim"

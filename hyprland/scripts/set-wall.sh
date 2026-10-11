@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# by ae. Orlando
+# _______________________________________________________________________
+
 # Set wallpaper + regenerate system-wide matugen palette.
 # Usage: set-wall.sh [/path/to/wallpaper] [--pick]
 #   No args      -> restore last wallpaper (or default anime3.png)

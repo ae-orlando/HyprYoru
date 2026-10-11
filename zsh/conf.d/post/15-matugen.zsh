@@ -4,6 +4,8 @@
 # Generated palette from ~/.config/matugen (see templates/shell-colors.sh).
 # Re-sourced automatically before each prompt when matugen rewrites it
 # (e.g. after ~/.config/hypr/scripts/set-wall.sh runs).
+# by ae. Orlando
+# _______________________________________________________________________
 
 if [[ -f "$ZDOTDIR/generated/colors.sh" ]]; then
   # eza uses terminal colors by design (no EZA_COLORS): make sure no stale

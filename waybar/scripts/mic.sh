@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# by ae. Orlando
+# _______________________________________________________________________
+
 # Mic indicator for waybar custom/mic.
 # Visible only when the source is muted or actively in use; idle otherwise.
 muted=false
