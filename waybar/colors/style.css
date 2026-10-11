@@ -104,6 +104,7 @@ tooltip label {
 #custom-mic,
 #network,
 #clock,
+#custom-clock-icon,
 #custom-notification,
 #custom-apps,
 #tray,
@@ -123,6 +124,7 @@ tooltip label {
 #custom-mic:hover,
 #network:hover,
 #clock:hover,
+#custom-clock-icon:hover,
 #custom-notification:hover,
 #custom-apps:hover,
 #tray:hover,
@@ -258,10 +260,29 @@ tooltip label {
     margin: 0;
 }
 
-/* Clock */
+/* Clock: time in fg, date dimmed via Pango alpha in format */
 #clock {
+    color: @fg;
+    font-size: 14px;
+}
+
+/* Clock icon: accent follows time of day */
+#custom-clock-icon {
     color: @blue;
     font-size: 14px;
+}
+
+#custom-clock-icon.day {
+    color: @yellow;
+}
+
+#custom-clock-icon.morning,
+#custom-clock-icon.evening {
+    color: @orange;
+}
+
+#custom-clock-icon.night {
+    color: @blue;
 }
 
 /* Tray at bar end keeps edge spacing */
