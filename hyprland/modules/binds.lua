@@ -1,4 +1,9 @@
--- Keybindings (descriptions double as the cheatsheet).
+--     ___  _         __
+--    / _ )(_)__  ___/ /__
+--   / _  / / _ \/ _  (_-<
+--  /____/_/_//_/\_,_/___/
+
+-- Keybindings
 -- by ae. Orlando
 -- _______________________________________________________________________
 
@@ -42,15 +47,15 @@ hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(waybarReload), { description = "Reloa
 hl.bind(mainMod .. " + Q", hl.dsp.window.close(), { description = "Close window" })
 
 hl.bind(
-	shiftMod .. " + Q",
-	hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch exit"),
-	{ description = "Quit Hyprland (hyprshutdown preferred)" }
+    shiftMod .. " + Q",
+    hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch exit"),
+    { description = "Quit Hyprland (hyprshutdown preferred)" }
 )
 hl.bind(mainMod .. " + T", hl.dsp.window.float({ action = "toggle" }), { description = "Toggle floating" })
 hl.bind(
-	shiftMod .. " + F",
-	hl.dsp.window.fullscreen({ mode = "maximized" }),
-	{ description = "Fullscreen (maximized)" }
+    shiftMod .. " + F",
+    hl.dsp.window.fullscreen({ mode = "maximized" }),
+    { description = "Fullscreen (maximized)" }
 )
 hl.bind(mainMod .. " + P", hl.dsp.window.pseudo(), { description = "Toggle pseudotile" })
 -- hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"))    -- dwindle only
@@ -68,36 +73,36 @@ hl.bind(shiftMod .. " + j", hl.dsp.window.move({ direction = "down" }), { descri
 
 -- Resize active window with SUPER + arrows
 hl.bind(
-	mainMod .. " + left",
-	hl.dsp.window.resize({ x = -50, y = 0, relative = true }),
-	{ repeating = true, description = "Resize left" }
+    mainMod .. " + left",
+    hl.dsp.window.resize({ x = -50, y = 0, relative = true }),
+    { repeating = true, description = "Resize left" }
 )
 hl.bind(
-	mainMod .. " + right",
-	hl.dsp.window.resize({ x = 50, y = 0, relative = true }),
-	{ repeating = true, description = "Resize right" }
+    mainMod .. " + right",
+    hl.dsp.window.resize({ x = 50, y = 0, relative = true }),
+    { repeating = true, description = "Resize right" }
 )
 hl.bind(
-	mainMod .. " + up",
-	hl.dsp.window.resize({ x = 0, y = -50, relative = true }),
-	{ repeating = true, description = "Resize up" }
+    mainMod .. " + up",
+    hl.dsp.window.resize({ x = 0, y = -50, relative = true }),
+    { repeating = true, description = "Resize up" }
 )
 hl.bind(
-	mainMod .. " + down",
-	hl.dsp.window.resize({ x = 0, y = 50, relative = true }),
-	{ repeating = true, description = "Resize down" }
+    mainMod .. " + down",
+    hl.dsp.window.resize({ x = 0, y = 50, relative = true }),
+    { repeating = true, description = "Resize down" }
 )
 
 -- Switch workspaces with mainMod + [0-9]
 -- Move active window to a workspace with mainMod + SHIFT + [0-9]
 for i = 1, 10 do
-	local key = i % 10 -- 10 maps to key 0
-	hl.bind(mainMod .. " + " .. key, hl.dsp.focus({ workspace = i }), { description = "Focus workspace " .. i })
-	hl.bind(
-		shiftMod .. " + " .. key,
-		hl.dsp.window.move({ workspace = i }),
-		{ description = "Move window to workspace " .. i }
-	)
+    local key = i % 10 -- 10 maps to key 0
+    hl.bind(mainMod .. " + " .. key, hl.dsp.focus({ workspace = i }), { description = "Focus workspace " .. i })
+    hl.bind(
+        shiftMod .. " + " .. key,
+        hl.dsp.window.move({ workspace = i }),
+        { description = "Move window to workspace " .. i }
+    )
 end
 
 -- Special workspace (scratchpad): SUPER + grave (the ` / ~ key below Esc) toggles it,
@@ -105,9 +110,9 @@ end
 -- (SUPER + SHIFT + S is reserved for region screenshots, bound below.)
 hl.bind(mainMod .. " + grave", hl.dsp.workspace.toggle_special("magic"), { description = "Toggle scratchpad" })
 hl.bind(
-	shiftMod .. " + grave",
-	hl.dsp.window.move({ workspace = "special:magic" }),
-	{ description = "Send window to scratchpad" }
+    shiftMod .. " + grave",
+    hl.dsp.window.move({ workspace = "special:magic" }),
+    { description = "Send window to scratchpad" }
 )
 
 -- Scroll through existing workspaces with mainMod + scroll
@@ -120,34 +125,34 @@ hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true, descr
 
 -- Laptop multimedia keys for volume and LCD brightness
 hl.bind(
-	"XF86AudioRaiseVolume",
-	hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"),
-	{ locked = true, repeating = true, description = "Volume up" }
+    "XF86AudioRaiseVolume",
+    hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"),
+    { locked = true, repeating = true, description = "Volume up" }
 )
 hl.bind(
-	"XF86AudioLowerVolume",
-	hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),
-	{ locked = true, repeating = true, description = "Volume down" }
+    "XF86AudioLowerVolume",
+    hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),
+    { locked = true, repeating = true, description = "Volume down" }
 )
 hl.bind(
-	"XF86AudioMute",
-	hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),
-	{ locked = true, repeating = true, description = "Mute toggle" }
+    "XF86AudioMute",
+    hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),
+    { locked = true, repeating = true, description = "Mute toggle" }
 )
 hl.bind(
-	"XF86AudioMicMute",
-	hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"),
-	{ locked = true, repeating = true, description = "Mic mute toggle" }
+    "XF86AudioMicMute",
+    hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"),
+    { locked = true, repeating = true, description = "Mic mute toggle" }
 )
 hl.bind(
-	"XF86MonBrightnessUp",
-	hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%+"),
-	{ locked = true, repeating = true, description = "Brightness up" }
+    "XF86MonBrightnessUp",
+    hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%+"),
+    { locked = true, repeating = true, description = "Brightness up" }
 )
 hl.bind(
-	"XF86MonBrightnessDown",
-	hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%-"),
-	{ locked = true, repeating = true, description = "Brightness down" }
+    "XF86MonBrightnessDown",
+    hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%-"),
+    { locked = true, repeating = true, description = "Brightness down" }
 )
 
 -- Requires playerctl
@@ -158,9 +163,9 @@ hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("playerctl previous"), { locked = true,
 
 -- Screenshots: region / fullscreen
 hl.bind(
-	mainMod .. " + SHIFT + S",
-	hl.dsp.exec_cmd('grim -g "$(slurp)" - | wl-copy'),
-	{ description = "Screenshot region to clipboard" }
+    mainMod .. " + SHIFT + S",
+    hl.dsp.exec_cmd('grim -g "$(slurp)" - | wl-copy'),
+    { description = "Screenshot region to clipboard" }
 )
 hl.bind(mainMod .. " + PRINT", hl.dsp.exec_cmd("grim - | wl-copy"), { description = "Screenshot screen to clipboard" })
 
@@ -170,16 +175,16 @@ hl.bind(mainMod .. " + U", hl.dsp.exec_cmd("hyprlock"), { description = "Lock sc
 
 -- Night light: toggle hyprsunset blue-light filter (6500K <-> 4000K)
 hl.bind(
-	mainMod .. " + N",
-	hl.dsp.exec_cmd("~/.config/hypr/scripts/nightlight.sh"),
-	{ description = "Toggle night light" }
+    mainMod .. " + N",
+    hl.dsp.exec_cmd("~/.config/hypr/scripts/nightlight.sh"),
+    { description = "Toggle night light" }
 )
 hl.bind(shiftMod .. " + N", hl.dsp.exec_cmd("swaync-client -t -sw"), { description = "Toggle notification center" })
 
 -- Wallpaper picker (waypaper GUI, selector only) + system palette via post_command (matugen)
 hl.bind(mainMod .. " + W", hl.dsp.exec_cmd("waypaper"), { description = "Pick wallpaper + regenerate palette" })
 hl.bind(
-	shiftMod .. " + W",
-	hl.dsp.exec_cmd("waypaper --random"),
-	{ description = "Random wallpaper + regenerate palette" }
+    shiftMod .. " + W",
+    hl.dsp.exec_cmd("waypaper --random"),
+    { description = "Random wallpaper + regenerate palette" }
 )
