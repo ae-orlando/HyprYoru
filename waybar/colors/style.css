@@ -88,9 +88,8 @@ tooltip label {
 #clock,
 #custom-animation,
 #custom-notification,
+#custom-updates,
 #custom-power,
-#custom-chat,
-#custom-whatsapp,
 #custom-apps,
 #tray,
 #bluetooth,
@@ -111,9 +110,8 @@ tooltip label {
 #clock:hover,
 #custom-animation:hover,
 #custom-notification:hover,
+#custom-updates:hover,
 #custom-power:hover,
-#custom-chat:hover,
-#custom-whatsapp:hover,
 #custom-apps:hover,
 #tray:hover,
 #bluetooth:hover,
@@ -190,14 +188,26 @@ tooltip label {
     color: @green;
 }
 
-#custom-whatsapp {
-    color: @green;
-    font-size: 16px;
+#custom-updates {
+    color: @yellow;
 }
 
-#custom-chat {
-    color: @fg;
-    font-size: 16px;
+#custom-updates.pending {
+    color: @yellow;
+}
+
+#custom-updates.error {
+    color: @red;
+}
+
+#custom-updates.hidden {
+    opacity: 0;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+    background-color: transparent;
+    border-color: transparent;
+    color: transparent;
 }
 
 #custom-apps {
@@ -246,6 +256,20 @@ tooltip label {
     border: none;
     padding: 0 4px;
     margin: 0;
+}
+
+#system #cpu.warning,
+#system #memory.warning,
+#system #disk.warning,
+#system #temperature.warning {
+    color: @yellow;
+}
+
+#system #cpu.critical,
+#system #memory.critical,
+#system #disk.critical,
+#system #temperature.critical {
+    color: @red;
 }
 
 /* Clock */
