@@ -1,10 +1,9 @@
 /*
 * Waybar Colors
 * Generated with Matugen from /home/orlando/Pictures/wallpapers/mystical-night-in-town.jpg
-* Maps Material You palette to one-dark variable names expected by colors/style.css
-* NOTE: red/orange/yellow/green pinned to one-dark for warning/critical
-* legibility — tertiary_fixed/secondary_fixed pastels were indistinguishable.
-* Only bg/fg/grey/blue/aqua/purple follow the wallpaper.
+* Maps Material You roles to variable names expected by colors/style.css.
+* All roles follow the wallpaper; no hardcoded colors.
+* by ae. Orlando
 */
 @define-color bg0 #0f1512;
 @define-color bg1 #1b211e;
@@ -12,13 +11,13 @@
 @define-color bg3 #404944;
 @define-color bg4 #89938d;
 
-@define-color red    #e06c75;
-@define-color orange #d19a66;
-@define-color yellow #e5c07b;
-@define-color green  #98c379;
-@define-color aqua   #a6cce0;
+@define-color red    #ffb4ab;
+@define-color orange #c2e8fd;
+@define-color yellow #cee9db;
+@define-color green  #a6cce0;
+@define-color aqua   #a6f2d2;
 @define-color blue   #8ad6b7;
-@define-color purple #a6f2d2;
+@define-color purple #b3ccbf;
 
 @define-color fg #dee4df;
 

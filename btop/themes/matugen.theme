@@ -1,4 +1,6 @@
 # Matugen template for btop - generated from /home/orlando/Pictures/wallpapers/mystical-night-in-town.jpg
+# by ae. Orlando
+# _______________________________________________________________________
 
 # Main background, empty for terminal default, need to be empty if you want transparent background
 theme[main_bg]=""

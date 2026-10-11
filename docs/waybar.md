@@ -16,7 +16,6 @@ Top bar. Config: `waybar/config.jsonc`. Style entry: `waybar/style.css` imports 
 | `style.css`           | Two `@import` lines for generated + static colors |
 | `colors/matugen.css`  | Generated palette                                 |
 | `colors/style.css`    | Static pill/workspaces styling                    |
-| `colors/one-dark.css` | Alternate static palette                          |
 | `network_menu.xml`    | `network` click menu                              |
 
 ## Scripts

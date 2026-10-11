@@ -27,7 +27,7 @@ output_path = "~/.config/hypr/modules/colors.lua"
 input_path = "~/.config/matugen/templates/hyprlock-colors.conf"
 output_path = "~/.config/hypr/hyprlock-colors.conf"
 
-# --- Waybar (one-dark names; style.css imports matugen.css first) ---
+# --- Waybar (material roles aliased; style.css imports matugen.css first) ---
 [templates.waybar]
 input_path = "~/.config/matugen/templates/waybar-matugen.css"
 output_path = "~/.config/waybar/colors/matugen.css"
