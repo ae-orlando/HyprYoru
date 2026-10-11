@@ -6,15 +6,15 @@
 
 1. p10k instant prompt.
 2. `conf.d/pre/*.zsh`:
-   - `01-env.zsh` (`ZSH`, `EDITOR`, `PATH`, `ZSH_THEME`, `fnm` guard).
+   - `01-env.zsh` (`ZSH`, `EDITOR`, `PATH`, `ZSH_THEME`, `fnm` guard, `PAGER`/`MANPAGER` via `bat --theme=ansi`, `BAT_THEME`/`BAT_STYLE`).
    - `02-plugins.zsh` (`git`, `archlinux`, `extract`, `sudo`, `gh`, `tmux`, `python`).
 3. `oh-my-zsh.sh`.
 4. `conf.d/post/*.zsh`:
-   - `10-aliases.zsh` (`eza`, `nvim`, `git`, `pacman`, `python`/`uv`).
+   - `10-aliases.zsh` (`eza`, `nvim`, `git`, `pacman`, `python`/`uv`, `bat`/`cat`, `diff --color`, `grep --color`).
    - `15-matugen.zsh` (sources `generated/colors.sh`, `precmd` reload).
    - `20-functions.zsh` (user functions).
    - `50-autosuggestions.zsh` (system plugin + `MATUGEN_AUTOSUGGEST` style).
-   - `99-syntaxh.zsh` (system plugin + 8-color token styles).
+   - `99-syntaxh.zsh` (system plugin + `main/brackets/pattern/cursor/regexp/root/line` highlighters, 8-color ANSI tokens, `rm -rf` pattern).
 5. `.p10k.zsh` (`$ZDOTDIR` first, `~/.p10k.zsh` fallback).
 
 ## Files
@@ -29,8 +29,8 @@
 | `conf.d/post/15-matugen.zsh`         | Palette reload hook                                  |
 | `conf.d/post/20-functions.zsh`       | Reserved for functions                               |
 | `conf.d/post/50-autosuggestions.zsh` | Ghost-text styling                                   |
-| `conf.d/post/99-syntaxh.zsh`         | Highlight token colors                               |
-| `generated/colors.sh`                | Generated `MATUGEN_AUTOSUGGEST` + `FZF_DEFAULT_OPTS` |
+| `conf.d/post/99-syntaxh.zsh`         | Highlight token colors + brackets/root/pattern     |
+| `generated/colors.sh`                | Generated `MATUGEN_AUTOSUGGEST` + `FZF_DEFAULT_OPTS` + preview |
 
 ## Provisioning
 

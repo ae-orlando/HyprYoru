@@ -13,3 +13,9 @@ export MATUGEN_AUTOSUGGEST="{{colors.outline_variant.default.hex}}"
 
 # --- fzf (hex palette, colors only; layout/keys untouched) ---
 export FZF_DEFAULT_OPTS="--color=fg:{{colors.on_surface.default.hex}},bg:{{colors.surface.default.hex}},hl:{{colors.primary.default.hex}},fg+:{{colors.on_primary_container.default.hex}},bg+:{{colors.surface_container_high.default.hex}},hl+:{{colors.primary.default.hex}},info:{{colors.on_surface_variant.default.hex}},prompt:{{colors.primary.default.hex}},pointer:{{colors.primary.default.hex}},marker:{{colors.secondary.default.hex}},spinner:{{colors.tertiary.default.hex}},header:{{colors.tertiary.default.hex}},border:{{colors.outline_variant.default.hex}},gutter:{{colors.surface.default.hex}},query:{{colors.on_surface.default.hex}}"
+
+# --- fzf preview + bat (syntax highlighting follows terminal via ansi theme) ---
+# BAT_THEME=ansi is set in conf.d/pre/01-env.zsh; preview uses bat so code,
+# diffs, and man pages highlight with the same Kitty/matugen ANSI slots.
+export FZF_CTRL_T_OPTS="--preview 'bat --color=always --style=numbers --line-range=:500 {}'"
+export FZF_ALT_C_OPTS="--preview 'eza --tree --level=2 --color=always --icons=always {}'"

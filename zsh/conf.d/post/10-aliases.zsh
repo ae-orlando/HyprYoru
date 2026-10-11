@@ -24,6 +24,10 @@ alias rm="rm -vI"
 alias mkd="mkdir -pv"
 
 alias grep="grep --color=auto"
+alias diff="diff --color=auto"
+alias less="less -R"
+alias cat="bat --style=plain --paging=never --theme=ansi"
+alias bat="bat --theme=ansi"
 alias df="df -h"
 alias free="free -m"
 
