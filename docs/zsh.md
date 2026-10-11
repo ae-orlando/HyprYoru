@@ -12,7 +12,7 @@
 4. `conf.d/post/*.zsh`:
    - `10-aliases.zsh` (`eza`, `nvim`, `git`, `pacman`, `python`/`uv`, `bat`/`cat`, `diff --color`, `grep --color`).
    - `15-matugen.zsh` (sources `generated/colors.sh`, `precmd` reload).
-   - `20-functions.zsh` (`ascii` figlet banner + clipboard).
+   - `20-functions.zsh` (`ascii` banner, `fonts` list, `shot` screenshots, `bak` backups).
    - `50-autosuggestions.zsh` (system plugin + `MATUGEN_AUTOSUGGEST` style).
    - `99-syntaxh.zsh` (system plugin + `main/brackets/pattern/cursor/regexp/root/line` highlighters, 8-color ANSI tokens, `rm -rf` pattern).
 5. `.p10k.zsh` (`$ZDOTDIR` first, `~/.p10k.zsh` fallback).
@@ -27,7 +27,7 @@
 | `conf.d/pre/02-plugins.zsh`          | OMZ plugin list                                      |
 | `conf.d/post/10-aliases.zsh`         | Aliases                                              |
 | `conf.d/post/15-matugen.zsh`         | Palette reload hook                                  |
-| `conf.d/post/20-functions.zsh`       | `ascii` banner generator                             |
+| `conf.d/post/20-functions.zsh`       | `ascii`, `fonts`, `shot`, `bak`                      |
 | `conf.d/post/50-autosuggestions.zsh` | Ghost-text styling                                   |
 | `conf.d/post/99-syntaxh.zsh`         | Highlight token colors + brackets/root/pattern     |
 | `generated/colors.sh`                | Generated `MATUGEN_AUTOSUGGEST` + `FZF_DEFAULT_OPTS` + preview |
