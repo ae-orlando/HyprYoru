@@ -484,7 +484,7 @@ PACMAN_CORE=(
   bluez bluez-utils bluetui networkmanager network-manager-applet modemmanager modem-manager-gui
   power-profiles-daemon brightnessctl playerctl
   kitty zsh zsh-autosuggestions zsh-syntax-highlighting zsh-completions
-  fastfetch btop eza fzf fd bat yazi neovim tmux
+  fastfetch btop eza fzf fd bat yazi neovim tmux figlet
   noto-fonts noto-fonts-emoji ttf-nerd-fonts-symbols
   ttf-jetbrains-mono ttf-jetbrains-mono-nerd ttf-go-nerd ttf-0xproto-nerd
   ttf-adwaitamono-nerd ttf-cascadia-code-nerd ttf-cousine-nerd ttf-d2coding-nerd
