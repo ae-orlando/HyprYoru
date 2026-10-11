@@ -4,10 +4,13 @@ Launcher + applets. Base config: `rofi/config.rasi` (`modi: drun,run,filebrowser
 
 ## Launchers
 
-| Path                               | Purpose                              |
-| ---------------------------------- | ------------------------------------ |
-| `launchers/type-6/launcher.sh`     | App launcher (`style-9.rasi`)        |
-| `launchers/type-6/launcher_run.sh` | Run prompt (`style-9.rasi`)          |
+| Path                               | Purpose                                              |
+| ---------------------------------- | ---------------------------------------------------- |
+| `launchers/yoru-main.sh`           | App launcher, default (`yoru-main.rasi`)             |
+| `launchers/yoru-run.sh`            | Run prompt, default (`yoru-main.rasi`)               |
+| `launchers/gen-wallpaper-rasi.sh`  | Generates `~/.cache/rofi/current-wallpaper.rasi` (called from `set-wall.sh`) |
+| `launchers/type-6/launcher.sh`     | App launcher, fallback (`style-9.rasi`)              |
+| `launchers/type-6/launcher_run.sh` | Run prompt, fallback (`style-9.rasi`)                |
 | `launchers/type-6/style-*.rasi`    | 10 type-6 themes (`style-9` active)  |
 | `launchers/launcher.sh`            | Alt launcher (`styles/launcher`)     |
 | `launchers/powermenu.sh`           | Lock/logout/suspend/hibernate/reboot |
@@ -24,6 +27,7 @@ Launcher + applets. Base config: `rofi/config.rasi` (`modi: drun,run,filebrowser
 | `shared/colors.rasi`      | Generated palette (matugen)                |
 | `shared/fonts.rasi`       | Shared font                                |
 | `shared/theme.bash`       | `applets.rasi` selector for applet scripts |
+| `styles/yoru-main.rasi`   | Main theme (ML4W-inspired, `ae. Orlando`; matugen colors) |
 | `styles/launcher.rasi`    | Full launcher theme                        |
 | `styles/applets.rasi`     | Applet theme                               |
 | `styles/wifi-blue.rasi`   | Wi-Fi/Bluetooth menu theme                 |
@@ -32,7 +36,8 @@ Launcher + applets. Base config: `rofi/config.rasi` (`modi: drun,run,filebrowser
 ## Commands
 
 ```bash
-~/.config/rofi/launchers/type-6/launcher.sh
+~/.config/rofi/launchers/yoru-main.sh
+~/.config/rofi/launchers/yoru-run.sh
 ~/.config/rofi/launchers/powermenu.sh
 ~/.config/rofi/launchers/wifi.sh
 rofi -dump-config
@@ -40,6 +45,6 @@ rofi -dump-config
 
 ## Notes
 
+- Default bindings: SUPER+Space app launcher, SHIFT+SUPER+Space run prompt (`hyprland/modules/binds.lua`); Waybar `custom/apps` also opens `yoru-main.sh`. Type-6 stays as fallback.
 - `install.sh` forces `+x` on `launchers/*.sh`, `type-6/*.sh`, `rofi-bluetooth` (repo has two `644` files).
 - `type-6/style-9.rasi` references `~/.config/rofi/images/i.jpg`, which does not exist (blank imagebox, harmless).
-- `*.bak-*` files under `shared/` and `styles/` are local debris.

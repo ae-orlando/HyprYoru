@@ -33,7 +33,7 @@ Lua config (`~/.config/hypr/hyprland.lua`). One topic per module; reload with `h
 | `hypridle.conf`         | Idle daemon (`lock_cmd = pidof hyprlock`)     |
 | `hyprlock.conf`         | Lock screen, sources `hyprlock-colors.conf`   |
 | `hyprlock-colors.conf`  | Generated palette                             |
-| `scripts/set-wall.sh`   | Wallpaper + `matugen` + bar reloads           |
+| `scripts/set-wall.sh`   | Wallpaper + `matugen` + rofi wallpaper rasi + bar reloads |
 | `scripts/nightlight.sh` | `hyprsunset` 6500K/4000K toggle               |
 | `whatsong.sh`           | Now-playing for hyprlock (`playerctl`)        |
 | `wallpapers/`           | 10 seed wallpapers                            |
@@ -52,4 +52,3 @@ hyprctl monitors
 
 - `monitors.lua` hardcodes one `eDP-1` mode; untracked monitors use the empty-output fallback.
 - `autostart.lua` expects `polkit-gnome-authentication-agent-1`, `nm-applet --indicator`, `hyprsunset`, `awww-daemon`.
-- `*.bak-*` files under `modules/` are local debris, not part of the config.

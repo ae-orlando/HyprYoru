@@ -1054,7 +1054,7 @@ phase_verify() {
   say "Binaries referenced by binds/autostart/waybar/swaync:"
   for b in kitty nautilus chromium spotify rofi hyprctl hyprlock hypridle hyprsunset \
     waybar swaync swaync-client nm-applet polkit-gnome-authentication-agent-1 awww-daemon \
-    grim slurp wl-copy playerctl wpctl brightnessctl waypaper matugen \
+    grim slurp wl-copy playerctl wpctl brightnessctl waypaper matugen magick \
     pavucontrol bluetoothctl nmcli checkupdates; do
     if [[ "$b" == "polkit-gnome-authentication-agent-1" ]]; then
       if [[ -x /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 ]]; then vpass "$b"; else vfail "$b"; fi
@@ -1077,6 +1077,7 @@ phase_verify() {
   if command -v zsh >/dev/null 2>&1 && zsh -n "$HOME/.config/zsh/.zshrc" 2>/dev/null; then vpass "zshrc syntax"; else vwarn "zshrc syntax unchecked"; fi
   if command -v fc-list >/dev/null 2>&1 && fc-list | grep -qi "JetBrainsMono Nerd"; then vpass "JetBrains Nerd font"; else vwarn "JetBrains Nerd font not found"; fi
   if fc-list 2>/dev/null | grep -qi "GoMono Nerd"; then vpass "GoMono Nerd font"; else vwarn "GoMono Nerd font not found (hyprlock labels)"; fi
+  if fc-list 2>/dev/null | grep -qi "MartianMono Nerd"; then vpass "MartianMono Nerd font"; else vwarn "MartianMono Nerd font not found (yoru rofi theme)"; fi
   say "Services (enabled?):"
   for svc in gdm.service NetworkManager.service bluetooth.service power-profiles-daemon.service reflector.timer; do
     if systemctl is-enabled "$svc" 2>/dev/null | grep -q "enabled"; then vpass "$svc enabled"; else vwarn "$svc not enabled"; fi

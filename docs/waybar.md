@@ -4,9 +4,9 @@ Top bar. Config: `waybar/config.jsonc`. Style entry: `waybar/style.css` imports 
 
 ## Layout
 
-- Left: `custom/apps`, `tray`, `bluetooth`, `pulseaudio`, `custom/mic`, `custom/active-app`.
-- Center: `clock`, `hyprland/workspaces`, `custom/notification`, `custom/caps`.
-- Right: `network`, `group/system`, `power-profiles-daemon`, `battery`, `custom/power`.
+- Left: `custom/apps` (opens `yoru-main.sh`), `hyprland/workspaces`.
+- Center: `bluetooth`, `clock`, `custom/notification`.
+- Right: `network`, `group/audio` (`pulseaudio` + `custom/mic` drawer), `battery`, `power-profiles-daemon`, `tray`.
 
 ## Files
 
@@ -18,20 +18,15 @@ Top bar. Config: `waybar/config.jsonc`. Style entry: `waybar/style.css` imports 
 | `colors/style.css`    | Static pill/workspaces styling                    |
 | `colors/one-dark.css` | Alternate static palette                          |
 | `network_menu.xml`    | `network` click menu                              |
-| `power_menu.xml`      | `custom/power` click menu                         |
-| `config.back`         | Inactive backup config                            |
 
 ## Scripts
 
-| Script                        | Purpose                                   |
-| ----------------------------- | ----------------------------------------- |
-| `scripts/mic.sh`              | `custom/mic` source mute/active state     |
-| `scripts/caps.sh`             | `custom/caps` Caps Lock indicator         |
-| `scripts/updates.sh`          | `checkupdates` + `yay` pending-count JSON |
-| `scripts/update-now.sh`       | Full `yay -Syu` in kitty + module refresh |
-| `scripts/animation.sh`        | `custom/animation` frames                 |
-| `scripts/animation-toggle.sh` | Cycle animation mode                      |
-| `scripts/launch.sh`           | Hard restart `waybar` + `swaync`          |
+| Script              | Purpose                                              |
+| ------------------- | ---------------------------------------------------- |
+| `scripts/mic.sh`    | `custom/mic` source mute/active state                |
+| `scripts/updates.sh`  | Dormant: pending-count JSON, hidden unless >100 updates and unwired (no `custom/updates` module) |
+| `scripts/update-now.sh` | Dormant: paired `yay -Syu` runner for `updates.sh` |
+| `scripts/launch.sh` | Hard restart `waybar` + `swaync`                     |
 
 ## Commands
 
