@@ -10,7 +10,7 @@
     "modules-center": [
         "bluetooth",
         "clock",
-        "custom/notification",
+        "custom/notification"
     ],
 
     "modules-right": [
@@ -95,8 +95,8 @@
     },
 
     "clock": {
-        "format": "{:%H:%M}",
-        "format-alt": "{:%A, %B %d, %Y (%R)}",
+        "format": " {:%H:%M}",
+        "format-alt": " {:%A, %B %d, %Y (%R)}",
         "tooltip": false,
         "actions": {
             "on-click-forward": "tz_up",
