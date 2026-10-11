@@ -17,7 +17,7 @@ fi
 repo=$(echo "$repo_out" | grep -c .)
 
 aur_note=""
-if [ -f "$AUR_CACHE" ] && [ $(( $(date +%s) - $(stat -c %Y "$AUR_CACHE") )) -lt "$AUR_TTL" ]; then
+if [ -f "$AUR_CACHE" ] && [ $(($(date +%s) - $(stat -c %Y "$AUR_CACHE"))) -lt "$AUR_TTL" ]; then
     aur=$(cat "$AUR_CACHE")
     aur_note=" (AUR cached)"
 else
@@ -26,7 +26,7 @@ else
     aur_err=$(cat /tmp/waybar-aur-err 2>/dev/null)
     if [ "$aur_status" -eq 0 ] || { [ "$aur_status" -eq 1 ] && [ -z "$aur_err" ]; }; then
         aur=$(echo "$aur_out" | grep -c .)
-        echo "$aur" > "$AUR_CACHE"
+        echo "$aur" >"$AUR_CACHE"
     elif [ -f "$AUR_CACHE" ]; then
         aur=$(cat "$AUR_CACHE")
         aur_note=" (AUR stale: check failed)"
@@ -37,7 +37,7 @@ else
 fi
 
 total=$((repo + aur))
-if [ "$total" -gt 0 ]; then
+if [ "$total" -gt 100 ]; then
     printf '{"text": "󰚰 %s", "class": "pending", "tooltip": "%s repo + %s AUR updates%s (click to update)"}' "$total" "$repo" "$aur" "$aur_note"
 else
     printf '{"text": "", "class": "hidden", "tooltip": "System up to date"}'
