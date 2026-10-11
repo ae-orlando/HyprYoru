@@ -45,5 +45,5 @@ alias remove="sudo pacman -Rns"
 alias py="python"
 alias venv="uv venv .venv && source .venv/bin/activate"
 
-alias ports="sudo netstat -tulanp"
+alias ports="sudo ss -tulanp"
 alias renet="sudo systemctl restart NetworkManager"

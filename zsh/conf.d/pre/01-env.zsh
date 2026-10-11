@@ -30,3 +30,10 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 if command -v fnm >/dev/null 2>&1; then
   eval "$(fnm env --use-on-cd --shell zsh)"
 fi
+
+# ============
+# direnv (guarded: silent when absent)
+# ============
+if command -v direnv >/dev/null 2>&1; then
+  eval "$(direnv hook zsh)"
+fi
