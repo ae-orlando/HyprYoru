@@ -1,6 +1,8 @@
 #!/bin/bash
-# Reload waybar + swaync (SUPER+R). Uses in-place reload to keep
-# tray and notification state.
-pkill -SIGUSR2 waybar || (waybar &)
+# Hard restart waybar + swaync (SUPER+R). Drops tray and notification
+# state; prefer SIGUSR2 / swaync-client -rs for theme-only reloads.
+killall -9 waybar
+waybar &
 
-swaync-client -rs || (swaync &)
+killall -9 swaync
+swaync &

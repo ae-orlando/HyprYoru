@@ -2,6 +2,9 @@
 * Waybar Colors
 * Generated with Matugen from {{image}}
 * Maps Material You palette to one-dark variable names expected by colors/style.css
+* NOTE: red/orange/yellow/green pinned to one-dark for warning/critical
+* legibility — tertiary_fixed/secondary_fixed pastels were indistinguishable.
+* Only bg/fg/grey/blue/aqua/purple follow the wallpaper.
 */
 @define-color bg0 {{colors.surface.default.hex}};
 @define-color bg1 {{colors.surface_container.default.hex}};
@@ -9,10 +12,10 @@
 @define-color bg3 {{colors.surface_variant.default.hex}};
 @define-color bg4 {{colors.outline.default.hex}};
 
-@define-color red    {{colors.error.default.hex}};
-@define-color orange {{colors.tertiary_fixed.default.hex}};
-@define-color yellow {{colors.secondary_fixed.default.hex}};
-@define-color green  {{colors.secondary.default.hex}};
+@define-color red    #e06c75;
+@define-color orange #d19a66;
+@define-color yellow #e5c07b;
+@define-color green  #98c379;
 @define-color aqua   {{colors.tertiary.default.hex}};
 @define-color blue   {{colors.primary.default.hex}};
 @define-color purple {{colors.primary_fixed.default.hex}};

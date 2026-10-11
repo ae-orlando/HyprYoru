@@ -7,7 +7,8 @@
         "tray",
         "bluetooth",
         "pulseaudio",
-        "custom/mic"
+        "custom/mic",
+        "custom/active-app"
     ],
 
     "modules-center": [
@@ -20,7 +21,6 @@
     "modules-right": [
         "network",
         "group/system",
-        "custom/updates",
         "power-profiles-daemon",
         "battery",
         "custom/power"
@@ -41,6 +41,12 @@
     "hyprland/workspaces": {
         "format": "{icon}",
         "on-click": "activate",
+        "sort-by-number": true,
+        "all-outputs": false,
+        "active-only": false,
+        "show-special": false,
+        "on-scroll-up": "hyprctl dispatch workspace e-1",
+        "on-scroll-down": "hyprctl dispatch workspace e+1",
         "format-icons": {
             "1": "",
             "2": "",
@@ -62,11 +68,25 @@
         }
     },
 
+    "custom/whatsapp": {
+        "format": "",
+        "tooltip": false,
+        "on-click": "chromium --app=https://web.whatsapp.com"
+    },
+
+    "custom/chat": {
+        "format": "󰊯",
+        "tooltip": false,
+        "on-click": "chromium --app=https://chatgpt.com"
+    },
+
     "pulseaudio": {
         "format": "{icon} {volume}%",
         "format-bluetooth": "{icon} {volume}%",
         "format-muted": "󰖁",
         "format-icons": {
+            "alsa_output.pci-0000_00_1f.3.analog-stereo": "󰕾",
+            "alsa_output.pci-0000_00_1f.3.analog-stereo-muted": "󰖁",
             "headphone": "",
             "hands-free": "󰋋",
             "headset": "󰋋",
@@ -100,7 +120,20 @@
     "clock": {
         "format": "{:%H:%M}",
         "format-alt": "{:%A, %B %d, %Y (%R)}",
-        "tooltip-format": "{:%A, %B %d, %Y (%R)}"
+        "tooltip": false,
+        "actions": {
+            "on-click-forward": "tz_up",
+            "on-click-backward": "tz_down"
+        }
+    },
+    "custom/animation": {
+        "format": "{}",
+        "return-type": "json",
+        "escape": false,
+        "exec": "~/.config/waybar/scripts/animation.sh",
+        "on-click": "~/.config/waybar/scripts/animation-toggle.sh",
+        "on-click-right": "sh -c 'if [ -f /tmp/waybar-animation-paused ]; then rm /tmp/waybar-animation-paused; else touch /tmp/waybar-animation-paused; fi'",
+        "tooltip": true
     },
 
     "battery": {
@@ -117,7 +150,7 @@
         "format": "{capacity}% {icon}",
         "format-charging": "{capacity}% 󱐌",
         "format-plugged": "{capacity}% 󱐌",
-        "format-full": "{capacity}% 󱐌",
+        "format-full": "{capacity} 󱐌",
         "tooltip-format": "{timeTo} - {capacity}%",
         "format-icons": {
             "default": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
@@ -142,16 +175,6 @@
         "on-click": "swaync-client -t -sw",
         "on-click-right": "swaync-client -d -sw",
         "escape": true
-    },
-
-    "custom/updates": {
-        "format": "{}",
-        "return-type": "json",
-        "interval": 1800,
-        "exec": "~/.config/waybar/scripts/updates.sh",
-        "on-click": "~/.config/waybar/scripts/update-now.sh",
-        "signal": 8,
-        "tooltip": true
     },
 
     "network": {
@@ -218,7 +241,7 @@
         "format": "󰻠 {usage}%",
         "format-warning": "󰻠 {usage}%",
         "format-critical": "󰻠 {usage}%",
-        "tooltip-format": "CPU {usage}% | Load {load1} {load5} {load15} (right-click for btop)",
+        "tooltip-format": "CPU {usage}% | Load {load1} {load5} {load15} (click to expand)",
         "interval": 2,
         "states": {
             "warning": 70,
@@ -271,8 +294,8 @@
         "menu": "on-click",
         "menu-file": "~/.config/waybar/power_menu.xml",
         "menu-actions": {
-            "shutdown": "systemctl poweroff",
-            "reboot": "systemctl reboot",
+            "shutdown": "shutdown",
+            "reboot": "reboot",
             "suspend": "systemctl suspend",
             "hibernate": "systemctl hibernate"
         }

@@ -22,6 +22,7 @@ output_path = "~/.config/hypr/hyprlock-colors.conf"
 [templates.waybar]
 input_path = "~/.config/matugen/templates/waybar-matugen.css"
 output_path = "~/.config/waybar/colors/matugen.css"
+post_hook = "pkill -SIGUSR2 waybar || true"
 
 # --- SwayNC (style.css already imports matugen/colors.css) ---
 [templates.swaync]
