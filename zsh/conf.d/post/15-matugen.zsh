@@ -1,11 +1,15 @@
-# =======================================
-# MATUGEN SHELL COLORS (eza + fzf)
-# =======================================
+#     __  ___     __                     ______       _________     __
+#    /  |/  /__ _/ /___ _____ ____ ___  / __/ /  ___ / / / ___/__  / /__  _______
+#   / /|_/ / _ `/ __/ // / _ `/ -_) _ \_\ \/ _ \/ -_) / / /__/ _ \/ / _ \/ __(_-<
+#  /_/  /_/\_,_/\__/\_,_/\_, /\__/_//_/___/_//_/\__/_/_/\___/\___/_/\___/_/ /___/
+#                       /___/
+
 # Generated palette from ~/.config/matugen (see templates/shell-colors.sh).
-# Re-sourced automatically before each prompt when matugen rewrites it
-# (e.g. after ~/.config/hypr/scripts/set-wall.sh runs).
 # by ae. Orlando
 # _______________________________________________________________________
+
+# Re-sourced automatically before each prompt when matugen rewrites it
+# (e.g. after ~/.config/hypr/scripts/set-wall.sh runs).
 
 if [[ -f "$ZDOTDIR/generated/colors.sh" ]]; then
   # eza uses terminal colors by design (no EZA_COLORS): make sure no stale
