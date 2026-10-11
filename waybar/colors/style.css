@@ -32,7 +32,7 @@ tooltip label {
 /* Workspaces */
 #workspaces {
     background-color: @bg0;
-    padding: 5px 6px;
+    padding: 5px 8px;
     margin: 0 0 0 12px;
     border-radius: 45px;
     border: 1px solid @bg3;
@@ -40,7 +40,7 @@ tooltip label {
 }
 
 #workspaces button {
-    padding: 0px 8px;
+    padding: 0px 10px;
     margin: 0px 2px;
     border-radius: 45px;
     color: @grey0;
@@ -49,20 +49,27 @@ tooltip label {
     box-shadow: inset 0 -2px transparent;
     font-size: 14px;
     min-width: 30px;
-    transition: all 0.3s ease-in-out;
+    transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out, box-shadow 0.3s ease-in-out, opacity 0.3s ease-in-out, border-color 0.3s ease-in-out;
 }
 
 #workspaces button.empty {
-    opacity: 0.55;
+    opacity: 0.5;
+    border-color: transparent;
 }
 
 #workspaces button.persistent {
-    opacity: 0.75;
+    opacity: 0.8;
+    border-color: transparent;
 }
 
 #workspaces button.visible {
     color: @fg;
     opacity: 1;
+    border-color: transparent;
+}
+
+#workspaces button.hosting-monitor {
+    border-color: transparent;
 }
 
 #workspaces button.active {
@@ -77,14 +84,14 @@ tooltip label {
 #workspaces button:hover {
     background-color: @bg1;
     color: @fg;
-    border: 1px solid @bg3;
+    border-color: transparent;
     box-shadow: inset 0 -2px @purple;
 }
 
 #workspaces button.urgent {
     background-color: @bg1;
     color: @red;
-    border: 1px solid @bg3;
+    border-color: transparent;
     box-shadow: inset 0 -2px @red;
     opacity: 1;
 }
@@ -99,6 +106,7 @@ tooltip label {
 #custom-caps,
 #network,
 #clock,
+#window,
 #custom-animation,
 #custom-notification,
 #custom-power,
@@ -108,6 +116,9 @@ tooltip label {
 #tray,
 #bluetooth,
 #battery,
+#connectivity,
+#audio,
+#power,
 #power-profiles-daemon {
     background-color: @bg0;
     padding: 0 15px 0 15px;
@@ -122,6 +133,7 @@ tooltip label {
 #custom-caps:hover,
 #network:hover,
 #clock:hover,
+#window:hover,
 #custom-animation:hover,
 #custom-notification:hover,
 #custom-power:hover,
@@ -132,6 +144,9 @@ tooltip label {
 #bluetooth:hover,
 #battery:hover,
 #power-profiles-daemon:hover,
+#connectivity:hover,
+#audio:hover,
+#power:hover,
 #system:hover {
     background-color: @bg1;
     border-color: @blue;
@@ -220,12 +235,26 @@ tooltip label {
 
 #bluetooth {
     color: @blue;
-    font-size: 18px;
+    font-size: 16px;
+}
+
+#bluetooth.off,
+#bluetooth.disabled {
+    color: @grey0;
+    opacity: 0.6;
+}
+
+#bluetooth.on {
+    color: @blue;
+}
+
+#bluetooth.connected {
+    color: @green;
 }
 
 #power-profiles-daemon {
-    color: @aqua;
-    font-size: 18px;
+    color: @fg;
+    font-size: 16px;
     font-weight: bold;
 }
 
@@ -234,7 +263,7 @@ tooltip label {
 }
 
 #power-profiles-daemon.balanced {
-    color: @aqua;
+    color: @blue;
 }
 
 #power-profiles-daemon.power-saver {
@@ -259,6 +288,36 @@ tooltip label {
     border: none;
     padding: 0 4px;
     margin: 0;
+}
+
+/* Grouped connectivity/audio/power drawers */
+#connectivity,
+#audio,
+#power {
+    color: @fg;
+    background-color: @bg0;
+    padding: 0 8px 0 8px;
+    margin: 0 0 0 12px;
+    border-radius: 45px;
+    border: 1px solid @bg3;
+}
+
+#connectivity #network,
+#connectivity #bluetooth,
+#audio #pulseaudio,
+#audio #custom-mic,
+#power #battery,
+#power #power-profiles-daemon {
+    background: transparent;
+    border: none;
+    padding: 0 4px;
+    margin: 0;
+}
+
+/* Active window title */
+#window {
+    color: @grey1;
+    font-weight: normal;
 }
 
 /* Clock */
@@ -294,5 +353,10 @@ tooltip label {
 #custom-power {
     color: @orange;
     font-size: 18px;
+    margin: 0 0 0 12px;
+}
+
+/* Tray at bar end keeps edge spacing */
+#tray {
     margin: 0 12px 0 12px;
 }

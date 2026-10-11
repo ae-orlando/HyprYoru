@@ -4,26 +4,21 @@
 
     "modules-left": [
         "custom/apps",
-        "tray",
-        "bluetooth",
-        "pulseaudio",
-        "custom/mic",
-        "custom/active-app"
+        "hyprland/workspaces"
     ],
 
     "modules-center": [
         "clock",
-        "hyprland/workspaces",
         "custom/notification",
-        "custom/caps"
+        "bluetooth"
     ],
 
     "modules-right": [
         "network",
-        "group/system",
-        "power-profiles-daemon",
+        "group/audio",
         "battery",
-        "custom/power"
+        "power-profiles-daemon",
+        "tray"
     ],
 
     "custom/apps": {
@@ -44,7 +39,10 @@
         "sort-by-number": true,
         "all-outputs": false,
         "active-only": false,
-        "show-special": false,
+        "show-empty": true,
+        "show-special": true,
+        "special-visible-only": true,
+        "move-to-monitor": true,
         "on-scroll-up": "hyprctl dispatch workspace e-1",
         "on-scroll-down": "hyprctl dispatch workspace e+1",
         "format-icons": {
@@ -59,12 +57,22 @@
             "9": "󰠖",
             "10": "",
 
-            "active": "󰚀",
             "default": ""
         },
         "persistent-workspaces": {
-            "*": 5,
+            "*": 3,
             "HDMI-A-1": 3
+        }
+    },
+
+    "hyprland/window": {
+        "format": "{title}",
+        "max-length": 40,
+        "separate-outputs": true,
+        "rewrite": {
+            "firefox": "Fox",
+            "code": "Code",
+            "kitty": "Terminal"
         }
     },
 
@@ -204,10 +212,15 @@
 
     "bluetooth": {
         "format": "󰂯",
-        "format-connected": "󰂱",
+        "format-on": "󰂯",
+        "format-connected": "󰂱 {num_connections}",
+        "format-connected-battery": "󰂱 {device_alias} {device_battery_percentage}%",
         "format-disabled": "󰂲",
         "format-off": "󰂲",
-        "tooltip-format": "{status} - {device_alias}\\n{controller_alias}\\t{controller_address}",
+        "tooltip-format": "{controller_alias}\t{controller_address}\n\n{num_connections} connected",
+        "tooltip-format-connected": "{controller_alias}\t{controller_address}\n\n{num_connections} connected\n\n{device_enumerate}",
+        "tooltip-format-enumerate-connected": "{device_alias}\t{device_address}",
+        "tooltip-format-connected-battery": "{controller_alias}\t{controller_address}\n\n{num_connections} connected\n\n{device_enumerate}",
         "on-click": "sh -c 'bluetoothctl show | grep -q \"Powered: yes\" && bluetoothctl power off || bluetoothctl power on'"
     },
 
@@ -220,7 +233,21 @@
             "performance": "󰓅",
             "balanced": "󰾅",
             "power-saver": "󰾆"
-        }
+        },
+        "on-click": "sh -c 'p=$(powerprofilesctl get); case $p in performance) powerprofilesctl set balanced;; balanced) powerprofilesctl set power-saver;; *) powerprofilesctl set performance;; esac'",
+        "on-click-right": "powerprofilesctl set balanced"
+    },
+
+    "group/audio": {
+        "orientation": "horizontal",
+        "drawer": {
+            "transition-duration": 500,
+            "children-class": "audio"
+        },
+        "modules": [
+            "pulseaudio",
+            "custom/mic"
+        ]
     },
 
     "group/system": {
@@ -230,7 +257,6 @@
             "children-class": "system"
         },
         "modules": [
-            "cpu",
             "memory",
             "disk",
             "temperature"
