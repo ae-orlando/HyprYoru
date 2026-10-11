@@ -55,4 +55,10 @@
     urgent:         var(error);
     /* Translucent window scrim: surface at 75% alpha (was #151218BF) */
     scrim:          #0f1512BF;
+    /* Soft scrim for the app-list pane: surface at 50% alpha */
+    scrim-soft:     #0f151280;
+    /* Strong scrim: surface at 85% alpha */
+    scrim-strong:   #0f1512D9;
+    /* Accent veil for the photo pane: signature primary at 25% alpha */
+    primary-veil:   #8ad6b740;
 }

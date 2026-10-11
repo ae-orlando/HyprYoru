@@ -58,6 +58,9 @@ echo "$WALL" > "$CACHE_WALL"
 mkdir -p "$(dirname "$HYPRLOCK_WALL")"
 cp -f "$WALL" "$HYPRLOCK_WALL"
 
+# Regenerate rofi wallpaper-image variables for the yoru-main theme.
+"$HOME/.config/rofi/launchers/gen-wallpaper-rasi.sh" "$WALL" 2>/dev/null || true
+
 # matugen sets wallpaper via [config.wallpaper] (awww) + writes all templates
 matugen image "$WALL" --mode dark --type scheme-tonal-spot --prefer closest-to-fallback
 

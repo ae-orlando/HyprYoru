@@ -24,7 +24,7 @@
     "custom/apps": {
         "format": "",
         "tooltip": false,
-        "on-click": "~/.config/rofi/launchers/type-6/launcher.sh"
+        "on-click": "~/.config/rofi/launchers/yoru-main.sh"
     },
 
     "tray": {
