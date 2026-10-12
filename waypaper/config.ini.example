@@ -1,4 +1,6 @@
 [Settings]
+# backend=none: waypaper never sets wallpaper itself; post_command hands
+# off to set-wall.sh, which runs awww (center 2s) then matugen palette-only.
 backend = none
 folder = ~/Pictures/wallpapers
 monitors = All
@@ -18,12 +20,8 @@ slideshow_interval = 60
 slideshow_enabled = False
 show_slideshow_panel = False
 number_of_columns = 3
-swww_transition_type = any
-swww_filter = Lanczos3
-swww_transition_step = 63
-swww_transition_angle = 0
-swww_transition_duration = 2
-swww_transition_fps = 60
+# NOTE: swww_* keys are ignored with backend=none (awww owns the transition
+# in set-wall.sh); kept out of the seed to avoid swww/awww confusion.
 mpvpaper_sound = False
 mpvpaper_options = 
 use_xdg_state = False

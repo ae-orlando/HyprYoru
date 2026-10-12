@@ -8,6 +8,12 @@
 #   --pick       -> rofi list picker on ~/Pictures/wallpapers
 set -euo pipefail
 
+# Serialize concurrent runs (waypaper monitors=All can fire post_command
+# more than once per pick); second invocation waits instead of double-
+# reloading waybar.
+exec 9>"$HOME/.cache/matugen/set-wall.lock"
+flock 9
+
 WALL_DIR="$HOME/Pictures/wallpapers"
 DEFAULT_WALL="$WALL_DIR/anime3.png"
 # Seeds shipped in dotfiles (installer copies them into WALL_DIR).
@@ -69,6 +75,9 @@ cp -f "$WALL" "$HYPRLOCK_WALL"
 # Respect the dark/light toggle (toggle-theme.sh persists current-mode).
 MODE="$(cat "$HOME/.cache/matugen/current-mode" 2>/dev/null || echo dark)"
 [[ "$MODE" == "light" || "$MODE" == "dark" ]] || MODE="dark"
+# Ensure awww-daemon is ready (autostart races set-wall.sh on login,
+# like old ml4w-wallpaper wait_for_awww).
+for _ in $(seq 1 30); do awww query >/dev/null 2>&1 && break; sleep 0.1; done
 awww img --transition-type center --transition-duration 2 "$WALL"
 
 # Wait for the awww transition to finish before generating the palette,
