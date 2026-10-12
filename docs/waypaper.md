@@ -17,3 +17,4 @@ wallpaper = ~/Pictures/wallpapers/mystical-night-in-town.jpg
 - `stylesheet = ~/.config/waypaper/style.css` points to a file that does not exist; Waypaper falls back to its default (harmless).
 - `install.sh` seeds `~/Pictures/wallpapers` from `hyprland/wallpapers/` with `cp -n` (no overwrite).
 - `config.ini` is gitignored runtime state (`wallpaper = ...` changes on every pick). The committed `config.ini.example` is the seed; `install.sh` copies it to `config.ini` on fresh clones (no overwrite).
+- Binds: `SUPER+W` opens `waypaper`, `SUPER+SHIFT+W` runs `waypaper --random` (`hyprland/modules/binds.lua:185-189`); both land in `post_command`.

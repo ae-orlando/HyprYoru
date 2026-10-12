@@ -4,21 +4,21 @@ Launcher + applets. Base config: `rofi/config.rasi` (`modi: drun,run,filebrowser
 
 ## Launchers
 
-| Path                               | Purpose                                              |
-| ---------------------------------- | ---------------------------------------------------- |
-| `launchers/yoru-main.sh`           | App launcher, default (`yoru-main.rasi`)             |
-| `launchers/yoru-run.sh`            | Run prompt, default (`yoru-main.rasi`)               |
-| `launchers/gen-wallpaper-rasi.sh`  | Generates `~/.cache/rofi/current-wallpaper.rasi` (called from `set-wall.sh`) |
-| `launchers/type-6/launcher.sh`     | App launcher, fallback (`style-9.rasi`)              |
-| `launchers/type-6/launcher_run.sh` | Run prompt, fallback (`style-9.rasi`)                |
-| `launchers/type-6/style-*.rasi`    | 10 type-6 themes (`style-9` active)  |
-| `launchers/launcher.sh`            | Alt launcher (`styles/launcher`)     |
-| `launchers/powermenu.sh`           | Lock/logout/suspend/hibernate/reboot |
-| `launchers/screenshot.sh`          | Desktop/area/window via `hyprshot`   |
-| `launchers/wifi.sh`                | `nmcli` network picker               |
-| `launchers/rofi-bluetooth`         | `bluetoothctl` device menu           |
-| `launchers/wall-changer.sh`        | Thumbnail picker + `set-wall.sh`     |
-| `launchers/quicklinks.sh`          | Browser quick links                  |
+| Path                               | Purpose                                                                                                      |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `launchers/yoru-main.sh`           | App launcher, default (`yoru-main.rasi`)                                                                     |
+| `launchers/yoru-run.sh`            | Run prompt, default (`yoru-main.rasi`)                                                                       |
+| `launchers/gen-wallpaper-rasi.sh`  | Single-pass `magick -resize 50% -blur` → rasi; bg'd by `set-wall.sh:78`, lazy-read by `yoru-main.rasi:36,61` |
+| `launchers/type-6/launcher.sh`     | App launcher, fallback (`style-9.rasi`)                                                                      |
+| `launchers/type-6/launcher_run.sh` | Run prompt, fallback (`style-9.rasi`)                                                                        |
+| `launchers/type-6/style-*.rasi`    | 10 type-6 themes (`style-9` active)                                                                          |
+| `launchers/launcher.sh`            | Alt launcher (`styles/launcher`)                                                                             |
+| `launchers/powermenu.sh`           | Lock/logout/suspend/hibernate/reboot                                                                         |
+| `launchers/screenshot.sh`          | Desktop/area/window via `hyprshot`                                                                           |
+| `launchers/wifi.sh`                | `nmcli` network picker                                                                                       |
+| `launchers/rofi-bluetooth`         | `bluetoothctl` device menu                                                                                   |
+| `launchers/wall-changer.sh`        | Thumbnail picker + `set-wall.sh`                                                                             |
+| `launchers/quicklinks.sh`          | Browser quick links                                                                                          |
 
 ## Shared and Styles
 

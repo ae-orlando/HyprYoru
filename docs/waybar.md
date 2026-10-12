@@ -35,3 +35,7 @@ waybar
 pkill -SIGUSR2 waybar
 swaync-client -rs
 ```
+
+## Notes
+
+- Theme reloads: matugen `post_hook` (`matugen/config.toml:36`) owns `SIGUSR2`; scripts must not duplicate it or the bar reloads twice. `launch.sh` hard restart is manual-only (drops tray state).

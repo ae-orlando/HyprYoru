@@ -18,26 +18,26 @@ Lua config (`~/.config/hypr/hyprland.lua`). One topic per module; reload with `h
 
 ## Files
 
-| Path                    | Purpose                                       |
-| ----------------------- | --------------------------------------------- |
-| `hyprland.lua`          | Entry point, 9 `require` calls                |
-| `modules/colors.lua`    | Generated palette (see `docs/matugen.md`)     |
-| `modules/env.lua`       | Env vars incl. `QT_QPA_PLATFORMTHEME=qt6ct`   |
-| `modules/monitors.lua`  | `eDP-1` + empty-output fallback               |
-| `modules/general.lua`   | Look, animations, misc                        |
-| `modules/layouts.lua`   | Dwindle/master/scrolling                      |
-| `modules/input.lua`     | Keyboard, touchpad, gestures                  |
-| `modules/rules.lua`     | Window/workspace/layer rules                  |
-| `modules/binds.lua`     | Keybindings                                   |
-| `modules/autostart.lua` | `waybar`, `swaync`, `hypridle`, `awww-daemon` |
-| `hypridle.conf`         | Idle daemon (`lock_cmd = pidof hyprlock`)     |
-| `hyprlock.conf`         | Lock screen, sources `hyprlock-colors.conf`   |
-| `hyprlock-colors.conf`  | Generated palette                             |
-| `scripts/set-wall.sh`   | Wallpaper + `matugen` + rofi wallpaper rasi + bar reloads |
-| `scripts/nightlight.sh` | `hyprsunset` 6500K/4000K toggle               |
-| `whatsong.sh`           | Now-playing for hyprlock (`playerctl`)        |
-| `wallpapers/`           | 10 seed wallpapers                            |
-| `.luarc.json`           | Lua LSP stubs at `/usr/share/hypr/stubs`      |
+| Path                    | Purpose                                                                                                |
+| ----------------------- | ------------------------------------------------------------------------------------------------------ |
+| `hyprland.lua`          | Entry point, 9 `require` calls                                                                         |
+| `modules/colors.lua`    | Generated palette (see `docs/matugen.md`)                                                              |
+| `modules/env.lua`       | Env vars incl. `QT_QPA_PLATFORMTHEME=qt6ct`                                                            |
+| `modules/monitors.lua`  | `eDP-1` + empty-output fallback                                                                        |
+| `modules/general.lua`   | Look, animations, misc                                                                                 |
+| `modules/layouts.lua`   | Dwindle/master/scrolling                                                                               |
+| `modules/input.lua`     | Keyboard, touchpad, gestures                                                                           |
+| `modules/rules.lua`     | Window/workspace/layer rules                                                                           |
+| `modules/binds.lua`     | Keybindings                                                                                            |
+| `modules/autostart.lua` | `waybar`, `swaync`, `hypridle`, `awww-daemon`                                                          |
+| `hypridle.conf`         | Idle daemon (`lock_cmd = pidof hyprlock`)                                                              |
+| `hyprlock.conf`         | Lock screen, sources `hyprlock-colors.conf`                                                            |
+| `hyprlock-colors.conf`  | Generated palette                                                                                      |
+| `scripts/set-wall.sh`   | Wallpaper (`awww` immediate) + deferred rofi/hyprlock + `matugen` palette + `hyprctl` (bars via hooks) |
+| `scripts/nightlight.sh` | `hyprsunset` 6500K/4000K toggle                                                                        |
+| `whatsong.sh`           | Now-playing for hyprlock (`playerctl`)                                                                 |
+| `wallpapers/`           | 10 seed wallpapers                                                                                     |
+| `.luarc.json`           | Lua LSP stubs at `/usr/share/hypr/stubs`                                                               |
 
 ## Commands
 

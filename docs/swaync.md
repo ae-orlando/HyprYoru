@@ -24,4 +24,5 @@ swaync-client -t -sw
 ## Notes
 
 - Buttons-grid calls rofi helpers (`wifi.sh`, `rofi-bluetooth`, `screenshot.sh`, `powermenu.sh`), `hyprpicker -a`, and `waypaper`.
+- `scripts/toggle-theme.sh` flips dark/light on the current wallpaper, palette-only (no wallpaper re-animation); reloads via matugen `post_hook`s + `hyprctl reload`, no manual `SIGUSR2`/`-rs`.
 - `launch.sh` (Waybar) hard-restarts both `waybar` and `swaync`; prefer `swaync-client -rs` for theme-only reloads.
