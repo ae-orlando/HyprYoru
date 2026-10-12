@@ -10,35 +10,28 @@
     "position": "top",
     "margin-top": 5,
 
-    "modules-left": [
-        "custom/apps",
-        "hyprland/workspaces"
-    ],
+    "modules-left": ["custom/apps", "hyprland/workspaces"],
 
-    "modules-center": [
-        "bluetooth",
-        "clock",
-        "custom/notification"
-    ],
+    "modules-center": ["bluetooth", "clock", "custom/notification"],
 
     "modules-right": [
         "network",
         "group/audio",
         "battery",
         "power-profiles-daemon",
-        "tray"
+        "tray",
     ],
 
     "custom/apps": {
         "format": "",
         "tooltip": false,
-        "on-click": "~/.config/rofi/launchers/yoru-main.sh"
+        "on-click": "~/.config/rofi/launchers/yoru-main.sh",
     },
 
     "tray": {
         "spacing": 8,
         "icon-size": 16,
-        "show-passive-items": true
+        "show-passive-items": true,
     },
 
     "hyprland/workspaces": {
@@ -58,19 +51,19 @@
             "2": "",
             "3": "",
             "4": "",
-            "5": "",
-            "6": "",
+            "5": "",
+            "6": "",
             "7": "",
             "8": "",
             "9": "",
             "10": "",
 
-            "default": ""
+            "default": "",
         },
         "persistent-workspaces": {
             "*": 4,
-            "HDMI-A-1": 3
-        }
+            "HDMI-A-1": 3,
+        },
     },
 
     "pulseaudio": {
@@ -87,10 +80,10 @@
             "phone-muted": "󰖁",
             "portable": "",
             "car": "",
-            "default": ["󰕿", "󰖀", "󰕾"]
+            "default": ["󰕿", "󰖀", "󰕾"],
         },
         "scroll-step": 1,
-        "on-click": "pavucontrol"
+        "on-click": "pavucontrol",
     },
 
     "custom/mic": {
@@ -99,7 +92,7 @@
         "interval": 2,
         "exec": "~/.config/waybar/scripts/mic.sh",
         "on-click": "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle",
-        "tooltip": true
+        "tooltip": true,
     },
 
     "clock": {
@@ -109,20 +102,20 @@
         "tooltip-format": "{:%A, %B %d, %Y · Week %V}",
         "actions": {
             "on-click-forward": "tz_up",
-            "on-click-backward": "tz_down"
-        }
+            "on-click-backward": "tz_down",
+        },
     },
 
     "battery": {
         "interval": 5,
         "states": {
             "warning": 30,
-            "critical": 15
+            "critical": 15,
         },
         "events": {
             "on-discharging-warning": "notify-send -u normal 'Low Battery'",
             "on-discharging-critical": "notify-send -u critical 'Very Low Battery'",
-            "on-charging-100": "notify-send -u normal 'Battery Full!'"
+            "on-charging-100": "notify-send -u normal 'Battery Full!'",
         },
         "format": "{capacity}% {icon}",
         "format-charging": "{capacity}% 󱐌",
@@ -130,9 +123,9 @@
         "format-full": "{capacity}% 󱐌",
         "tooltip-format": "{timeTo} - {capacity}%",
         "format-icons": {
-            "default": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
+            "default": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
         },
-        "max-length": 25
+        "max-length": 25,
     },
     "custom/notification": {
         "tooltip": true,
@@ -144,14 +137,14 @@
             "inhibited-notification": "󰂛",
             "inhibited-none": "󰪑",
             "dnd-inhibited-notification": "󰂛",
-            "dnd-inhibited-none": "󰪑"
+            "dnd-inhibited-none": "󰪑",
         },
         "return-type": "json",
         "exec-if": "which swaync-client",
         "exec": "swaync-client -swb",
         "on-click": "swaync-client -t -sw",
         "on-click-right": "swaync-client -d -sw",
-        "escape": true
+        "escape": true,
     },
 
     "network": {
@@ -173,10 +166,10 @@
             "hotspot-on": "nmcli device wifi hotspot on",
             "hotspot-off": "nmcli device wifi hotspot off",
             "rescan": "nmcli device wifi rescan",
-            "connection-editor": "nm-connection-editor"
+            "connection-editor": "nm-connection-editor",
         },
         "on-click-right": "nm-connection-editor",
-        "max-length": 50
+        "max-length": 50,
     },
 
     "bluetooth": {
@@ -190,7 +183,7 @@
         "tooltip-format-connected": "{controller_alias}\t{controller_address}\n\n{num_connections} connected\n\n{device_enumerate}",
         "tooltip-format-enumerate-connected": "{device_alias}\t{device_address}",
         "tooltip-format-connected-battery": "{controller_alias}\t{controller_address}\n\n{num_connections} connected\n\n{device_enumerate}",
-        "on-click": "sh -c 'bluetoothctl show | grep -q \"Powered: yes\" && bluetoothctl power off || bluetoothctl power on'"
+        "on-click": "sh -c 'bluetoothctl show | grep -q \"Powered: yes\" && bluetoothctl power off || bluetoothctl power on'",
     },
 
     "power-profiles-daemon": {
@@ -201,21 +194,18 @@
             "default": "󰾅",
             "performance": "󰓅",
             "balanced": "󰾅",
-            "power-saver": "󰾆"
+            "power-saver": "󰾆",
         },
         "on-click": "sh -c 'p=$(powerprofilesctl get); case $p in performance) powerprofilesctl set balanced;; balanced) powerprofilesctl set power-saver;; *) powerprofilesctl set performance;; esac'",
-        "on-click-right": "powerprofilesctl set balanced"
+        "on-click-right": "powerprofilesctl set balanced",
     },
 
     "group/audio": {
         "orientation": "horizontal",
         "drawer": {
             "transition-duration": 500,
-            "children-class": "audio"
+            "children-class": "audio",
         },
-        "modules": [
-            "pulseaudio",
-            "custom/mic"
-        ]
-    }
+        "modules": ["pulseaudio", "custom/mic"],
+    },
 }
