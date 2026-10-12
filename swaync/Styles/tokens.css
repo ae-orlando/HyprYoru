@@ -35,11 +35,12 @@
 @define-color danger-dim    @error_container;
 @define-color on-danger     @on_error;
 
-/* Cards: opaque enough for contrast, translucent enough for Hypr blur */
-@define-color card         alpha(@surface_container, 0.92);
-@define-color card-hover   alpha(@surface_container_high, 0.95);
-@define-color panel        alpha(@surface, 0.88);
-@define-color popup        alpha(@surface_container, 0.94);
+/* Cards: frosted like kitty (0.5 bg over blur) — frame goes deep,
+ * cards stay a touch more solid so text doesn't swim. */
+@define-color card         alpha(@surface_container, 0.75);
+@define-color card-hover   alpha(@surface_container_high, 0.80);
+@define-color panel        alpha(@surface, 0.60);
+@define-color popup        alpha(@surface_container, 0.65);
 @define-color chip         alpha(@on_surface, 0.08);
 @define-color chip-line    alpha(@on_surface, 0.12);
 

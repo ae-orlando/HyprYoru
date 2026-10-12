@@ -7,6 +7,7 @@
   font-family: "Adwaita Sans", "GoMono Nerd Font Propo", sans-serif;
   font-size: 14px;
   transition: background 200ms ease, border-color 200ms ease, opacity 200ms ease;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
 }
 
 .blank-window {
