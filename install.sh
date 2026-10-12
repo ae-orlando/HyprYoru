@@ -905,6 +905,18 @@ phase_dotfiles() {
   # Seed wallpapers without overwriting the user's 229-file library.
   log "Seeding ~/Pictures/wallpapers from repo (no overwrite)"
   run "cp -n \"$DOTFILES_ROOT/hyprland/wallpapers/\"* \"$HOME/Pictures/wallpapers/\" 2>/dev/null || true"
+  # Waypaper runtime state is gitignored; seed it from the example on fresh clones.
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    dry 'ensure ~/.config/waypaper/config.ini from config.ini.example (no overwrite)'
+  elif [[ ! -f "$HOME/.config/waypaper/config.ini" && -f "$DOTFILES_ROOT/waypaper/config.ini.example" ]]; then
+    log "Seeding waypaper/config.ini from example (no overwrite)"
+    cp -n "$DOTFILES_ROOT/waypaper/config.ini.example" "$HOME/.config/waypaper/config.ini" 2>/dev/null || true
+  else
+    skip "waypaper/config.ini already present"
+  fi
+  # Matugen output dirs that would otherwise vanish on fresh clones
+  # (their only tracked content was the now-gitignored generated file).
+  run "mkdir -p \"$HOME/.config/swaync/matugen\" \"$HOME/.config/matugen/themes\" \"$HOME/.config/zsh/generated\" \"$HOME/.config/btop/themes\" \"$HOME/.config/qt6ct/colors\" \"$HOME/.config/opencode/themes\""
   # XDG dirs + PROJECTS line (source had XDG_PROJECTS_DIR="$HOME/").
   run "xdg-user-dirs-update || true"
   if [[ "$DRY_RUN" -eq 0 ]]; then
@@ -1016,6 +1028,9 @@ phase_shell() {
 # --------------------------------------------------------------------------
 phase_theming() {
   step "theming (matugen)"
+  # Generated palette files are gitignored artifacts (see .gitignore).
+  # They are rebuilt here on every install and on every login via
+  # hyprland autostart -> set-wall.sh, so wallpaper changes never dirty git.
   local wall=""
   if [[ -f "$HOME/Pictures/wallpapers/mystical-night-in-town.jpg" ]]; then
     wall="$HOME/Pictures/wallpapers/mystical-night-in-town.jpg"
@@ -1027,9 +1042,11 @@ phase_theming() {
     return
   fi
   if ! command -v matugen >/dev/null 2>&1; then
-    warn "matugen not installed; skipping palette generation"
+    fail "matugen not installed; palette files (gitignored) cannot be generated. Install matugen, then run: ~/.config/hypr/scripts/set-wall.sh $wall"
     return
   fi
+  # Output dirs for gitignored artifacts (empty on fresh clones).
+  run "mkdir -p \"$HOME/.config/swaync/matugen\" \"$HOME/.config/matugen/themes\" \"$HOME/.config/zsh/generated\" \"$HOME/.config/btop/themes\" \"$HOME/.config/qt6ct/colors\" \"$HOME/.config/opencode/themes\""
   log "Generating palette from $wall"
   spin "Generating palette (matugen)" "matugen image \"$wall\" --mode dark --type scheme-tonal-spot --prefer closest-to-fallback || true"
 }

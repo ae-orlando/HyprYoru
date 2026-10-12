@@ -15,7 +15,9 @@
 --   binds     keybindings                    autostart compositor startup
 
 -- See https://wiki.hypr.land/Configuring/Start/
-require("modules.colors")
+-- colors.lua is matugen-generated (gitignored); tolerate first boot before
+-- install.sh/set-wall.sh regenerates it.
+pcall(require, "modules.colors")
 require("modules.env")
 require("modules.monitors")
 require("modules.general")

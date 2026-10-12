@@ -42,6 +42,21 @@ Or via the wrapper (adds wallpaper cache + bar reloads):
 
 Post-hooks: `pkill -SIGUSR1 kitty`, `pkill -USR2 btop`.
 
+## Regeneration (gitignored artifacts)
+
+Outputs above are **not committed** (see root `.gitignore`). They are
+reproducible artifacts rebuilt in two places:
+
+- `install.sh:phase_theming` — runs `matugen image $wall` on every install.
+- Hyprland autostart (`modules/autostart.lua`) — `set-wall.sh` restores the
+  last wallpaper (`~/.cache/matugen/current-wallpaper`) or `anime3.png` on
+  every login and regenerates all outputs.
+
+So changing wallpaper never dirties `git`, and a fresh clone gets colors by
+running `./install.sh` (which also seeds `~/Pictures/wallpapers` from
+`hyprland/wallpapers/` and `waypaper/config.ini` from
+`waypaper/config.ini.example`).
+
 ## Notes
 
 - `*.bak-*` files under `templates/` are local debris.

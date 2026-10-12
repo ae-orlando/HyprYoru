@@ -13,3 +13,20 @@ zsh/.zcompdump*
 *.orig
 *.rej
 .DS_Store
+
+# Generated palette / wallpaper state: reproducible artifacts, never commit.
+# Sources: matugen/templates/*, hyprland/wallpapers/*, waypaper/config.ini.example.
+# Fresh systems regenerate via install.sh (phase_theming) + autostart set-wall.sh.
+hyprland/modules/colors.lua
+hyprland/hyprlock-colors.conf
+waybar/colors/matugen.css
+swaync/matugen/colors.css
+kitty/themes/Matugen.conf
+rofi/shared/colors.rasi
+gtk-setting/gtk-3.0/colors.css
+gtk-setting/gtk-4.0/colors.css
+qt6ct/colors/matugen.conf
+btop/themes/matugen.theme
+matugen/themes/nvim-colors.json
+zsh/generated/colors.sh
+waypaper/config.ini
