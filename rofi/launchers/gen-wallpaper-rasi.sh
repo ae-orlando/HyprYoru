@@ -25,8 +25,9 @@ OUT="$OUT_DIR/current-wallpaper.rasi"
 mkdir -p "$OUT_DIR"
 
 if command -v magick >/dev/null 2>&1; then
-    magick "$WALL" -resize 75% "$BLURRED"
-    magick "$BLURRED" -blur 0x8 "$BLURRED"
+    # Single pass (was resize + blur in two invocations): same rofi backdrop
+    # look at a fraction of the cost on 10MB+ PNGs.
+    magick "$WALL" -resize 50% -blur 0x8 "$BLURRED"
 else
     BLURRED="$WALL"
 fi

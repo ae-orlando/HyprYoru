@@ -8,12 +8,6 @@
 #   --pick       -> rofi list picker on ~/Pictures/wallpapers
 set -euo pipefail
 
-# Serialize concurrent runs (waypaper monitors=All can fire post_command
-# more than once per pick); second invocation waits instead of double-
-# reloading waybar.
-exec 9>"$HOME/.cache/matugen/set-wall.lock"
-flock 9
-
 WALL_DIR="$HOME/Pictures/wallpapers"
 DEFAULT_WALL="$WALL_DIR/anime3.png"
 # Seeds shipped in dotfiles (installer copies them into WALL_DIR).
@@ -64,14 +58,10 @@ fi
 
 mkdir -p "$(dirname "$CACHE_WALL")"
 echo "$WALL" > "$CACHE_WALL"
-mkdir -p "$(dirname "$HYPRLOCK_WALL")"
-cp -f "$WALL" "$HYPRLOCK_WALL"
 
-# Regenerate rofi wallpaper-image variables for the yoru-main theme.
-"$HOME/.config/rofi/launchers/gen-wallpaper-rasi.sh" "$WALL" 2>/dev/null || true
-
-# Wallpaper first (own the awww animation here; matugen [config.wallpaper]
-# is set=false and only writes templates + fires post_hooks).
+# Wallpaper immediately (no magick/cp/lock ahead of it): transition starts
+# in <0.5s even for 20MB+ PNGs. matugen [config.wallpaper] is set=false and
+# only writes templates + fires post_hooks.
 # Respect the dark/light toggle (toggle-theme.sh persists current-mode).
 MODE="$(cat "$HOME/.cache/matugen/current-mode" 2>/dev/null || echo dark)"
 [[ "$MODE" == "light" || "$MODE" == "dark" ]] || MODE="dark"
@@ -79,6 +69,18 @@ MODE="$(cat "$HOME/.cache/matugen/current-mode" 2>/dev/null || echo dark)"
 # like old ml4w-wallpaper wait_for_awww).
 for _ in $(seq 1 30); do awww query >/dev/null 2>&1 && break; sleep 0.1; done
 awww img --transition-type center --transition-duration 2 "$WALL"
+
+# Deferred backdrop work (kept, but out of the hot path): hyprlock copy +
+# rofi background image run in parallel with the 2s transition; rofi reads
+# current-wallpaper.rasi lazily on next open, hyprlock on next lock.
+mkdir -p "$(dirname "$HYPRLOCK_WALL")"
+cp -f "$WALL" "$HYPRLOCK_WALL" 2>/dev/null &
+"$HOME/.config/rofi/launchers/gen-wallpaper-rasi.sh" "$WALL" 2>/dev/null &
+
+# Serialize palette phase only (waypaper monitors=All can fire post_command
+# more than once per pick); wallpaper above always runs immediately.
+exec 9>"$HOME/.cache/matugen/set-wall.lock"
+flock 9
 
 # Wait for the awww transition to finish before generating the palette,
 # so the new colors land together with the new wallpaper instead of ahead
