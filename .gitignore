@@ -13,6 +13,9 @@ zsh/.zcompdump*
 *.orig
 *.rej
 .DS_Store
+Thumbs.db
+*.zwc
+*.log
 
 # Generated palette / wallpaper state: reproducible artifacts, never commit.
 # Sources: matugen/templates/*, hyprland/wallpapers/*, waypaper/config.ini.example.
@@ -30,3 +33,11 @@ btop/themes/matugen.theme
 matugen/themes/nvim-colors.json
 zsh/generated/colors.sh
 waypaper/config.ini
+
+# Secrets guard: never commit credentials even if tooling drops them here.
+.env
+.env.*
+*.pem
+*.key
+*credentials*
+*token*
