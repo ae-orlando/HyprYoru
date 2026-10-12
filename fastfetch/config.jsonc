@@ -10,7 +10,7 @@
     "logo": {
         "source": "~/.config/fastfetch/png/nobara-brown.png",
         "type": "auto", // 'auto' detects the best protocol for your terminal
-        "width": 20, // Adjust width (in characters)
+        "width": 18, // Adjust width (in characters)
         "padding": {
             "top": 1,
             "right": 3,

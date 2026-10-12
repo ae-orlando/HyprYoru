@@ -30,6 +30,7 @@ ascii() {
     fi
 }
 
+# =========== FONTS =============================
 # List installed fonts, optionally filtered: fonts [pattern]
 # No args -> unique family names; with args -> full fc-list lines incl. file + style.
 fonts() {
@@ -40,6 +41,7 @@ fonts() {
     fi
 }
 
+# =========== SCREENSHOT ==========================
 # Timestamped screenshots: shot [area|full|window] (default: area)
 shot() {
     local dir=~/Pictures/screenshots mode=${1:-area} file geom
@@ -57,6 +59,7 @@ shot() {
     notify-send "Screenshot" "$file"
 }
 
+# =============== BCKUP =============================
 # Timestamped backup: bak <file>... (matches repo .bak-<epoch> convention)
 bak() {
     local f
