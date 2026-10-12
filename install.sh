@@ -27,7 +27,8 @@ LOG_FILE="$LOG_DIR_DEFAULT/install-$(date +%Y%m%d-%H%M%S).log"
 LOG_FILE_EXPLICIT=0
 LOG_KEEP=10
 BACKUP_DIR="$HOME/.local/state/dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
-YAY_BUILD_DIR="/tmp/yay-bin"
+YAY_BUILD_DIR=""
+LOCK_FILE="${XDG_RUNTIME_DIR:-/tmp}/dotfiles-install.lock"
 
 PROFILE="full"
 PROFILE_EXPLICIT=0
@@ -235,7 +236,8 @@ cleanup_exit() {
   if [[ -n "${SUDO_KEEPALIVE_PID:-}" ]]; then
     kill "$SUDO_KEEPALIVE_PID" 2>/dev/null || true
   fi
-  if [[ -d "${YAY_BUILD_DIR:-}" ]]; then
+  # Only remove temp yay dirs we created (never the repo or $HOME).
+  if [[ -n "${YAY_BUILD_DIR:-}" && "$YAY_BUILD_DIR" == /tmp/* && -d "$YAY_BUILD_DIR" ]]; then
     rm -rf "$YAY_BUILD_DIR" 2>/dev/null || true
   fi
 }
@@ -614,10 +616,12 @@ phase_preflight() {
     if [[ -e "$target" && ! -L "$target" ]]; then backup_count=$((backup_count+1)); fi
   done
   [[ -f "$HOME/.zshenv" ]] && backup_count=$((backup_count+1))
+  [[ -f "$HOME/.config/mimeapps.list" ]] && backup_count=$((backup_count+1))
+  [[ -f "$HOME/.config/gtk-3.0/bookmarks" && ! -L "$HOME/.config/gtk-3.0" ]] && backup_count=$((backup_count+1))
   # Backup anything we are about to replace, preserving paths relative
   # to $HOME (e.g. $BACKUP_DIR/home/.config/hypr) so names cannot collide.
   if [[ "$DRY_RUN" -eq 1 ]]; then
-    dry "mkdir -p $BACKUP_DIR (would back up $backup_count path(s): .config entries + .zshenv)"
+    dry "mkdir -p $BACKUP_DIR (would back up $backup_count path(s): .config entries + .zshenv + mime/bookmarks)"
   else
     mkdir -p "$BACKUP_DIR"
     for entry in "${LINK_MAP[@]}"; do
@@ -632,6 +636,10 @@ phase_preflight() {
     if [[ -f "$HOME/.zshenv" ]]; then
       mkdir -p "$BACKUP_DIR/home"
       cp -a "$HOME/.zshenv" "$BACKUP_DIR/home/.zshenv" 2>/dev/null || true
+    fi
+    if [[ -f "$HOME/.config/mimeapps.list" ]]; then
+      mkdir -p "$BACKUP_DIR/home/.config"
+      cp -a "$HOME/.config/mimeapps.list" "$BACKUP_DIR/home/.config/mimeapps.list" 2>/dev/null || true
     fi
     ok "Backup dir ready: $BACKUP_DIR ($backup_count path(s) preserved)"
     say "Restore if needed: cp -a \"$BACKUP_DIR/home/.\" ~/ (then re-link)"
@@ -651,6 +659,11 @@ phase_preflight() {
 # --------------------------------------------------------------------------
 ensure_pacman_conf() {
   log "Ensuring pacman.conf: Color + ParallelDownloads=5 (multilib left disabled, as on source)"
+  if [[ "$DRY_RUN" -eq 0 ]]; then
+    sudo cp -a /etc/pacman.conf "/etc/pacman.conf.pre-dotfiles-$(date +%s)" 2>/dev/null || true
+  else
+    dry "backup /etc/pacman.conf before editing"
+  fi
   if grep -q "^#Color" /etc/pacman.conf; then
     run "sudo sed -i 's/^#Color/Color/' /etc/pacman.conf"
   fi
@@ -681,8 +694,13 @@ ensure_aur_helper() {
     return
   fi
   log "Bootstrapping yay-bin from AUR"
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    dry "mktemp -d for yay-bin build + makepkg -si"
+    return 0
+  fi
+  YAY_BUILD_DIR="$(mktemp -d -t yay-bin-XXXXXX)"
   spin "Installing build tools" "sudo pacman -S --needed --noconfirm base-devel git"
-  spin "Cloning yay-bin" "rm -rf \"$YAY_BUILD_DIR\" && git clone https://aur.archlinux.org/yay-bin.git \"$YAY_BUILD_DIR\""
+  spin "Cloning yay-bin" "git clone https://aur.archlinux.org/yay-bin.git \"$YAY_BUILD_DIR\""
   spin "Building yay-bin" "sh -c 'cd \"$YAY_BUILD_DIR\" && makepkg -si --noconfirm'"
 }
 
@@ -716,19 +734,21 @@ selected_packages() {
 }
 
 # Print the subset of "$@" not installed locally (one per line).
-# Official packages are queried via pacman -Q; AUR packages via the helper's -Q.
+# Single pacman snapshot instead of one fork per package (151+ calls).
 missing_official() {
-  local p
+  local installed p
+  installed="$(pacman -Qq 2>/dev/null || true)"
   for p in "$@"; do
-    pacman -Qq "$p" >/dev/null 2>&1 || printf '%s\n' "$p"
+    grep -Fxq "$p" <<<"$installed" || printf '%s\n' "$p"
   done
 }
 
 missing_aur() {
   local helper="$1"; shift
-  local p
+  local installed p
+  installed="$("$helper" -Qq 2>/dev/null || true)"
   for p in "$@"; do
-    "$helper" -Qq "$p" >/dev/null 2>&1 || printf '%s\n' "$p"
+    grep -Fxq "$p" <<<"$installed" || printf '%s\n' "$p"
   done
 }
 
@@ -870,9 +890,11 @@ link_one() {
     return
   fi
   if [[ -e "$target" && ! -L "$target" ]]; then
-    log "Moving real $target aside (already backed up)"
+    # Preflight already copied real paths into $BACKUP_DIR; remove here so
+    # re-runs stay idempotent without littering *.pre-dotfiles-* in $HOME.
+    log "Replacing real $target (backed up in $BACKUP_DIR)"
     if [[ "$DRY_RUN" -eq 0 ]]; then
-      mv "$target" "$target.pre-dotfiles-$(date +%s)" || true
+      rm -rf "$target" || true
     fi
   fi
   log "Linking $target -> $src"
@@ -886,11 +908,19 @@ phase_dotfiles() {
     link_one "${entry%%:*}" "${entry#*:}"
   done
   # ~/.zshenv must exist BEFORE first zsh start so ZDOTDIR resolves.
-  log "Writing ~/.zshenv (ZDOTDIR)"
+  # Idempotent: preserve custom content; append when missing.
+  log "Ensuring ~/.zshenv (ZDOTDIR)"
   if [[ "$DRY_RUN" -eq 1 ]]; then
-    dry 'write $HOME/.zshenv: export ZDOTDIR="$HOME/.config/zsh"'
+    dry 'ensure $HOME/.zshenv: export ZDOTDIR="$HOME/.config/zsh"'
+  elif grep -Fqx 'export ZDOTDIR="$HOME/.config/zsh"' "$HOME/.zshenv" 2>/dev/null; then
+    skip "~/.zshenv already correct"
+  elif [[ -f "$HOME/.zshenv" ]] && grep -Fq 'ZDOTDIR=' "$HOME/.zshenv" 2>/dev/null; then
+    log "Updating stale ZDOTDIR in ~/.zshenv (original in $BACKUP_DIR)"
+    grep -v 'ZDOTDIR=' "$HOME/.zshenv" >"$HOME/.zshenv.tmp" || true
+    printf 'export ZDOTDIR="$HOME/.config/zsh"\n' >>"$HOME/.zshenv.tmp"
+    mv "$HOME/.zshenv.tmp" "$HOME/.zshenv"
   else
-    printf 'export ZDOTDIR="$HOME/.config/zsh"\n' >"$HOME/.zshenv"
+    printf 'export ZDOTDIR="$HOME/.config/zsh"\n' >>"$HOME/.zshenv"
   fi
   # Executable bits: repo has 644 on two rofi launchers; binds.lua + swaync
   # invoke them directly, so force +x (fresh clones preserve 644 otherwise).
@@ -901,8 +931,16 @@ phase_dotfiles() {
   run "chmod +x \"$DOTFILES_ROOT/rofi/launchers/\"*.sh \"$DOTFILES_ROOT/rofi/launchers/type-6/\"*.sh \"$DOTFILES_ROOT/rofi/launchers/rofi-bluetooth\""
   # Runtime dirs (matugen/set-wall.sh + waybar + swaync + qt6ct expect them).
   run "mkdir -p \"$HOME/Pictures/wallpapers\" \"$HOME/Pictures/Screenshots\""
-  run "mkdir -p \"$HOME/.cache/matugen\" \"$HOME/.cache/hyprlock\" \"\${XDG_CACHE_HOME:-$HOME/.cache}/wallpaper-thumbs\""
+  run "mkdir -p \"$HOME/.cache/matugen\" \"$HOME/.cache/hyprlock\" \"${XDG_CACHE_HOME:-$HOME/.cache}/wallpaper-thumbs\""
   run "mkdir -p \"$HOME/.config/qt6ct/colors\" \"$HOME/.local/bin\" \"$HOME/.local/share/fonts\""
+  # Normalize machine-specific absolute home paths (source was /home/orlando).
+  # qt6ct.conf requires an absolute color_scheme_path; rewrite any stale
+  # /home/<user> prefix to the current $HOME. Idempotent on source machine.
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    dry "normalize qt6ct color_scheme_path to $HOME"
+  elif [[ -f "$HOME/.config/qt6ct/qt6ct.conf" ]]; then
+    sed -i "s|color_scheme_path=/home/[^/]*/.config/qt6ct/colors/matugen.conf|color_scheme_path=$HOME/.config/qt6ct/colors/matugen.conf|g" "$HOME/.config/qt6ct/qt6ct.conf" 2>/dev/null || true
+  fi
   # Seed wallpapers without overwriting the user's 229-file library.
   log "Seeding ~/Pictures/wallpapers from repo (no overwrite)"
   run "cp -n \"$DOTFILES_ROOT/hyprland/wallpapers/\"* \"$HOME/Pictures/wallpapers/\" 2>/dev/null || true"
@@ -944,11 +982,13 @@ EOF
     sed -i "s|ORLANDO_PLACEHOLDER|$USER|g" "$HOME/.config/gtk-3.0/bookmarks"
   fi
   # mimeapps.list — verbatim from source (chromium/evince/ristretto/packettracer).
-  log "Writing ~/.config/mimeapps.list"
+  # Idempotent: original preserved in $BACKUP_DIR on first run; skip rewrite when identical.
+  log "Ensuring ~/.config/mimeapps.list"
   if [[ "$DRY_RUN" -eq 1 ]]; then
     dry "write mimeapps.list"
   else
-    cat >"$HOME/.config/mimeapps.list" <<'EOF'
+    tmp_mime="$(mktemp)"
+    cat >"$tmp_mime" <<'EOF'
 [Default Applications]
 # Browser / schemes
 text/html=chromium.desktop
@@ -982,6 +1022,12 @@ image/webp=org.xfce.ristretto.desktop
 image/x-pixmap=org.xfce.ristretto.desktop
 image/x-xpixmap=org.xfce.ristretto.desktop
 EOF
+    if [[ -f "$HOME/.config/mimeapps.list" ]] && cmp -s "$tmp_mime" "$HOME/.config/mimeapps.list"; then
+      skip "mimeapps.list already correct"
+    else
+      cp -a "$tmp_mime" "$HOME/.config/mimeapps.list"
+    fi
+    rm -f "$tmp_mime"
   fi
   # gsettings (matches gtk-setting/*/settings.ini + live gsettings).
   if command -v gsettings >/dev/null 2>&1; then
@@ -1049,7 +1095,10 @@ phase_theming() {
   # Output dirs for gitignored artifacts (empty on fresh clones).
   run "mkdir -p \"$HOME/.config/swaync/matugen\" \"$HOME/.config/matugen/themes\" \"$HOME/.config/zsh/generated\" \"$HOME/.config/btop/themes\" \"$HOME/.config/qt6ct/colors\" \"$HOME/.config/opencode/themes\""
   log "Generating palette from $wall"
-  spin "Generating palette (matugen)" "matugen image \"$wall\" --mode dark --type scheme-tonal-spot --prefer closest-to-fallback || true"
+  if ! spin "Generating palette (matugen)" "matugen image \"$wall\" --mode dark --type scheme-tonal-spot --prefer closest-to-fallback"; then
+    fail "matugen run failed for $wall (palette left stale)"
+    return
+  fi
 }
 
 # --------------------------------------------------------------------------
@@ -1074,6 +1123,15 @@ phase_verify() {
     waybar swaync swaync-client nm-applet polkit-gnome-authentication-agent-1 awww-daemon \
     grim slurp wl-copy playerctl wpctl brightnessctl waypaper matugen magick \
     pavucontrol bluetoothctl nmcli checkupdates; do
+    # Profile-aware: full-only / AUR-skipped binaries warn instead of failing.
+    if [[ "$b" == "spotify" && "$PROFILE" != "full" ]]; then
+      vwarn "binary $b not expected on profile=$PROFILE (skip)"
+      continue
+    fi
+    if [[ "$b" == "waypaper" && "$NO_AUR" -eq 1 ]]; then
+      vwarn "binary $b skipped (--no-aur)"
+      continue
+    fi
     if [[ "$b" == "polkit-gnome-authentication-agent-1" ]]; then
       if [[ -x /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 ]]; then vpass "$b"; else vfail "$b"; fi
     elif [[ "$b" == "awww-daemon" ]]; then
@@ -1104,12 +1162,18 @@ phase_verify() {
 
 prune_logs() {
   [[ -d "$LOG_DIR_DEFAULT" ]] || return 0
-  ls -1 "$LOG_DIR_DEFAULT"/install-*.log 2>/dev/null | sort -r | tail -n +$((LOG_KEEP + 1)) | xargs -r rm -f --
+  find "$LOG_DIR_DEFAULT" -maxdepth 1 -name 'install-*.log' -type f -printf '%T@ %p\n' 2>/dev/null | sort -rn | awk -v keep="$LOG_KEEP" 'NR>keep {sub(/^[^ ]+ /, ""); print}' | while IFS= read -r f; do rm -f -- "$f"; done
 }
 
 main() {
   SCRIPT_START=$(date +%s)
   LAST_STEP_TS=0
+  # Single-instance guard (shared laptop / double-clicked installer).
+  exec 200>"$LOCK_FILE" 2>/dev/null || true
+  if ! flock -n 200 2>/dev/null; then
+    echo "Another dotfiles install is already running ($LOCK_FILE). Aborting." >&2
+    exit 1
+  fi
   mkdir -p "$(dirname "$LOG_FILE")"
   : >"$LOG_FILE" || true
   if [[ "$LOG_FILE_EXPLICIT" -eq 0 ]]; then prune_logs; fi
@@ -1132,6 +1196,12 @@ main() {
   phase_theming
   phase_verify
   final_summary
+  # Propagate failures to callers/CI (verify is report-only by itself).
+  # Disable ERR trap first so a non-zero exit doesn't re-trigger on_err.
+  if (( FAIL_COUNT > 0 && DRY_RUN == 0 )); then
+    trap - ERR
+    exit 1
+  fi
 }
 
 main "$@"
