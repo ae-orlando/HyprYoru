@@ -1,0 +1,50 @@
+/* Yoru Deck — design tokens
+ * Single source of truth. Maps matugen Material roles to semantic names.
+ * matugen/colors.css is generated; this file never hardcodes hex.
+ * by ae. Orlando
+ */
+
+@import "../matugen/colors.css";
+
+/* Ink + surfaces */
+@define-color ink            @on_surface;
+@define-color ink-dim        @on_surface_variant;
+@define-color ink-faint      alpha(@on_surface_variant, 0.7);
+@define-color surface        @surface;
+@define-color surface-low    @surface_container_low;
+@define-color surface-card   @surface_container;
+@define-color surface-high   @surface_container_high;
+@define-color surface-top    @surface_container_highest;
+
+/* Accent */
+@define-color accent              @primary;
+@define-color accent-container    @primary_container;
+@define-color on-accent           @on_primary;
+@define-color on-accent-container @on_primary_container;
+@define-color accent-soft         alpha(@primary, 0.16);
+@define-color accent-line         alpha(@primary, 0.38);
+
+/* Secondary / tertiary accents for per-module hints */
+@define-color accent-2  @secondary;
+@define-color accent-3  @tertiary;
+
+/* Lines + danger */
+@define-color line          alpha(@outline_variant, 0.9);
+@define-color line-soft     alpha(@outline_variant, 0.55);
+@define-color danger        @error;
+@define-color danger-dim    @error_container;
+@define-color on-danger     @on_error;
+
+/* Cards: opaque enough for contrast, translucent enough for Hypr blur */
+@define-color card         alpha(@surface_container, 0.92);
+@define-color card-hover   alpha(@surface_container_high, 0.95);
+@define-color panel        alpha(@surface, 0.88);
+@define-color popup        alpha(@surface_container, 0.94);
+@define-color chip         alpha(@on_surface, 0.08);
+@define-color chip-line    alpha(@on_surface, 0.12);
+
+/* Radii: Waybar 45px pills, Rofi 25px, Deck 20/16/45 */
+@define-color radius-outer 20px;
+@define-color radius-card 16px;
+@define-color radius-chip 12px;
+@define-color radius-pill 45px;

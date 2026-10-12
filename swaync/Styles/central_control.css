@@ -1,40 +1,17 @@
-/* Rofi-blended glass control center
- * Matches rofi launcher.rasi (palette from matugen: @primary border on @surface glass).
- * Adapted for glass: 24px radius, 2px translucent primary border, alpha backgrounds.
- * Requires Hypr blur on swaync-control-center + swaync-notification-window.
+/* Yoru Deck — control center dashboard
+ * Header menubar, grouped notifications, immersive mpris,
+ * 4-col quick settings, slider card, quiet footer.
  * by ae. Orlando
  */
 
-@define-color text            @on_surface;
-@define-color background      @surface;
-@define-color background-alt  @surface_container;
-@define-color selected        @primary;
-@define-color hover           @secondary;
-@define-color urgent          @error;
-@define-color on-selected     @surface;
-@define-color card            alpha(@surface_container, 0.75);
-@define-color card-hover      alpha(@surface_container_high, 0.8);
-
-* {
-  color: @text;
-  all: unset;
-  font-size: 14px;
-  font-family: "GoMono Nerd Font", "GoMono Nerd Font Propo", monospace;
-  transition: 200ms;
-}
-
-.blank-window {
-  background: transparent;
-}
-
-/* ==================== CONTROL CENTER ==================== */
+/* ==================== PANEL ==================== */
 
 .control-center {
-  background: alpha(@background, 0.75);
-  border-radius: 24px;
-  border: 1.5px solid alpha(@selected, 0.35);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  margin: 12px;
+  background: @panel;
+  border: 1px solid @accent-line;
+  border-radius: 20px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  margin: 10px;
   padding: 0;
 }
 
@@ -42,372 +19,481 @@
   background: transparent;
 }
 
-.control-center-header {
-  padding: 20px 20px 12px 20px;
-  border-bottom: 1px solid alpha(@text, 0.1);
+.control-center-list-placeholder {
+  color: @ink-faint;
+  font-style: italic;
+  padding: 24px;
 }
 
-/* ==================== NOTIFICATIONS ==================== */
+/* ==================== MENUBAR HEADER ==================== */
+
+.widget-menubar {
+  background: transparent;
+  margin: 0;
+  padding: 14px 16px 6px 16px;
+}
+
+.widget-menubar > box > button,
+.widget-menubar > box > box > button {
+  background: @chip;
+  border: 1px solid @chip-line;
+  border-radius: 45px;
+  padding: 6px 14px;
+  margin: 2px;
+  min-height: 32px;
+  color: @ink;
+  font-weight: 600;
+}
+
+.widget-menubar > box > button:hover,
+.widget-menubar > box > box > button:hover {
+  background: @accent-soft;
+  border-color: @accent-line;
+}
+
+.widget-menubar menu {
+  background: @surface-card;
+  border: 1px solid @line;
+  border-radius: 16px;
+  padding: 8px;
+}
+
+.widget-menubar menu menuitem {
+  border-radius: 10px;
+  padding: 8px 12px;
+  color: @ink;
+}
+
+.widget-menubar menu menuitem:hover {
+  background: @accent-soft;
+}
+
+/* ==================== SECTION LABELS ==================== */
+
+.widget-label {
+  background: transparent;
+  margin: 0;
+  padding: 10px 20px 2px 20px;
+  color: @ink-faint;
+  font-family: "GoMono Nerd Font Propo", monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+/* ==================== TITLE + NOTIFICATIONS ==================== */
+
+.widget-title {
+  font-size: 1.15em;
+  font-weight: 700;
+  color: @ink;
+  margin: 0;
+  padding: 8px 16px 6px 20px;
+}
+
+.widget-title button {
+  background: @chip;
+  border: 1px solid @chip-line;
+  border-radius: 12px;
+  padding: 6px 14px;
+  min-height: 34px;
+  font-weight: 600;
+  color: @ink;
+}
+
+.widget-title button:hover {
+  background: @accent-soft;
+  border-color: @accent-line;
+  color: @accent;
+}
+
+.widget-title button:active {
+  background: @accent;
+  border-color: @accent;
+  color: @on-accent;
+}
 
 .control-center .notification-row {
   margin: 0;
-  padding: 8px 12px;
+  padding: 6px 12px;
 }
 
 .control-center .notification-row .notification-background {
   background: @card;
+  border: 1px solid @line-soft;
   border-radius: 16px;
-  margin: 4px 0;
+  margin: 3px 0;
   padding: 0;
-  border: 1px solid alpha(@text, 0.1);
   box-shadow: none;
 }
 
 .control-center .notification-row .notification-background:hover {
   background: @card-hover;
-  border-color: alpha(@selected, 0.35);
+  border-color: @accent-line;
 }
 
 .control-center .notification-row .notification-background .notification.critical {
-  border-left: 3px solid @urgent;
+  border-left: 3px solid @danger;
   border-radius: 16px;
-  background: alpha(@urgent, 0.08);
+  background: alpha(@danger, 0.08);
+}
+
+.control-center .notification-row .notification-background .notification.low {
+  opacity: 0.8;
 }
 
 .control-center .notification-row .notification-background .notification .notification-content {
   margin: 0;
-  padding: 14px 16px;
+  padding: 12px 14px;
+  min-height: 100px;
+}
+
+.control-center .notification-row .notification-background .notification .image {
+  margin: 8px 12px 8px 6px;
+  border-radius: 10px;
 }
 
 .control-center .notification-row .notification-background .notification .notification-content .summary {
+  font-family: "GoMono Nerd Font Propo", monospace;
   font-weight: 700;
-  font-size: 1.05rem;
+  font-size: 1rem;
+  color: @ink;
 }
 
-.control-center .notification-row .notification-background .notification .notification-content .notification-body {
-  padding-top: 6px;
-  opacity: 0.9;
+.control-center .notification-row .notification-background .notification .notification-content .notification-body,
+.control-center .notification-row .notification-background .notification .notification-content .body {
+  color: @ink-dim;
+  padding-top: 4px;
   line-height: 1.5;
 }
 
 .control-center .notification-row .notification-background .notification > *:last-child > * {
   min-height: 0;
-  padding: 8px 12px 12px 12px;
+  padding: 4px 10px 10px 10px;
 }
 
 .control-center .notification-row .notification-background .notification > *:last-child > * .notification-action {
-  background: alpha(@selected, 0.15);
-  color: @selected;
+  background: @accent-soft;
+  border: 1px solid @accent-line;
   border-radius: 12px;
+  color: @accent;
   margin: 4px;
-  padding: 10px 18px;
+  padding: 8px 14px;
+  min-height: 34px;
   font-weight: 600;
-  border: 1px solid alpha(@selected, 0.25);
-  min-height: 36px;
-}
-
-.control-center .notification-row .notification-background .notification > *:last-child > * .notification-action label {
-  margin: auto;
-  padding: 0;
-}
-
-.control-center .notification-row .notification-background .close-button {
-  margin: 8px;
-  padding: 0;
-  min-width: 28px;
-  min-height: 28px;
-  border-radius: 10px;
-  background: alpha(@text, 0.08);
-  border: 1px solid transparent;
-}
-
-.control-center .notification-row .notification-background .close-button label {
-  margin: auto;
-  padding: 0;
-}
-
-.control-center .notification-row .notification-background .close-button:hover {
-  background: @selected;
-  color: @on-selected;
-}
-
-.control-center .notification-row .notification-background .close-button:active {
-  background: @selected;
-  color: @on-selected;
 }
 
 .control-center .notification-row .notification-background .notification > *:last-child > * .notification-action:hover {
-  background: alpha(@selected, 0.25);
-  border-color: alpha(@selected, 0.4);
+  background: alpha(@accent, 0.28);
 }
 
 .control-center .notification-row .notification-background .notification > *:last-child > * .notification-action:active {
-  background: @selected;
-  color: @on-selected;
-  border-color: @selected;
+  background: @accent;
+  border-color: @accent;
+  color: @on-accent;
 }
 
-/* ==================== WIDGET TITLE ==================== */
-
-.widget-title {
-  font-size: 1.2em;
-  font-weight: 700;
-  margin: 0;
-  padding: 20px 20px 10px 20px;
-}
-
-.widget-title button {
-  background: alpha(@text, 0.08);
-  border-radius: 12px;
-  padding: 6px 14px;
-  border: 1px solid alpha(@text, 0.1);
-  font-weight: 600;
-  min-height: 36px;
-}
-
-.widget-title button label {
-  margin: auto;
+.control-center .notification-row .notification-background .close-button {
+  background: alpha(@ink, 0.05);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: @ink-faint;
+  margin: 6px;
   padding: 0;
+  min-width: 22px;
+  min-height: 22px;
+  font-size: 12px;
 }
 
-.widget-title button:hover {
-  background: alpha(@selected, 0.2);
-  border-color: alpha(@selected, 0.4);
+.control-center .notification-row .notification-background .close-button:hover {
+  background: @danger;
+  color: @on-danger;
 }
 
-.widget-title button:active {
-  background: @selected;
-  color: @on-selected;
-  border-color: @selected;
-}
-
-/* ==================== QUICK SETTINGS ==================== */
-/* Rofi element equivalent: transparent base, 12px radius, solid peach when active */
-
-.widget-buttons-grid {
-  padding: 12px;
-  margin: 0;
-  border-radius: 0;
+/* Grouped notifications */
+.notification-group {
   background: transparent;
+  margin: 0;
+  padding: 0;
 }
 
-.widget-buttons-grid > flowbox > flowboxchild > button {
-  margin: 4px;
-  background: alpha(@text, 0.08);
-  border-radius: 12px;
-  border: 1px solid alpha(@text, 0.1);
-  min-height: 56px;
-  min-width: 56px;
+.notification-group-header {
+  color: @ink-dim;
+  font-weight: 600;
+  padding: 6px 20px 2px 20px;
+}
+
+.notification-group-collapse-button,
+.notification-group-close-all-button {
+  background: @chip;
+  border: 1px solid @chip-line;
+  border-radius: 10px;
+  min-width: 28px;
+  min-height: 28px;
+  margin: 2px 4px;
+  color: @ink-dim;
+}
+
+.notification-group-collapse-button:hover,
+.notification-group-close-all-button:hover {
+  background: @accent-soft;
+  border-color: @accent-line;
+  color: @accent;
+}
+
+/* ==================== MPRIS ==================== */
+
+.widget-mpris {
+  background: transparent;
+  color: @ink;
+  margin: 0;
+  padding: 6px 12px;
+}
+
+.widget-mpris-player {
+  background: @card;
+  border: 1px solid @line-soft;
+  border-radius: 16px;
   padding: 0;
+  margin: 0;
   box-shadow: none;
 }
 
-.widget-buttons-grid > flowbox > flowboxchild > button:hover {
-  background: alpha(@selected, 0.18);
-  border-color: alpha(@selected, 0.35);
+.widget-mpris .widget-mpris-player .mpris-background {
+  opacity: 0.18;
+  border-radius: 16px;
 }
 
-.widget-buttons-grid > flowbox > flowboxchild > button:active,
-.widget-buttons-grid > flowbox > flowboxchild > button:checked,
-.widget-buttons-grid > flowbox > flowboxchild > button.active {
-  background: @selected;
-  border-color: @selected;
-  color: @on-selected;
+/* Overlay replaces upstream's rgba(0,0,0,0.55) slab: transparent, card shows */
+.widget-mpris .widget-mpris-player .mpris-overlay {
+  background: transparent;
+  border-radius: 16px;
+  padding: 16px;
 }
 
-.widget-buttons-grid > flowbox > flowboxchild > button label {
-  font-family: "GoMono Nerd Font", monospace;
-  font-size: 22px;
-  opacity: 1;
-  margin: auto;
+.widget-mpris-album-art {
+  border-radius: 12px;
+  border: 1px solid @line-soft;
+  margin: 0 14px 0 0;
+  min-width: 88px;
+  min-height: 88px;
+}
+
+.widget-mpris-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: @ink;
+}
+
+.widget-mpris-subtitle {
+  font-weight: 400;
+  font-size: 0.88rem;
+  color: @ink-dim;
+}
+
+.widget-mpris button {
+  background: @chip;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  color: @ink;
+  margin: 8px 3px 0 3px;
+  min-width: 38px;
+  min-height: 38px;
   padding: 0;
 }
 
-.widget-buttons-grid > flowbox > flowboxchild > button:active label,
-.widget-buttons-grid > flowbox > flowboxchild > button:checked label,
-.widget-buttons-grid > flowbox > flowboxchild > button.active label {
-  color: @on-selected;
+.widget-mpris button:hover {
+  background: @accent-soft;
+  border-color: @accent-line;
+}
+
+.widget-mpris button:active {
+  background: @accent;
+  color: @on-accent;
+}
+
+/* Carousel side arrows: slim, and fully hidden when disabled (single player) */
+.widget-mpris > box > button {
+  background: transparent;
+  border-color: transparent;
+  min-width: 24px;
+  min-height: 24px;
+  margin: 0 2px;
+  color: @ink-faint;
+}
+
+.widget-mpris > box > button:hover {
+  background: @chip;
+  color: @ink;
+}
+
+.widget-mpris > box > button:disabled {
+  background: transparent;
+  border-color: transparent;
+  color: transparent;
+  opacity: 0;
+}
+
+/* ==================== QUICK SETTINGS GRID ==================== */
+
+.widget-buttons-grid {
+  background: transparent;
+  margin: 0;
+  padding: 6px 12px;
+}
+
+.widget-buttons-grid > flowbox > flowboxchild > button {
+  background: @chip;
+  border: 1px solid @chip-line;
+  border-radius: 14px;
+  margin: 4px;
+  min-height: 54px;
+  min-width: 64px;
+  padding: 4px;
+  box-shadow: none;
+  color: @ink;
+}
+
+.widget-buttons-grid > flowbox > flowboxchild > button:hover {
+  background: @accent-soft;
+  border-color: @accent-line;
+}
+
+.widget-buttons-grid > flowbox > flowboxchild > button:checked {
+  background: @accent;
+  border-color: @accent;
+  color: @on-accent;
+}
+
+.widget-buttons-grid > flowbox > flowboxchild > button label {
+  font-family: "GoMono Nerd Font Propo", monospace;
+  font-size: 20px;
+  margin: auto;
+  padding: 0;
   opacity: 1;
 }
 
-/* ==================== VOLUME & BACKLIGHT ==================== */
+.widget-buttons-grid > flowbox > flowboxchild > button:checked label {
+  color: @on-accent;
+}
+
+/* ==================== SLIDERS CARD ==================== */
+
+.widget-volume,
+.widget-backlight {
+  background: @card;
+  border: 1px solid @line-soft;
+  border-radius: 16px;
+  margin: 4px 12px;
+  padding: 10px 16px;
+}
 
 .widget-volume {
-  background: transparent;
-  padding: 12px 20px 2px 20px;
-  margin: 0;
-  border-top: 1px solid alpha(@text, 0.08);
+  margin-bottom: 0;
+  border-radius: 16px 16px 6px 6px;
 }
 
 .widget-backlight {
-  background: transparent;
-  padding: 2px 20px 12px 20px;
-  margin: 0;
+  margin-top: 6px;
+  border-radius: 6px 6px 16px 16px;
 }
 
 .widget-volume trough,
 .widget-backlight trough {
-  background: alpha(@text, 0.12);
+  background: alpha(@ink, 0.12);
   border-radius: 12px;
   min-height: 8px;
 }
 
 .widget-volume highlight,
 .widget-backlight highlight {
-  background: @selected;
+  background: @accent;
   border-radius: 12px;
 }
 
 .widget-volume label,
 .widget-backlight label {
-  font-size: 24px;
-  color: @selected;
-  min-width: 32px;
-  margin: 0 12px 0 0;
+  font-family: "GoMono Nerd Font Propo", monospace;
+  font-size: 20px;
+  color: @accent;
+  min-width: 30px;
+  margin: 0 10px 0 0;
   padding: 0;
   opacity: 1;
 }
 
 .widget-volume slider,
 .widget-backlight slider {
-  background: @text;
-  border: 2px solid @selected;
+  background: @ink;
+  border: 2px solid @accent;
   border-radius: 50%;
-  min-height: 16px;
-  min-width: 16px;
-  margin: -5px 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  min-height: 14px;
+  min-width: 14px;
+  margin: -4px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
-/* ==================== DO NOT DISTURB ==================== */
+/* ==================== INHIBITORS + DND FOOTER ==================== */
 
-.widget-dnd {
-  margin: 0;
-  padding: 14px 20px 8px 20px;
+.widget-inhibitors {
   background: transparent;
-  border-top: 1px solid alpha(@text, 0.08);
-  font-size: 1rem;
+  margin: 0;
+  padding: 10px 20px 2px 20px;
+  color: @ink;
   font-weight: 600;
 }
 
+.widget-inhibitors button {
+  background: @chip;
+  border: 1px solid @chip-line;
+  border-radius: 12px;
+  padding: 6px 14px;
+  min-height: 34px;
+  color: @ink;
+  font-weight: 600;
+}
+
+.widget-inhibitors button:hover {
+  background: @accent-soft;
+  border-color: @accent-line;
+  color: @accent;
+}
+
+.widget-dnd {
+  background: transparent;
+  border-top: 1px solid @line-soft;
+  margin: 8px 0 0 0;
+  padding: 12px 20px 16px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: @ink;
+}
+
 .widget-dnd > switch {
-  background: alpha(@text, 0.15);
+  background: alpha(@ink, 0.15);
+  border: 1px solid @chip-line;
   border-radius: 24px;
-  border: 1px solid alpha(@text, 0.12);
   padding: 3px;
   min-width: 48px;
-  min-height: 28px;
+  min-height: 26px;
 }
 
 .widget-dnd > switch:hover {
-  border-color: alpha(@selected, 0.4);
+  border-color: @accent-line;
 }
 
 .widget-dnd > switch:checked {
-  background: @selected;
-  border-color: @selected;
+  background: @accent;
+  border-color: @accent;
 }
 
 .widget-dnd > switch slider {
-  background: @text;
+  background: @ink;
   border-radius: 50%;
-  min-width: 22px;
-  min-height: 22px;
+  min-width: 20px;
+  min-height: 20px;
 }
 
 .widget-dnd > switch:checked slider {
-  background: @on-selected;
-}
-
-/* ==================== MEDIA PLAYER ==================== */
-
-.widget-mpris {
-  background: transparent;
-  color: @text;
-  margin: 0;
-  padding: 12px;
-  border-top: 1px solid alpha(@text, 0.08);
-}
-
-.widget-mpris-player {
-  background: alpha(@surface_container, 0.75);
-  border: 1px solid alpha(@text, 0.1);
-  border-radius: 16px;
-  padding: 14px;
-  margin: 0;
-  box-shadow: none;
-}
-
-.widget-mpris .widget-mpris-player .mpris-background {
-  opacity: 0.25;
-  border-radius: 16px;
-}
-
-.widget-mpris-album-art {
-  border-radius: 12px;
-  border: 1px solid alpha(@text, 0.12);
-  margin: 0 12px 0 0;
-  min-width: 80px;
-  min-height: 80px;
-}
-
-.widget-mpris-title {
-  font-weight: 700;
-  font-size: 1.1rem;
-}
-
-.widget-mpris-subtitle {
-  font-weight: 400;
-  font-size: 0.9rem;
-  opacity: 0.85;
-}
-
-.widget-mpris button {
-  color: @text;
-  opacity: 1;
-  margin: 10px 4px 0 4px;
-  min-width: 44px;
-  min-height: 44px;
-  padding: 0;
-  border-radius: 50%;
-  border: 1px solid transparent;
-  background: alpha(@text, 0.08);
-}
-
-.widget-mpris button label {
-  margin: auto;
-  padding: 0;
-}
-
-.widget-mpris button:hover {
-  background: alpha(@selected, 0.2);
-  border-color: alpha(@selected, 0.35);
-  opacity: 1;
-}
-
-.widget-mpris button:active {
-  background: @selected;
-  color: @on-selected;
-}
-
-.widget-mpris button:nth-child(3) {
-  background: alpha(@selected, 0.2);
-  border-color: alpha(@selected, 0.35);
-  color: @selected;
-}
-
-.widget-mpris button:nth-child(3):hover {
-  background: @selected;
-  color: @on-selected;
-}
-
-/* ==================== ANIMATIONS ==================== */
-
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.notification-row {
-  animation: fade-in 200ms ease-out;
+  background: @on-accent;
 }

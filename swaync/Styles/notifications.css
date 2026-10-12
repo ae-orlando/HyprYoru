@@ -1,40 +1,15 @@
-/* Rofi-blended glass — matches ~/.config/rofi/shared/colors.rasi + launcher.rasi/applets.rasi
- * Palette comes from matugen (@surface, @surface_container, @on_surface, @primary).
- * Glass: semi-transparent so Hypr blur shows through.
- * Enable blur: decoration:blur:enabled = true + layerrule blur, swaync-control-center
+/* Yoru Deck — floating notification popups
+ * Glass popup: opaque card + accent hairline, urgency-coded.
  * by ae. Orlando
  */
 
-@define-color text            @on_surface;
-@define-color background      @surface;
-@define-color background-alt  @surface_container;
-@define-color selected        @primary;
-@define-color hover           @secondary;
-@define-color urgent          @error;
-@define-color border          @outline_variant;
-@define-color on-selected     @surface;
-
-* {
-  color: @text;
-  all: unset;
-  font-size: 14px;
-  font-family: "GoMono Nerd Font", "GoMono Nerd Font Propo", monospace;
-  transition: 200ms;
-}
-
-.notification-row {
-  outline: none;
-  margin: 0;
-  padding: 0;
-}
-
-/* Floating popup — glass version of rofi applets.rasi (25px window, flat) */
+/* Popup frame */
 .floating-notifications.background .notification-row .notification-background {
-  background: alpha(@background-alt, 0.75);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  border: 1.5px solid alpha(@selected, 0.35);
+  background: @popup;
+  border: 1px solid @accent-line;
   border-radius: 16px;
-  margin: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  margin: 10px 12px 2px 12px;
   padding: 0;
 }
 
@@ -43,87 +18,131 @@
   border-radius: 12px;
 }
 
+/* Urgency treatments */
+.floating-notifications.background .notification-row .notification-background .notification.low {
+  opacity: 0.85;
+}
+
 .floating-notifications.background .notification-row .notification-background .notification.critical {
-  border: 2px solid @urgent;
+  border: 1px solid @danger;
+  border-left: 3px solid @danger;
+  background: alpha(@danger, 0.08);
+  animation: critical-pulse 2s ease-in-out infinite;
 }
 
+/* Content */
 .floating-notifications.background .notification-row .notification-background .notification .notification-content {
-  margin: 14px;
-}
-
-.floating-notifications.background .notification-row .notification-background .notification > *:last-child > * {
-  min-height: 3.4em;
-}
-
-.floating-notifications.background .notification-row .notification-background .notification > *:last-child > * .notification-action {
-  border-radius: 12px;
-  background: alpha(@text, 0.08);
-  margin: 6px;
-  padding: 8px 16px;
-  border: 1px solid alpha(@text, 0.08);
-}
-
-.floating-notifications.background .notification-row .notification-background .notification > *:last-child > * .notification-action label {
-  margin: auto;
-  padding: 0;
-}
-
-.floating-notifications.background .notification-row .notification-background .notification > *:last-child > * .notification-action:hover {
-  background: alpha(@selected, 0.2);
-  border: 1px solid alpha(@selected, 0.4);
-}
-
-.floating-notifications.background .notification-row .notification-background .notification > *:last-child > * .notification-action:active {
-  background: @selected;
-  color: @on-selected;
-  border-color: @selected;
+  margin: 12px 14px 8px 14px;
+  min-height: 100px;
 }
 
 .image {
-  margin: 10px 20px 10px 0;
+  margin: 10px 14px 10px 6px;
+  border-radius: 10px;
 }
 
 .summary {
+  font-family: "GoMono Nerd Font Propo", monospace;
   font-weight: 700;
-  font-size: 1.05rem;
+  font-size: 1.02rem;
+  color: @ink;
 }
 
 .body {
-  font-size: 0.9rem;
-  opacity: 0.9;
+  font-size: 0.92rem;
+  color: @ink-dim;
   line-height: 1.5;
+  padding-top: 4px;
 }
 
-.floating-notifications.background .notification-row .notification-background .close-button {
-  margin: 8px;
-  padding: 0;
-  min-width: 28px;
-  min-height: 28px;
+.time {
+  font-family: "GoMono Nerd Font Propo", monospace;
+  font-size: 0.78rem;
+  color: @ink-faint;
+}
+
+/* Actions */
+.floating-notifications.background .notification-row .notification-background .notification > *:last-child > * {
+  min-height: 2.6em;
+  margin: 0 8px 8px 8px;
+}
+
+.floating-notifications.background .notification-row .notification-background .notification > *:last-child > * .notification-action {
+  background: @chip;
+  border: 1px solid @chip-line;
+  border-radius: 12px;
+  margin: 4px;
+  padding: 8px 14px;
+  color: @ink;
+  font-weight: 600;
+}
+
+.floating-notifications.background .notification-row .notification-background .notification > *:last-child > * .notification-action:hover {
+  background: @accent-soft;
+  border-color: @accent-line;
+  color: @accent;
+}
+
+.floating-notifications.background .notification-row .notification-background .notification > *:last-child > * .notification-action:active {
+  background: @accent;
+  border-color: @accent;
+  color: @on-accent;
+}
+
+/* Inline replies + 2FA copy button */
+.floating-notifications.background .notification-row .notification-background .notification entry {
+  background: alpha(@ink, 0.06);
+  border: 1px solid @chip-line;
   border-radius: 10px;
-  background: alpha(@text, 0.08);
-  border: 1px solid transparent;
+  padding: 8px 10px;
+  margin: 6px 12px;
+  color: @ink;
 }
 
-.floating-notifications.background .notification-row .notification-background .close-button label {
-  margin: auto;
+.floating-notifications.background .notification-row .notification-background .notification entry:focus {
+  border-color: @accent;
+}
+
+/* Close */
+.floating-notifications.background .notification-row .notification-background .close-button {
+  background: alpha(@ink, 0.05);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  margin: 6px;
   padding: 0;
+  min-width: 22px;
+  min-height: 22px;
+  color: @ink-faint;
+  font-size: 12px;
 }
 
 .floating-notifications.background .notification-row .notification-background .close-button:hover {
-  background: @selected;
-  color: @on-selected;
+  background: @danger;
+  color: @on-danger;
 }
 
 .floating-notifications.background .notification-row .notification-background .close-button:active {
-  background: @selected;
-  color: @on-selected;
+  background: @danger-dim;
+  color: @on-danger;
 }
 
-.notification.critical progress {
-  background: @urgent;
+/* Progress (downloads, copy) */
+.notification progress,
+.notification trough {
+  border-radius: 8px;
+  min-height: 6px;
+  margin: 6px 14px 10px 14px;
+}
+
+.notification trough {
+  background: alpha(@ink, 0.12);
 }
 
 .notification.low progress,
 .notification.normal progress {
-  background: @selected;
+  background: @accent;
+}
+
+.notification.critical progress {
+  background: @danger;
 }

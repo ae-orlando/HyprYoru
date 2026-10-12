@@ -2,129 +2,171 @@
     "$schema": "/etc/xdg/swaync/configSchema.json",
     "positionX": "right",
     "positionY": "top",
+    "layer": "overlay",
+    "control-center-layer": "top",
     "cssPriority": "user",
-
-    "control-center-width": 380,
-    "control-center-height": 860,
+    "control-center-width": 400,
+    "control-center-height": -1,
     "control-center-margin-top": 10,
     "control-center-margin-bottom": 10,
     "control-center-margin-right": 10,
     "control-center-margin-left": 0,
-
     "notification-window-width": 400,
+    "notification-window-height": -1,
     "notification-icon-size": 48,
     "notification-body-image-height": 100,
     "notification-body-image-width": 200,
-
-    "timeout": 4,
-    "timeout-low": 2,
-    "timeout-critical": 6,
-
+    "timeout": 6,
+    "timeout-low": 3,
+    "timeout-critical": 0,
     "fit-to-screen": false,
     "keyboard-shortcuts": true,
     "image-visibility": "when-available",
-    "transition-time": 100,
-    "hide-on-clear": false,
-    "hide-on-action": false,
+    "transition-time": 200,
+    "hide-on-clear": true,
+    "hide-on-action": true,
+    "text-empty": "No notifications — enjoy the quiet",
     "script-fail-notify": true,
+    "notification-grouping": true,
+    "relative-timestamps": true,
+    "notification-inline-replies": true,
+    "notification-2fa-action": true,
     "notification-visibility": {
-        "example-name": {
+        "spotify-low": {
             "state": "muted",
             "urgency": "Low",
             "app-name": "Spotify"
         }
     },
     "widgets": [
+        "menubar#top",
+        "title",
+        "notifications",
+        "label#media",
         "mpris",
+        "label#controls",
         "buttons-grid",
         "volume",
         "backlight",
-        "dnd",
-        "title",
-        "notifications"
+        "inhibitors",
+        "dnd"
     ],
     "widget-config": {
+        "menubar#top": {
+            "buttons#user": {
+                "position": "left",
+                "actions": [
+                    {
+                        "label": " Yoru",
+                        "command": "swaync-client -cp; nwg-look"
+                    }
+                ]
+            },
+            "menu#power": {
+                "label": "",
+                "position": "right",
+                "animation-type": "slide_down",
+                "animation-duration": 220,
+                "actions": [
+                    {
+                        "label": "Lock",
+                        "command": "swaync-client -cp; hyprlock"
+                    },
+                    {
+                        "label": "Suspend",
+                        "command": "swaync-client -cp; hyprshutdown suspend 2>/dev/null || systemctl suspend"
+                    },
+                    {
+                        "label": "Power menu",
+                        "command": "swaync-client -cp; ~/.config/rofi/launchers/powermenu.sh"
+                    }
+                ]
+            }
+        },
         "title": {
             "text": "Notifications",
             "clear-all-button": true,
-            "button-text": "Clear All "
+            "button-text": "Clear All"
         },
-        "dnd": {
-            "text": "Do not disturb",
-            "do-not-disturb-on-startup": false,
-            "do-not-disturb": false
-        },
-        "label": {
+        "label#media": {
             "max-lines": 1,
-            "text": " "
+            "text": "NOW PLAYING"
+        },
+        "label#controls": {
+            "max-lines": 1,
+            "text": "QUICK SETTINGS"
         },
         "mpris": {
-            "image-size": 96,
-            "image-radius": 12,
-            "show-album-art": "playing",
-            "blacklist": [],
-            "autohide": false,
-            "prefer": ["spotify"]
+            "show-album-art": "when-available",
+            "blacklist": ["playerctld"],
+            "autohide": true,
+            "loop-carousel": false
         },
         "volume": {
-            "label": "󰕾 ",
-            "show-per-app": false
+            "label": "󰕾 "
         },
         "backlight": {
             "label": "󰃠 ",
             "subsystem": "backlight",
-            "min": 10
+            "min": 1
+        },
+        "inhibitors": {
+            "text": "Inhibitors",
+            "clear-all-button": true,
+            "button-text": "Clear All"
+        },
+        "dnd": {
+            "text": "Do not disturb"
         },
         "buttons-grid": {
+            "buttons-per-row": 4,
             "actions": [
                 {
                     "label": "󰕾",
                     "command": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
-                    "name": "btn-sink",
                     "type": "toggle",
                     "active": true,
-                    "update-command": "wpctl get-volume @DEFAULT_AUDIO_SINK@ | grep -q '\\[MUTED\\]' && echo false || echo true"
+                    "update-command": "~/.config/swaync/scripts/sink-state.sh"
                 },
                 {
                     "label": "",
                     "command": "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle",
-                    "name": "btn-mic",
                     "type": "toggle",
                     "active": true,
-                    "update-command": "wpctl get-volume @DEFAULT_AUDIO_SOURCE@ | grep -q '\\[MUTED\\]' && echo false || echo true"
+                    "update-command": "~/.config/swaync/scripts/mic-state.sh"
                 },
                 {
                     "label": "",
-                    "command": "swaync-client -t -sw; ~/.config/rofi/launchers/wifi.sh"
+                    "command": "~/.config/swaync/scripts/open-rofi.sh wifi",
+                    "type": "toggle",
+                    "active": true,
+                    "update-command": "~/.config/swaync/scripts/wifi-state.sh"
                 },
                 {
                     "label": "󰂯",
-                    "command": "swaync-client -t -sw; ~/.config/rofi/launchers/rofi-bluetooth"
+                    "command": "~/.config/swaync/scripts/open-rofi.sh bluetooth",
+                    "type": "toggle",
+                    "active": true,
+                    "update-command": "~/.config/swaync/scripts/bluetooth-state.sh"
+                },
+                {
+                    "label": "",
+                    "command": "~/.config/swaync/scripts/toggle-theme.sh",
+                    "type": "toggle",
+                    "active": true,
+                    "update-command": "~/.config/swaync/scripts/theme-state.sh"
+                },
+                {
+                    "label": "",
+                    "command": "~/.config/swaync/scripts/open-rofi.sh screenshot"
                 },
                 {
                     "label": "󰏘",
                     "command": "hyprpicker -a"
                 },
-
-                {
-                    "label": "",
-                    "command": "swaync-client -t -sw; waypaper"
-                },
-                {
-                    "label": "",
-                    "command": "swaync-client -t -sw; ~/.config/rofi/launchers/screenshot.sh"
-                },
-                {
-                    "label": "",
-                    "command": "~/.config/swaync/scripts/toggle-theme.sh",
-                    "name": "btn-theme",
-                    "type": "toggle",
-                    "active": true,
-                    "update-command": "grep -Eq '^gtk-application-prefer-dark-theme=(1|true)' ~/.config/gtk-3.0/settings.ini && echo true || echo false"
-                },
                 {
                     "label": "",
-                    "command": "swaync-client -t -sw; ~/.config/rofi/launchers/powermenu.sh"
+                    "command": "~/.config/swaync/scripts/open-rofi.sh powermenu"
                 }
             ]
         }

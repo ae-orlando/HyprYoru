@@ -1,0 +1,57 @@
+/* Yoru Deck — base: reset, scrollbar, blank window, motion
+ * by ae. Orlando
+ */
+
+* {
+  all: unset;
+  font-family: "Adwaita Sans", "GoMono Nerd Font Propo", sans-serif;
+  font-size: 14px;
+  transition: background 200ms ease, border-color 200ms ease, opacity 200ms ease;
+}
+
+.blank-window {
+  background: transparent;
+}
+
+scrollbar {
+  background: transparent;
+  min-width: 6px;
+}
+
+scrollbar slider {
+  background: alpha(@ink, 0.18);
+  border-radius: 999px;
+  min-height: 40px;
+}
+
+scrollbar slider:hover {
+  background: alpha(@accent, 0.45);
+}
+
+tooltip {
+  background: @surface-high;
+  border: 1px solid @line;
+  border-radius: 12px;
+}
+
+tooltip label {
+  color: @ink;
+  padding: 6px 10px;
+}
+
+@keyframes deck-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes critical-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 alpha(@danger, 0.0); }
+  50% { box-shadow: 0 0 0 2px alpha(@danger, 0.35); }
+}
+
+.notification-row {
+  animation: deck-in 200ms ease-out;
+  outline: none;
+  margin: 0;
+  padding: 0;
+}
