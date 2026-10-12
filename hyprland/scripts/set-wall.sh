@@ -64,23 +64,23 @@ cp -f "$WALL" "$HYPRLOCK_WALL"
 # Regenerate rofi wallpaper-image variables for the yoru-main theme.
 "$HOME/.config/rofi/launchers/gen-wallpaper-rasi.sh" "$WALL" 2>/dev/null || true
 
-# matugen sets wallpaper via [config.wallpaper] (awww) + writes all templates.
+# Wallpaper first (own the awww animation here; matugen [config.wallpaper]
+# is set=false and only writes templates + fires post_hooks).
 # Respect the dark/light toggle (toggle-theme.sh persists current-mode).
 MODE="$(cat "$HOME/.cache/matugen/current-mode" 2>/dev/null || echo dark)"
 [[ "$MODE" == "light" || "$MODE" == "dark" ]] || MODE="dark"
-matugen image "$WALL" --mode "$MODE" --type scheme-tonal-spot --prefer closest-to-fallback
+awww img --transition-type center --transition-duration 2 "$WALL"
 
-# Wait for the awww transition (--transition-duration 2 in matugen config) to
-# finish before reloading bars, so the new palette lands together with the
-# new wallpaper instead of ahead of it.
+# Wait for the awww transition to finish before generating the palette,
+# so the new colors land together with the new wallpaper instead of ahead
+# of it.
 sleep 2
 
-# Reload compositor + bars (matugen post_hooks handle kitty/btop).
-# Graceful reloads only: SIGUSR2 makes waybar re-read config/CSS in place,
-# swaync-client -rs reloads notification CSS. Never killall the bar here:
-# killing waybar/swaync drops tray icons and notification state.
+matugen image "$WALL" --mode "$MODE" --type scheme-tonal-spot --prefer closest-to-fallback
+
+# Reload compositor for hypr colors.lua (matugen post_hooks single-handle
+# waybar/swaync/kitty/btop; do not duplicate SIGUSR2/-rs here or the bar
+# reloads twice). Graceful reload only: never killall the bar here.
 hyprctl reload 2>/dev/null || true
-pkill -SIGUSR2 waybar 2>/dev/null || true
-swaync-client -rs 2>/dev/null || true
 
 echo "Wallpaper + palette applied: $WALL"

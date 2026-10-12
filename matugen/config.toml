@@ -14,7 +14,9 @@ prefer = "closest-to-fallback"
 contrast = 0.0
 
 [config.wallpaper]
-set = true
+# Wrapper-owned: set-wall.sh runs awww first, waits for the transition,
+# then runs matugen palette-only so colors land with the wallpaper.
+set = false
 command = "awww img --transition-type center --transition-duration 2 {{ image }}"
 
 # --- Hyprland Lua colors (general.lua imports modules.colors) ---

@@ -67,15 +67,16 @@ if [ -f "$WALL_FILE" ]; then
     WALL="$(cat "$WALL_FILE" 2>/dev/null || true)"
 fi
 if [ -n "${WALL:-}" ] && [ -f "$WALL" ] && command -v matugen >/dev/null 2>&1; then
+    # Palette-only (matugen [config.wallpaper] set=false, so no wallpaper
+    # re-animation flash on theme toggle).
     matugen image "$WALL" --mode "$NEW" --type scheme-tonal-spot --prefer closest-to-fallback
 else
     echo "No wallpaper found ($WALL_FILE); palette unchanged, GTK + mode only." >&2
 fi
 
-# Graceful reloads only (never killall): matugen post_hooks already
-# handle kitty/btop; waybar SIGUSR2 re-reads CSS in place.
+# Graceful reload only (never killall): matugen post_hooks single-handle
+# waybar/swaync/kitty/btop; hyprctl covers hypr colors.lua. Do not duplicate
+# SIGUSR2/-rs here or the bar reloads twice.
 hyprctl reload 2>/dev/null || true
-pkill -SIGUSR2 waybar 2>/dev/null || true
-swaync-client -rs 2>/dev/null || true
 
 echo "Switched to $NEW theme."
