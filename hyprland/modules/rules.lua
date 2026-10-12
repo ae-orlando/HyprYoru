@@ -57,13 +57,13 @@ hl.window_rule({
 -- })
 -- overlayLayerRule:set_enabled(false)
 
--- Blur behind translucent layer-shell surfaces (sWayNC glass, rofi).
+-- Blur behind frosted layer-shell surfaces (SwayNC, rofi).
 hl.layer_rule({
     name = "blur-swaync",
     match = { namespace = "swaync-control-center|swaync-notification-window" },
 
     blur = true,
-    ignore_alpha = 0.3,
+    ignore_alpha = 0.85,
 })
 
 hl.layer_rule({
@@ -72,6 +72,12 @@ hl.layer_rule({
 
     blur = true,
     ignore_alpha = 0.3,
+})
+
+hl.layer_rule({
+    name = "rofi-animations",
+    match = { namespace = "rofi" },
+    animation = "popin 87%",
 })
 
 -- Hyprland-run popup placement.

@@ -6,11 +6,11 @@
 
 @import "../matugen/colors.css";
 
-/* Ink + surfaces */
+/* Ink + surfaces (matugen names used directly; never shadow a
+ * matugen name with a self-reference) */
 @define-color ink            @on_surface;
 @define-color ink-dim        @on_surface_variant;
 @define-color ink-faint      alpha(@on_surface_variant, 0.7);
-@define-color surface        @surface;
 @define-color surface-low    @surface_container_low;
 @define-color surface-card   @surface_container;
 @define-color surface-high   @surface_container_high;
@@ -35,12 +35,12 @@
 @define-color danger-dim    @error_container;
 @define-color on-danger     @on_error;
 
-/* Cards: frosted like kitty (0.5 bg over blur) — frame goes deep,
- * cards stay a touch more solid so text doesn't swim. */
-@define-color card         alpha(@surface_container, 0.75);
-@define-color card-hover   alpha(@surface_container_high, 0.80);
-@define-color panel        alpha(@surface, 0.60);
-@define-color popup        alpha(@surface_container, 0.65);
+/* Foreground solid, backdrop frosted: cards/popup opaque so text
+ * stays razor-sharp; only the panel shows blurred wallpaper. */
+@define-color card         @surface_container_highest;
+@define-color card-hover   @surface_bright;
+@define-color panel        alpha(@surface_container_high, 0.72);
+@define-color popup        @surface_container_highest;
 @define-color chip         alpha(@on_surface, 0.08);
 @define-color chip-line    alpha(@on_surface, 0.12);
 
