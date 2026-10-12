@@ -64,8 +64,11 @@ cp -f "$WALL" "$HYPRLOCK_WALL"
 # Regenerate rofi wallpaper-image variables for the yoru-main theme.
 "$HOME/.config/rofi/launchers/gen-wallpaper-rasi.sh" "$WALL" 2>/dev/null || true
 
-# matugen sets wallpaper via [config.wallpaper] (awww) + writes all templates
-matugen image "$WALL" --mode dark --type scheme-tonal-spot --prefer closest-to-fallback
+# matugen sets wallpaper via [config.wallpaper] (awww) + writes all templates.
+# Respect the dark/light toggle (toggle-theme.sh persists current-mode).
+MODE="$(cat "$HOME/.cache/matugen/current-mode" 2>/dev/null || echo dark)"
+[[ "$MODE" == "light" || "$MODE" == "dark" ]] || MODE="dark"
+matugen image "$WALL" --mode "$MODE" --type scheme-tonal-spot --prefer closest-to-fallback
 
 # Wait for the awww transition (--transition-duration 2 in matugen config) to
 # finish before reloading bars, so the new palette lands together with the

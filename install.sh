@@ -897,6 +897,7 @@ phase_dotfiles() {
   log "Fixing executable bits on scripts"
   run "chmod +x \"$DOTFILES_ROOT/hyprland/scripts/\"*.sh \"$DOTFILES_ROOT/hyprland/whatsong.sh\""
   run "chmod +x \"$DOTFILES_ROOT/waybar/scripts/\"*.sh"
+  run "chmod +x \"$DOTFILES_ROOT/swaync/scripts/\"*.sh"
   run "chmod +x \"$DOTFILES_ROOT/rofi/launchers/\"*.sh \"$DOTFILES_ROOT/rofi/launchers/type-6/\"*.sh \"$DOTFILES_ROOT/rofi/launchers/rofi-bluetooth\""
   # Runtime dirs (matugen/set-wall.sh + waybar + swaync + qt6ct expect them).
   run "mkdir -p \"$HOME/Pictures/wallpapers\" \"$HOME/Pictures/Screenshots\""
