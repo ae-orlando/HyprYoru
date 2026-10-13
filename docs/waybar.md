@@ -6,7 +6,7 @@ Top bar. Config: `waybar/config.jsonc`. Style entry: `waybar/style.css` imports 
 
 - Left: `custom/apps` (opens `yoru-main.sh`), `hyprland/workspaces`.
 - Center: `bluetooth`, `clock`, `custom/notification`.
-- Right: `network`, `group/audio` (`pulseaudio` + `custom/mic` drawer), `battery`, `power-profiles-daemon`, `tray`.
+- Right: `group/system` (`cpu` + `memory` + `temperature` drawer), `network`, `group/audio` (`pulseaudio` + `custom/mic` drawer), `battery`, `power-profiles-daemon`, `tray`.
 
 ## Files
 
@@ -38,4 +38,5 @@ swaync-client -rs
 
 ## Notes
 
+- System drawer: `group/system` (`waybar/config.jsonc:151`) expands on hover; `cpu`/`memory`/`temperature` open `kitty -e btop` on click. `temperature` reads `thermal-zone: 0`, critical at 80°C. Styling: `#system` drawer + `#cpu`/`#memory`/`#temperature` accents in `waybar/colors/style.css:251`.
 - Theme reloads: matugen `post_hook` (`matugen/config.toml:36`) owns `SIGUSR2`; scripts must not duplicate it or the bar reloads twice. `launch.sh` hard restart is manual-only (drops tray state).

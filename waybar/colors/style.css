@@ -110,6 +110,10 @@ tooltip label {
 #bluetooth,
 #battery,
 #audio,
+#cpu,
+#memory,
+#temperature,
+#system,
 #power-profiles-daemon {
     background-color: @bg0;
     padding: 0 15px 0 15px;
@@ -129,6 +133,10 @@ tooltip label {
 #bluetooth:hover,
 #battery:hover,
 #power-profiles-daemon:hover,
+#cpu:hover,
+#memory:hover,
+#temperature:hover,
+#system:hover,
 #audio:hover {
     background-color: @bg1;
     border-color: @blue;
@@ -240,6 +248,31 @@ tooltip label {
     color: @green;
 }
 
+/* System monitor */
+#cpu {
+    color: @blue;
+}
+
+#memory {
+    color: @purple;
+}
+
+#temperature {
+    color: @green;
+}
+
+#temperature.warning {
+    color: @yellow;
+}
+
+#temperature.critical {
+    color: @red;
+    animation-name: blink;
+    animation-duration: 1s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
+
 /* Grouped audio drawer */
 #audio {
     color: @fg;
@@ -252,6 +285,25 @@ tooltip label {
 
 #audio #pulseaudio,
 #audio #custom-mic {
+    background: transparent;
+    border: none;
+    padding: 0 4px;
+    margin: 0;
+}
+
+/* Grouped system drawer */
+#system {
+    color: @fg;
+    background-color: @bg0;
+    padding: 0 8px 0 8px;
+    margin: 0 0 0 12px;
+    border-radius: 45px;
+    border: 1px solid @bg3;
+}
+
+#system #cpu,
+#system #memory,
+#system #temperature {
     background: transparent;
     border: none;
     padding: 0 4px;

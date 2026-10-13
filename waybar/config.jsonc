@@ -15,6 +15,7 @@
     "modules-center": ["bluetooth", "clock", "custom/notification"],
 
     "modules-right": [
+        "group/system",
         "network",
         "group/audio",
         "battery",
@@ -145,6 +146,39 @@
         "on-click": "swaync-client -t -sw",
         "on-click-right": "swaync-client -d -sw",
         "escape": true,
+    },
+
+    "group/system": {
+        "orientation": "horizontal",
+        "drawer": {
+            "transition-duration": 500,
+            "children-class": "system",
+        },
+        "modules": ["cpu", "memory", "temperature"],
+    },
+
+    "cpu": {
+        "format": " {usage}%",
+        "interval": 2,
+        "tooltip-format": "CPU: {usage}% ({load})",
+        "on-click": "kitty -e btop",
+    },
+
+    "memory": {
+        "format": " {percentage}%",
+        "interval": 5,
+        "tooltip-format": "{used:0.1f}G / {total:0.1f}G · {percentage}%",
+        "on-click": "kitty -e btop",
+    },
+
+    "temperature": {
+        "thermal-zone": 0,
+        "critical-threshold": 80,
+        "format": "{temperatureC}°C {icon}",
+        "format-icons": ["", "", "", "", ""],
+        "interval": 5,
+        "tooltip-format": "{temperatureC}°C",
+        "on-click": "kitty -e btop",
     },
 
     "network": {
