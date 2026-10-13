@@ -46,6 +46,7 @@ alias gc="git commit -m"
 alias gp="git push"
 alias gl="git pull"
 alias gd="git diff"
+alias go="git log --oneline"
 
 # Maintenance
 alias update="sudo pacman -Syu"
