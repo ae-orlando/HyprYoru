@@ -48,7 +48,12 @@ tooltip label {
     box-shadow: inset 0 -2px transparent;
     font-size: 14px;
     min-width: 30px;
-    transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out, box-shadow 0.3s ease-in-out, opacity 0.3s ease-in-out, border-color 0.3s ease-in-out;
+    transition:
+        background-color 0.3s ease-in-out,
+        color 0.3s ease-in-out,
+        box-shadow 0.3s ease-in-out,
+        opacity 0.3s ease-in-out,
+        border-color 0.3s ease-in-out;
 }
 
 #workspaces button.empty {
@@ -250,7 +255,7 @@ tooltip label {
 
 /* System monitor */
 #cpu {
-    color: @blue;
+    color: @fg;
 }
 
 #memory {
