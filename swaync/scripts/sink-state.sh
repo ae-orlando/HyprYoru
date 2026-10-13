@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+#   _   __     __               _______  __
+#  | | / /__  / /_ ____ _  ___ / ___/ /_/ /
+#  | |/ / _ \/ / // /  ' \/ -_) /__/ __/ /
+#  |___/\___/_/\_,_/_/_/_/\__/\___/\__/_/
+
+# By ae. Orlando
+
 # Echo true when the default sink is unmuted (active), false when muted.
 # Used as swaync buttons-grid update-command. Never fails the panel.
 set -uo pipefail

@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+#   ________               ______               __
+#  /_  __/ /  ___ __ _  __/_  __/__  ___ ____ _/ /__
+#   / / / _ \/ -_)  ' \/ -_) / / _ \/ _ `/ _ `/ / -_)
+#  /_/ /_//_/\__/_/_/_/\__/_/  \___/\_, /\_, /_/\__/
+#                                  /___//___/
 # by ae. Orlando
 # _______________________________________________________________________
 
@@ -20,13 +25,13 @@ current="dark"
 if [ -f "$MODE_FILE" ]; then
     cached="$(cat "$MODE_FILE" 2>/dev/null || echo dark)"
     case "$cached" in
-        light|dark) current="$cached" ;;
+    light | dark) current="$cached" ;;
     esac
 elif [ -f "$GTK3" ]; then
     pref="$(grep -E "^$KEY=" "$GTK3" | awk -F'=' '{print $2}' || true)"
     case "$pref" in
-        0|false) current="light" ;;
-        *) current="dark" ;;
+    0 | false) current="light" ;;
+    *) current="dark" ;;
     esac
 fi
 
@@ -43,7 +48,7 @@ else
 fi
 
 mkdir -p "$(dirname "$MODE_FILE")"
-echo "$NEW" > "$MODE_FILE"
+echo "$NEW" >"$MODE_FILE"
 
 set_gtk_pref() {
     local file="$1" value="$2"
@@ -51,7 +56,7 @@ set_gtk_pref() {
     if grep -qE "^$KEY=" "$file"; then
         sed -i "s/^$KEY=.*/$KEY=$value/" "$file"
     else
-        printf '%s=%s\n' "$KEY" "$value" >> "$file"
+        printf '%s=%s\n' "$KEY" "$value" >>"$file"
     fi
 }
 
