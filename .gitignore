@@ -17,6 +17,9 @@ Thumbs.db
 *.zwc
 *.log
 
+# Maintenance plans
+.maintenance/*
+
 # Generated palette / wallpaper state: reproducible artifacts, never commit.
 # Sources: matugen/templates/*, hyprland/wallpapers/*, waypaper/config.ini.example.
 # Fresh systems regenerate via install.sh (phase_theming) + autostart set-wall.sh.
