@@ -135,6 +135,7 @@
             "notification": "󱅫",
             "none": "󰂜",
             "dnd-none": "󰪓",
+            "dnd-notification": "󰂛",
             "inhibited-notification": "󰂛",
             "inhibited-none": "󰪑",
             "dnd-inhibited-notification": "󰂛",
