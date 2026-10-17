@@ -24,4 +24,5 @@
 - `~/.zshenv` contains `export ZDOTDIR="$HOME/.config/zsh"`.
 - `~/.config/gtk-3.0/bookmarks` is generated, not linked (gitignored).
 - `~/.config/VSCodium` is a **real** directory (VSCodium writes caches there); only its `User/` subtree — `settings.json` + `snippets/` — is linked and tracked. Machine state (`globalStorage/`, `workspaceStorage/`, `History/`) is gitignored.
-- Out-of-repo symlinks (`nvim`, `opencode`, `tmux`, `pgadmin4`) are left alone with a warning.
+- Out-of-repo symlinks (`nvim`, `opencode`, `tmux`) are left alone with a warning.
+- `~/.config/pgadmin4` is **not** linked and not part of the repo — pgAdmin owns it as a plain config dir (Electron state + `config.json`). Its real data lives separately in `~/.pgadmin/` (`pgadmin4.db`, `storage/`).
