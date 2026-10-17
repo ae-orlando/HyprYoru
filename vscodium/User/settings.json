@@ -1,0 +1,31 @@
+{
+    "workbench.startupEditor": "none",
+    "editor.fontFamily": "'D2KodingLigature Nerd Font Propo', 'GoMono Nerd Font Propo', 'Hack Nerd Font Propo'",
+    "editor.fontWeight": "normal",
+    "window.autoDetectColorScheme": true,
+    "chat.agent.allowedNetworkDomains": [
+        ""
+    ],
+    "workbench.settings.applyToAllProfiles": [
+        "editor.fontFamily"
+    ],
+    "workbench.statusBar.visible": false,
+    "editor.minimap.enabled": false,
+    "breadcrumbs.enabled": false,
+    "window.titleBarStyle": "native",
+    "window.customTitleBarVisibility": "windowed",
+    "window.customMenuBarAltFocus": false,
+    "window.menuBarVisibility": "hidden",
+    "editor.padding.bottom": 10,
+    "editor.padding.top": 10,
+    "editor.smoothScrolling": true,
+    "editor.cursorSmoothCaretAnimation": "on",
+    "terminal.integrated.smoothScrolling": true,
+    "editor.cursorBlinking": "smooth",
+    "workbench.list.smoothScrolling": true,
+    "workbench.activityBar.location": "hidden",
+    "editor.codeLensFontFamily": "'MartianMono Nerd Font Mono'",
+    "editor.inlayHints.fontFamily": "'JetBrainsMono Nerd Font Mono'",
+    "editor.fontLigatures": true,
+    "terminal.integrated.fontFamily": "JetBrainsMono Nerd Font Propo"
+}

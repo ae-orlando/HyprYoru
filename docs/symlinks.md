@@ -1,6 +1,6 @@
 # Symlinks
 
-`install.sh` `LINK_MAP` (13 entries). Target is replaced with a symlink to the repo source.
+`install.sh` `LINK_MAP` (14 entries). Target is replaced with a symlink to the repo source.
 
 | Target (`$HOME/...`) | Source (`$DOTFILES_ROOT/...`) |
 | -------------------- | ----------------------------- |
@@ -17,9 +17,11 @@
 | `.config/fastfetch`  | `fastfetch`                   |
 | `.config/gtk-3.0`    | `gtk-setting/gtk-3.0`         |
 | `.config/gtk-4.0`    | `gtk-setting/gtk-4.0`         |
+| `.config/VSCodium/User` | `vscodium/User`            |
 
 ## Related Paths
 
 - `~/.zshenv` contains `export ZDOTDIR="$HOME/.config/zsh"`.
 - `~/.config/gtk-3.0/bookmarks` is generated, not linked (gitignored).
-- Out-of-repo symlinks (`nvim`, `opencode`, `tmux`, `VSCodium`, `pgadmin4`) are left alone with a warning.
+- `~/.config/VSCodium` is a **real** directory (VSCodium writes caches there); only its `User/` subtree — `settings.json` + `snippets/` — is linked and tracked. Machine state (`globalStorage/`, `workspaceStorage/`, `History/`) is gitignored.
+- Out-of-repo symlinks (`nvim`, `opencode`, `tmux`, `pgadmin4`) are left alone with a warning.

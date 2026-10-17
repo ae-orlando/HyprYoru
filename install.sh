@@ -573,6 +573,7 @@ LINK_MAP=(
   ".config/fastfetch:fastfetch"
   ".config/gtk-3.0:gtk-setting/gtk-3.0"
   ".config/gtk-4.0:gtk-setting/gtk-4.0"
+  ".config/VSCodium/User:vscodium/User"
 )
 
 # --------------------------------------------------------------------------
@@ -593,11 +594,11 @@ phase_preflight() {
   mkdir -p "$(dirname "$LOG_FILE")"
   log "Dotfiles root: $DOTFILES_ROOT"
   local missing=0
-  for d in hyprland waybar rofi kitty matugen swaync zsh waypaper btop fastfetch gtk-setting qt6ct; do
+  for d in hyprland waybar rofi kitty matugen swaync zsh waypaper btop fastfetch gtk-setting qt6ct vscodium; do
     if [[ ! -d "$DOTFILES_ROOT/$d" ]]; then fail "Missing dir in repo: $d"; missing=1; fi
   done
   [[ "$missing" -eq 1 ]] && exit 1
-  ok "Repo layout OK (12 config dirs present)"
+  ok "Repo layout OK (13 config dirs present)"
   # Environment snapshot.
   local disk_free mem_total net_status
   disk_free=$(df -h "$HOME" 2>/dev/null | awk 'NR==2 {print $4}' || echo "unknown")
@@ -885,6 +886,11 @@ phase_services() {
 # --------------------------------------------------------------------------
 link_one() {
   local target="$HOME/$1" src="$DOTFILES_ROOT/$2"
+  # Parent may not exist yet (e.g. .config/VSCodium/User on a fresh system);
+  # ln -s cannot create missing parents, so ensure the directory first.
+  if [[ "$DRY_RUN" -eq 0 ]]; then
+    mkdir -p "$(dirname "$target")"
+  fi
   if [[ -L "$target" && "$(readlink "$target")" == "$src" ]]; then
     skip "Link OK: $target"
     return

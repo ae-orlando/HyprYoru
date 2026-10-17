@@ -1,0 +1,6 @@
+# Machine-local editor state: never commit.
+# What remains tracked: settings.json + snippets/ (authored config).
+User/globalStorage/
+User/workspaceStorage/
+User/History/
+User/chatLanguageModels.json
