@@ -10,7 +10,7 @@ HyprYoru holds the desktop config (Hyprland, Waybar, Rofi, SwayNC, Kitty, btop, 
 
 - An installed Arch Linux system and a normal user account; do not install as root.
 - `sudo` and `pacman` for system installation; `flock` from `util-linux` for the install lock.
-- Network access for packages and shell frameworks. `--link-only` needs no downloads.
+- Network access for packages, shell frameworks, or an approved UI download. `--link-only --ui plain` needs no downloads.
 - Verified versions on source: Hyprland `0.56.2`, matugen `4.2.0`, Waybar `v0.15.0`.
 
 ## Installation
@@ -38,7 +38,9 @@ Common variants:
 ./install.sh --help
 ```
 
-The guided flow is **Welcome → Components → Review → Installation → Results**. Gum supplies keyboard menus and checkboxes when available; numbered prompts provide the same choices otherwise. Gum is optional and never installed automatically. `--yes`, `--dry-run`, and `--check` work without it.
+The guided flow is **Welcome → Components → Review → Installation → Results**. Before opening menus, the installer prefers compatible system Gum, then a verified private cache. If neither is available, it offers a one-time download of a pinned, checksum-verified Gum runtime—no sudo or system package installation. Approving this preparation makes the first menu enhanced; declining or a preparation failure uses equivalent numbered prompts.
+
+`--ui plain`, `--yes`, explicit `--dry-run`, and explicit `--check` bypass UI downloads and cache inspection. An approved UI download stays cached even if you later cancel the wizard or select Preview; the desktop installation plan still makes no changes in preview mode.
 
 Review selected/missing package counts, expandable config/service actions, backup paths, and preferences before approving. `core` is the default; Zsh is selected by default but optional. GDM, WWAN, login-shell changes, and application defaults are opt-in. Deselecting a component never uninstalls it. See [installation details](docs/install.md) for flags, service policy, and restoration.
 
@@ -59,7 +61,7 @@ The installer links desktop and shell configs only. Developer-tool configs (tmux
 ```text
 .
 ├── install.sh
-├── lib/           # shared installation plan, optional Gum wizard, logging
+├── lib/           # shared plan, verified Gum runtime, wizard, logging
 ├── packages/      # desktop/shell/extra official and AUR manifests
 ├── services/      # optional Fibocom WWAN unit
 ├── tests/         # sandboxed installer regression tests (no VM)
@@ -89,5 +91,6 @@ bash -n install.sh
 bash -n lib/install-ui.sh
 bash -n lib/install-plan.sh
 bash -n lib/install-wizard.sh
+bash -n lib/gum-runtime.sh
 python3 -B tests/test_install.py
 ```

@@ -17,7 +17,7 @@ Developer-tool configs (tmux, VSCodium, OpenCode) are managed by the separate `t
 
 On a terminal, choose Recommended, Customize, Preview, or Check. Recommended goes straight to review; Customize offers component checkboxes and separate system/preference choices. Review defaults to **Cancel** and offers expandable package/config/service details and a return to customization. Closed input cancels instead of approving changes. Without a terminal, installation requires `--yes`.
 
-Explicit scope flags such as `--profile full` or `--only-dotfiles` skip Welcome and populate Review with the requested choices. `--yes` bypasses all menus; explicit `--dry-run` and `--check` run their read-only CLI paths without calling Gum.
+Explicit scope flags such as `--profile full` or `--only-dotfiles` skip Welcome and populate Review with the requested choices. Enhanced UI preparation happens first when needed, before any menus. `--yes` bypasses all menus; explicit `--dry-run` and `--check` run their read-only CLI paths without calling Gum or inspecting/downloading its cache.
 
 ## Profiles and package manifests
 
@@ -62,7 +62,7 @@ Installed packages are skipped. Failed batches are retried individually; recover
 | `--yes`, `-y`     | Skip wizard/confirmation; use package-manager `--noconfirm`                 |
 | `--verbose`       | Expand checks, unchanged items, command output, and preview command details |
 | `--quiet`         | Installer warnings/errors only; requires `--yes` for installation           |
-| `--ui MODE`       | `auto`, `plain`, or `gum`; unavailable widgets fall back to plain prompts   |
+| `--ui MODE`       | `auto`, `plain`, or `gum`; Gum preparation is offered before fallback       |
 | `--log-file PATH` | Use a new log file; existing files/symlinks are not overwritten             |
 | `--no-color`      | Disable colors; also supported through `NO_COLOR=1`                         |
 | `--help`, `-h`    | Print usage                                                                 |
@@ -97,7 +97,7 @@ Installed packages are skipped. Failed batches are retried individually; recover
 
 Default phase counts: normal **8**, dotfiles-only **5**, link-only **3**, check **2**. Deselecting Zsh removes its preparation phase (normal **7**, dotfiles-only **4**). The plan determines the actual phase count. Dry-run shows projected actions and a planned verification step rather than failing checks against files it intentionally did not create.
 
-`--only-dotfiles` expects dependencies to be installed already. It can still download missing shell frameworks and generate themes; use `--link-only` for links without those actions. Shell setup clones repositories directly instead of executing a remotely downloaded installer or overwriting `.zshrc`.
+`--only-dotfiles` expects dependencies to be installed already. It can still download missing shell frameworks and generate themes; use `--link-only` for links without those setup actions. A separately approved UI runtime download is possible in interactive mode even with `--link-only`; add `--ui plain` to skip that offer. Shell setup clones repositories directly instead of executing a remotely downloaded installer or overwriting `.zshrc`.
 
 ### Leaving the shell unmanaged
 
@@ -156,12 +156,28 @@ Logs use `${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles-install/logs/install-<t
 
 - Welcome → Components → Review → Installation → Results; Recommended skips component editing, not review.
 - Gum supplies arrow-key menus and multi-select checkboxes when installed and supported. Use Space/Tab to toggle, Enter to submit, and Escape/Ctrl+C to cancel. A sole optional item uses an explicit Include/Skip pair to avoid Gum automatically selecting it on Enter. Numbered prompts provide the same choices; toggle numbers separated by spaces and use `q` to cancel.
-- `--ui auto` detects widgets only for interactive sessions. Missing/incompatible Gum, `TERM=dumb`, or a terminal smaller than 50 columns × 12 rows uses plain prompts. `--ui plain` forces that fallback; `--ui gum` requests widgets but never installs them. To use Gum, install it separately with your package manager.
+- `--ui auto` prepares widgets only for interactive sessions. Compatible system Gum is preferred, then a verified cache, then an explicitly approved runtime download. `--ui plain`, `TERM=dumb`, or a terminal smaller than 50 columns × 12 rows uses plain prompts without preparation. `--ui gum` requests the same preparation flow, not a system package installation.
 - Review shows selected/missing/already-present package counts, preservation actions, storage paths, and shell/login/default-app choices. Details are expandable before approval. Package availability and service guards are rechecked while applying; selected targets and component choices still come from the reviewed plan.
 - The final approval defaults to Cancel, including when a global Gum preference tries to preselect another item. An empty component selection stays empty; it does not restore recommended defaults.
 - Phase progress shows completed phases, not fabricated download percentages. Unattended tasks get elapsed-time spinners; interactive package-manager questions keep foreground input/output. Successful checks and unchanged items are collapsed unless `--verbose` is used.
 - Results distinguish failures, warnings, unchanged items, and successful actions. Interactive results offer notes, available logs/backup manifests, and read-only verification with the reviewed scope. Rechecking does not change the original installation exit status. The sudo keepalive stops before these result actions.
 - Colors turn off when piped, with `NO_COLOR=1`, `CLICOLOR=0`, `TERM=dumb`, or `--no-color`. `NO_EMOJI=1` or a non-UTF-8 locale selects ASCII status icons.
+
+### Preparing Gum before the first menu
+
+`lib/gum-runtime.sh` resolves the executable before the wizard opens:
+
+1. Use compatible `gum` already on `PATH`.
+2. Otherwise verify and use `${XDG_CACHE_HOME:-$HOME/.cache}/hypryoru/tools/gum/<version>/<architecture>/gum`.
+3. If missing or unusable, ask **Download the verified Gum runtime? [y/N]** before writing anything to that cache.
+4. On approval, download the pinned upstream release, verify the archive and executable against SHA-256 values shipped in the installer, check compatibility, then publish the executable atomically.
+5. If preparation is declined or fails, open the numbered wizard instead. No sudo/package-manager commands are used to prepare UI software.
+
+The pinned runtime is Gum **2.0.2**, with Linux x86_64 and arm64 assets. Downloads need `curl` or `wget`, archive extraction needs `tar`, and verification uses `sha256sum`. The executable is kept in a user-owned cache with no group/other write permissions; app-managed directory symlinks are rejected. Only the specified executable member is read from the verified archive. An unusable existing regular cached file is preserved under `gum.unverified-<run>` before an approved replacement. Failed download/extraction staging files are removed; approved empty cache directories can remain.
+
+No checksums are fetched dynamically to authorize a new payload. Updating the pinned release requires updating the reviewed archive and executable hashes in the source. Downloading and executing this runtime is still third-party software, which is why the first download needs consent. A verified cache is reused without another download prompt.
+
+UI preparation is separate from the installation plan: approving it may create cache files even if you subsequently cancel Welcome or choose Preview/Check. Cancellation and summary messages distinguish those approved cache changes from desktop/package changes. Explicit `--dry-run`, `--check`, `--yes`, `--quiet`, and `--ui plain` skip UI preparation entirely; their prior no-UI-write guarantees remain intact. Offline/unsupported hosts retain the plain interface. UI runtime downloads are not offered when running as root.
 
 ## Local validation without a VM
 
@@ -170,11 +186,12 @@ bash -n install.sh
 bash -n lib/install-ui.sh
 bash -n lib/install-plan.sh
 bash -n lib/install-wizard.sh
+bash -n lib/gum-runtime.sh
 python3 -B tests/test_install.py
 systemd-analyze verify services/wwan-enable.service
 ```
 
-The Python standard-library suite uses temporary homes, an independent fixture repository, real pseudo-terminals, and mocked package/service/desktop commands. It covers manifest validation, zero-write read-only modes, backup failures, symlinks, shell opt-out and palette isolation, shared-plan execution, widget/fallback navigation, cancellation, result actions, and mocked install/rerun flows. Apply-mode cases skip when the host is not a normal-user Arch environment.
+The Python standard-library suite uses temporary homes, an independent fixture repository, real pseudo-terminals, and mocked package/service/desktop commands. It covers manifest validation, zero-write read-only modes, backup failures, symlinks, shell opt-out and palette isolation, shared-plan execution, widget/fallback navigation, cancellation, result actions, and mocked install/rerun flows. Runtime-preparation tests use local archives and mocked transports to cover consent, cache reuse, tampering, checksums, staging cleanup, unsafe paths, and offline fallback without real network requests. Apply-mode cases skip when the host is not a normal-user Arch environment; runtime-download cases also require a non-root user.
 
 The default widget tests mock Gum's input/output. To additionally test real widgets with an existing binary:
 

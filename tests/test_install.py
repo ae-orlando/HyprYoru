@@ -4,6 +4,8 @@
 import os
 import json
 import fcntl
+import hashlib
+import io
 from pathlib import Path
 import pty
 import re
@@ -12,6 +14,7 @@ import shutil
 import stat
 import struct
 import subprocess
+import tarfile
 import tempfile
 import termios
 import time
@@ -78,7 +81,7 @@ class InstallerTests(unittest.TestCase):
             timeout=20,
         )
 
-    def terminal(self, body='main', replies=(), *, rows=24, columns=100):
+    def terminal(self, body='main', replies=(), *, rows=24, columns=100, timeout=15):
         """Run only sandboxed/mocked actions with real terminal file descriptors."""
         master, slave = pty.openpty()
         fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack('HHHH', rows, columns, 0, 0))
@@ -89,7 +92,7 @@ class InstallerTests(unittest.TestCase):
         os.close(slave)
         output = b""
         pending = b""
-        deadline = time.monotonic() + 15
+        deadline = time.monotonic() + timeout
 
         def receive():
             nonlocal output, pending
@@ -163,6 +166,47 @@ else:
             return []
         return [json.loads(line) for line in path.read_text().splitlines()]
 
+    def mock_gum_runtime(self, replies=("Exit",), *, bad_binary=False):
+        """Pinned local fixture, never a real network request or system install."""
+        if os.geteuid() == 0:
+            self.skipTest("Gum runtime preparation requires a normal user, just as in production")
+        self.mock_gum(list(replies))
+        binary = (self.bin / "gum").read_bytes()
+        (self.bin / "gum").unlink()
+        payload = binary
+        if bad_binary:
+            payload = b'#!/bin/sh\ntouch "$HOME/unverified-executed"\n'
+        archive = io.BytesIO()
+        with tarfile.open(fileobj=archive, mode="w:gz") as tar:
+            member = tarfile.TarInfo("fixture/gum")
+            member.size = len(payload)
+            tar.addfile(member, io.BytesIO(payload))
+        contents = archive.getvalue()
+        (self.root / "gum-runtime.tar.gz").write_bytes(contents)
+        self.stub("curl", '''
+printf 'download\\n' >>"$CASE_ROOT/download-calls"
+target=''
+while (( $# > 0 )); do
+  if [[ "$1" == --output ]]; then target="$2"; shift 2; else shift; fi
+done
+[[ -n "$target" && "$target" == "$HOME/.cache/hypryoru/"* ]] || exit 98
+cp -- "$CASE_ROOT/gum-runtime.tar.gz" "$target"
+''')
+        self.stub("wget", 'printf "unexpected network fallback\\n" >&2; exit 98')
+        prefix = f'''
+find_system_gum() {{ return 1; }}
+gum_runtime_release() {{
+  GUM_VERSION=fixture
+  GUM_ARCH=fixture
+  GUM_ARCHIVE_SHA256={hashlib.sha256(contents).hexdigest()}
+  GUM_BINARY_SHA256={hashlib.sha256(binary).hexdigest()}
+  GUM_ARCHIVE_MEMBER=fixture/gum
+  GUM_DOWNLOAD_URL=https://example.invalid/gum-fixture.tar.gz
+}}
+'''
+        cache = self.home / ".cache/hypryoru/tools/gum/fixture/fixture/gum"
+        return prefix, cache, binary
+
     def home_snapshot(self):
         prefix = str(self.home.relative_to(self.root)) + "/"
         return {path: value for path, value in self.snapshot().items() if path.startswith(prefix)}
@@ -179,7 +223,7 @@ else:
         for name in (
             "sudo", "git", "makepkg", "yay", "paru", "matugen", "chsh", "systemctl",
             "fc-cache", "xdg-user-dirs-update", "gsettings", "xdg-mime", "ln", "mv",
-            "cp", "chmod", "mkdir", "flock", "rm",
+            "cp", "chmod", "mkdir", "flock", "rm", "curl", "wget",
         ):
             self.stub(name, 'printf "%s\\n" "$0 $*" >>"$CASE_ROOT/unexpected"; exit 97')
         self.stub("systemctl", '''
@@ -642,7 +686,7 @@ printf '%s\\n' "$BACKUP_DIR"
         """Small independent repo: no test writes through links into the real repo."""
         fixture = self.root / "fixture-repo"
         fixture.mkdir()
-        for name in ("install.sh", "lib/install-ui.sh", "lib/install-plan.sh", "lib/install-wizard.sh", "matugen/config.toml"):
+        for name in ("install.sh", "lib/install-ui.sh", "lib/install-plan.sh", "lib/install-wizard.sh", "lib/gum-runtime.sh", "matugen/config.toml"):
             target = fixture / name
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(REPO / name, target)
@@ -995,10 +1039,222 @@ inspect_plan
         self.env["TERM"] = "xterm-256color"
         self.stub("gum", 'exit 2')
         before = self.snapshot()
-        result = self.terminal(replies=((b"Choose [1], or q to cancel: ", b"q\n"),))
+        replies = []
+        if os.geteuid() != 0 and os.uname().sysname == "Linux" and os.uname().machine in ("x86_64", "amd64", "aarch64", "arm64"):
+            replies.append((b"Download the verified Gum runtime? [y/N]: ", b"n\n"))
+        replies.append((b"Choose [1], or q to cancel: ", b"q\n"))
+        result = self.terminal(replies=replies)
         self.success(result)
-        self.assertIn("Gum is optional", result.stdout)
+        self.assertIn("Using numbered prompts", result.stdout)
         self.assertEqual(before, self.snapshot())
+
+    def test_runtime_download_requires_consent_and_does_not_precreate_cache(self):
+        prefix, cache, _ = self.mock_gum_runtime()
+        before = self.snapshot()
+        result = self.terminal(prefix + 'main', replies=(
+            (b"Download the verified Gum runtime? [y/N]: ", b"n\n"),
+            (b"Choose [1], or q to cancel: ", b"q\n"),
+        ))
+        self.success(result)
+        self.assertEqual(before, self.snapshot())
+        self.assertFalse(cache.parent.exists())
+        self.assertFalse((self.root / "download-calls").exists())
+
+    def test_runtime_download_precedes_first_menu_and_is_reused(self):
+        prefix, cache, binary = self.mock_gum_runtime()
+        result = self.terminal(prefix + 'main', replies=((b"Download the verified Gum runtime? [y/N]: ", b"y\n"),))
+        self.success(result)
+        self.assertIn("Enhanced interface ready", result.stdout)
+        self.assertNotIn("Using numbered prompts", result.stdout)
+        self.assertIn("No desktop settings or packages changed", result.stdout)
+        self.assertEqual(cache.read_bytes(), binary)
+        self.assertEqual(stat.S_IMODE(cache.stat().st_mode), 0o700)
+        self.assertEqual(list(cache.parent.glob(".download.*")), [])
+        self.assertFalse((self.home / ".config").exists())
+        self.assertTrue(self.gum_calls())
+        (self.root / "gum-replies.json").write_text(json.dumps(["Exit"]))
+        before = self.home_snapshot()
+        again = self.terminal(prefix + 'main')
+        self.success(again)
+        self.assertNotIn("Download the verified", again.stdout)
+        self.assertEqual(before, self.home_snapshot())
+        self.assertEqual((self.root / "download-calls").read_text().count("download"), 1)
+
+    def test_pinned_cache_is_used_without_download_or_permission_prompt(self):
+        prefix, cache, binary = self.mock_gum_runtime()
+        cache.parent.mkdir(parents=True)
+        cache.write_bytes(binary)
+        cache.chmod(0o700)
+        before = self.home_snapshot()
+        result = self.terminal(prefix + 'main')
+        self.success(result)
+        self.assertNotIn("Download the verified", result.stdout)
+        self.assertFalse((self.root / "download-calls").exists())
+        self.assertEqual(before, self.home_snapshot())
+
+    def test_modified_cache_is_not_executed_without_consent(self):
+        prefix, cache, _ = self.mock_gum_runtime()
+        cache.parent.mkdir(parents=True)
+        cache.write_text('#!/bin/sh\ntouch "$HOME/unverified-executed"\n')
+        cache.chmod(0o700)
+        before = self.home_snapshot()
+        result = self.terminal(prefix + 'main', replies=(
+            (b"Download the verified Gum runtime? [y/N]: ", b"n\n"),
+            (b"Choose [1], or q to cancel: ", b"q\n"),
+        ))
+        self.success(result)
+        self.assertIn("Cached Gum was not verified", result.stdout)
+        self.assertFalse((self.home / "unverified-executed").exists())
+        self.assertEqual(before, self.home_snapshot())
+
+    def test_approved_replacement_preserves_an_unverified_cached_file(self):
+        prefix, cache, binary = self.mock_gum_runtime()
+        cache.parent.mkdir(parents=True)
+        old = b'#!/bin/sh\ntouch "$HOME/unverified-executed"\n'
+        cache.write_bytes(old)
+        cache.chmod(0o700)
+        result = self.terminal(prefix + 'main', replies=((b"Download the verified Gum runtime? [y/N]: ", b"y\n"),))
+        self.success(result)
+        self.assertEqual(cache.read_bytes(), binary)
+        preserved = list(cache.parent.glob("gum.unverified-*"))
+        self.assertEqual(len(preserved), 1)
+        self.assertEqual(preserved[0].read_bytes(), old)
+        self.assertFalse((self.home / "unverified-executed").exists())
+
+    def test_bad_runtime_archive_is_rejected_and_staging_is_cleaned(self):
+        prefix, cache, _ = self.mock_gum_runtime()
+        (self.root / "gum-runtime.tar.gz").write_bytes(b"not the pinned archive")
+        result = self.terminal(prefix + 'main', replies=(
+            (b"Download the verified Gum runtime? [y/N]: ", b"y\n"),
+            (b"Choose [1], or q to cancel: ", b"q\n"),
+        ))
+        self.success(result)
+        self.assertIn("archive verification failed", result.stdout)
+        self.assertFalse(cache.exists())
+        self.assertFalse((self.root / "gum-help-called").exists())
+        self.assertEqual(list(cache.parent.glob(".download.*")), [])
+
+    def test_runtime_executable_hash_is_checked_before_execution(self):
+        prefix, cache, _ = self.mock_gum_runtime(bad_binary=True)
+        result = self.terminal(prefix + 'main', replies=(
+            (b"Download the verified Gum runtime? [y/N]: ", b"y\n"),
+            (b"Choose [1], or q to cancel: ", b"q\n"),
+        ))
+        self.success(result)
+        self.assertIn("executable verification failed", result.stdout)
+        self.assertFalse(cache.exists())
+        self.assertFalse((self.home / "unverified-executed").exists())
+        self.assertEqual(list(cache.parent.glob(".download.*")), [])
+
+    def test_runtime_network_failure_falls_back_without_partial_executable(self):
+        prefix, cache, _ = self.mock_gum_runtime()
+        self.stub("curl", 'printf "simulated offline\\n" >&2; exit 22')
+        result = self.terminal(prefix + 'main', replies=(
+            (b"Download the verified Gum runtime? [y/N]: ", b"y\n"),
+            (b"Choose [1], or q to cancel: ", b"q\n"),
+        ))
+        self.success(result)
+        self.assertIn("Could not prepare the enhanced interface", result.stdout)
+        self.assertFalse(cache.exists())
+        self.assertEqual(list(cache.parent.glob(".download.*")), [])
+
+    def test_runtime_cache_symlink_is_not_followed_or_replaced(self):
+        prefix, _, _ = self.mock_gum_runtime()
+        outside = self.root / "outside-cache"
+        outside.mkdir()
+        (self.home / ".cache").mkdir()
+        (self.home / ".cache/hypryoru").symlink_to(outside)
+        before = self.home_snapshot()
+        result = self.terminal(prefix + 'main', replies=((b"Choose [1], or q to cancel: ", b"q\n"),))
+        self.success(result)
+        self.assertIn("not safely owned", result.stdout)
+        self.assertEqual(before, self.home_snapshot())
+        self.assertEqual(list(outside.iterdir()), [])
+
+    def test_runtime_cache_writable_by_others_is_not_executed(self):
+        prefix, cache, binary = self.mock_gum_runtime()
+        cache.parent.mkdir(parents=True)
+        cache.write_bytes(binary)
+        cache.chmod(0o700)
+        cache.parent.chmod(0o777)
+        before = self.home_snapshot()
+        result = self.terminal(prefix + 'main', replies=((b"Choose [1], or q to cancel: ", b"q\n"),))
+        self.success(result)
+        self.assertIn("not safely owned", result.stdout)
+        self.assertFalse((self.root / "gum-help-called").exists())
+        self.assertEqual(before, self.home_snapshot())
+
+    def test_runtime_resolver_itself_bypasses_plain_readonly_and_automation(self):
+        result = self.bash('''
+find_system_gum() { printf unexpected >"$CASE_ROOT/should-not-run"; return 1; }
+for disabled in plain dry check yes quiet; do
+  UI_SESSION=1; UI_MODE=auto; DRY_RUN=0; CHECK_ONLY=0; ASSUME_YES=0; QUIET=0
+  case "$disabled" in
+    plain) UI_MODE=plain ;; dry) DRY_RUN=1 ;; check) CHECK_ONLY=1 ;;
+    yes) ASSUME_YES=1 ;; quiet) QUIET=1 ;;
+  esac
+  if prepare_gum_runtime; then exit 99; fi
+done
+''')
+        self.success(result)
+        self.assertFalse((self.root / "should-not-run").exists())
+        self.assertFalse((self.home / ".cache").exists())
+
+    def test_runtime_download_helper_cannot_skip_consent(self):
+        before = self.snapshot()
+        result = self.bash('if download_gum_runtime; then exit 99; fi\n[[ "$GUM_CACHE_CHANGED" -eq 0 ]]')
+        self.success(result)
+        self.assertEqual(before, self.snapshot())
+
+    def test_runtime_uses_wget_when_curl_is_unavailable(self):
+        result = self.bash('''
+command() {
+  if [[ "$1" == -v && "$2" == curl ]]; then return 1; fi
+  builtin command "$@"
+}
+wget() { printf '%s\\n' "$@"; }
+GUM_DOWNLOAD_URL=https://example.invalid/gum.tar.gz
+gum_fetch_archive "$CASE_ROOT/archive with spaces.tar.gz"
+''')
+        self.success(result)
+        self.assertIn("--https-only\n", result.stdout)
+        self.assertIn(f"--output-document={self.root}/archive with spaces.tar.gz\n", result.stdout)
+        self.assertTrue(result.stdout.endswith("https://example.invalid/gum.tar.gz\n"))
+
+    def test_missing_download_tools_fall_back_without_a_permission_prompt(self):
+        prefix, _, _ = self.mock_gum_runtime()
+        prefix += '''
+command() {
+  if [[ "$1" == -v && ( "$2" == curl || "$2" == wget ) ]]; then return 1; fi
+  builtin command "$@"
+}
+'''
+        before = self.home_snapshot()
+        result = self.terminal(prefix + 'main', replies=((b"Choose [1], or q to cancel: ", b"q\n"),))
+        self.success(result)
+        self.assertIn("needs curl or wget", result.stdout)
+        self.assertNotIn("Download the verified", result.stdout)
+        self.assertEqual(before, self.home_snapshot())
+
+    def test_preview_after_an_approved_runtime_download_reports_cache_changes(self):
+        prefix, cache, _ = self.mock_gum_runtime(["Preview changes", "Run preview (no changes)", "Exit"])
+        result = self.terminal(prefix + 'main', replies=((b"Download the verified Gum runtime? [y/N]: ", b"y\n"),))
+        self.success(result)
+        self.assertIn("Plan complete — no desktop changes", result.stdout)
+        self.assertNotIn("Plan complete — nothing changed", result.stdout)
+        self.assertIn("approved cache; retained", result.stdout)
+        self.assertTrue(cache.exists())
+        self.assertFalse((self.home / ".config").exists())
+        self.assertFalse((self.home / ".local/state").exists())
+
+    def test_unsupported_runtime_platform_does_not_download(self):
+        prefix, _, _ = self.mock_gum_runtime()
+        before = self.home_snapshot()
+        result = self.terminal(prefix + 'gum_runtime_release() { return 1; }\nmain', replies=((b"Choose [1], or q to cancel: ", b"q\n"),))
+        self.success(result)
+        self.assertIn("No pinned Gum runtime", result.stdout)
+        self.assertFalse((self.root / "download-calls").exists())
+        self.assertEqual(before, self.home_snapshot())
 
     def test_palette_plan_omits_only_the_unselected_shell_output(self):
         original = (REPO / "matugen/config.toml").read_bytes()

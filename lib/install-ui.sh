@@ -228,6 +228,10 @@ final_summary() {
   elif [[ "$DRY_RUN" -eq 1 ]]; then title='Plan complete — nothing changed'; color="$C_MAGENTA"
   elif [[ "$CHECK_ONLY" -eq 1 ]]; then title='Checks complete'
   elif (( WARN_COUNT > 0 )); then title='Installed with notes'; color="$C_YELLOW"; fi
+  if [[ "$DRY_RUN" -eq 1 && "${GUM_CACHE_CHANGED:-0}" -eq 1 ]]; then
+    if (( FAIL_COUNT > 0 )); then title='Plan blocked — no desktop changes'
+    else title='Plan complete — no desktop changes'; fi
+  fi
   _term out ''
   hr
   _term out "  ${C_BOLD}${color}${title}${C_RESET}  ${C_DIM}$(format_elapsed "$(( $(date +%s) - SCRIPT_START ))")${C_RESET}"
@@ -235,6 +239,7 @@ final_summary() {
   field 'Phases' "${COMPLETED_PHASES:-0}/$TOTAL_PHASES completed"
   [[ "$BACKUP_READY" -eq 0 ]] || field 'Backups' "$BACKUP_DIR"
   [[ "$LOG_ENABLED" -eq 0 ]] || field 'Log' "$LOG_FILE"
+  [[ "${GUM_DOWNLOADED:-0}" -eq 0 ]] || field 'UI runtime' "$GUM_BIN (approved cache; retained)"
   if [[ "$DRY_RUN" -eq 0 && "$CHECK_ONLY" -eq 0 && "$LINK_ONLY" -eq 0 && "$FAIL_COUNT" -eq 0 ]]; then
     if [[ "$WITH_GDM" -eq 1 ]]; then say 'Next: log out or reboot, then select Hyprland in GDM.'
     else say 'Next: start Hyprland through your existing session manager or from a TTY.'; fi

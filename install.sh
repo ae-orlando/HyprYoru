@@ -93,6 +93,8 @@ USER_SERVICES=(pipewire.socket pipewire-pulse.socket wireplumber.service gnome-k
 
 # shellcheck source=lib/install-plan.sh
 source "$DOTFILES_ROOT/lib/install-plan.sh"
+# shellcheck source=lib/gum-runtime.sh
+source "$DOTFILES_ROOT/lib/gum-runtime.sh"
 # shellcheck source=lib/install-wizard.sh
 source "$DOTFILES_ROOT/lib/install-wizard.sh"
 
@@ -105,7 +107,7 @@ Usage: ./install.sh [options]
 Scope
   --profile core|full   Desktop + configured shell, or extra apps/dev tools [core]
   --only-dotfiles       Skip system packages/services; set up configs, shell, palette
-  --link-only           Link configs + set ZDOTDIR; no downloads, theming, or services
+  --link-only           Link configs + set ZDOTDIR; no setup downloads or services
   --no-aur              Skip AUR packages AND helper bootstrap
   --no-shell            Skip the Zsh package bundle, config, frameworks, and shell palette
   --with-gdm            Install/enable GDM only if no other display manager owns login
@@ -121,7 +123,7 @@ Output and automation
   --yes, -y             Skip wizard/confirmation; use package-manager --noconfirm
   --verbose             Show unchanged items, every check, and live command output
   --quiet               Warnings/errors only; requires --yes for installation
-  --ui auto|plain|gum   Optional Gum wizard or plain prompts [auto]; never installs Gum
+  --ui auto|plain|gum   Prefer Gum [auto]; offer a verified runtime if missing; no sudo
   --log-file PATH       Use a NEW log file instead of the default state directory
   --no-color            Disable colors (also NO_COLOR=1); NO_EMOJI=1 selects ASCII
   --help, -h            Show this help
@@ -905,6 +907,7 @@ phase_verify() {
 cleanup_exit() {
   local directory
   _restore_cursor
+  cleanup_gum_runtime
   if [[ -n "$ACTIVE_PID" ]]; then kill "$ACTIVE_PID" 2>/dev/null || true; wait "$ACTIVE_PID" 2>/dev/null || true; fi
   if [[ -n "$SUDO_KEEPALIVE_PID" ]]; then kill "$SUDO_KEEPALIVE_PID" 2>/dev/null || true; wait "$SUDO_KEEPALIVE_PID" 2>/dev/null || true; fi
   if (( ${#TEMP_FILES[@]} > 0 )); then rm -f -- "${TEMP_FILES[@]}"; fi
@@ -973,7 +976,11 @@ main() {
   select_ui_backend
   banner
   if ! prepare_wizard_plan; then
-    _term out '' '  Cancelled. No files or settings changed.'
+    if [[ "$GUM_CACHE_CHANGED" -eq 1 ]]; then
+      _term out '' '  Cancelled. No desktop settings or packages changed; approved UI cache changes were kept.'
+    else
+      _term out '' '  Cancelled. No files or settings changed.'
+    fi
     trap - ERR
     return "$UI_ABORT_CODE"
   fi

@@ -17,25 +17,24 @@ select_ui_backend() {
   UI_SESSION=0
   if [[ "$ASSUME_YES" -eq 0 && "$DRY_RUN" -eq 0 && "$CHECK_ONLY" -eq 0 && "$QUIET" -eq 0 && -t 0 && -t 1 ]]; then UI_SESSION=1; fi
   [[ "$UI_SESSION" -eq 1 && "$UI_MODE" != plain && "${TERM:-}" != dumb ]] || return 0
-  local capabilities='' size rows columns
+  local size rows columns
   size=$(stty size 2>/dev/null || true)
   read -r rows columns <<<"$size"
   if [[ ! "$rows" =~ ^[0-9]+$ || ! "$columns" =~ ^[0-9]+$ ]] || (( rows < 12 || columns < 50 )); then
     say 'Using numbered prompts for this small or unreported terminal size.'
     return 0
   fi
-  if command -v gum >/dev/null 2>&1; then capabilities=$(gum choose --help 2>/dev/null || true); fi
-  if [[ "$capabilities" == *--no-limit* && "$capabilities" == *--selected* && "$capabilities" == *--output-delimiter* ]]; then
+  if prepare_gum_runtime; then
     UI_BACKEND=gum
   else
-    say 'Using numbered prompts. Gum is optional and will not be installed automatically.'
+    say 'Using numbered prompts. No system UI package was installed.'
   fi
 }
 
 gum_run() {
   local -a environment=(env GUM_CHOOSE_CURSOR_FOREGROUND=117 GUM_CHOOSE_HEADER_FOREGROUND=213 GUM_CHOOSE_SELECTED_FOREGROUND=117)
   [[ -n "$C_RESET" ]] || environment+=(NO_COLOR=1)
-  "${environment[@]}" gum "$@"
+  "${environment[@]}" "${GUM_BIN:-gum}" "$@"
 }
 
 ui_closed() {
