@@ -60,12 +60,21 @@ shot() {
 }
 
 # =============== BCKUP =============================
-# Timestamped backup: bak <file>... (matches repo .bak-<epoch> convention)
+# Timestamped backup: bak <file>... (.bak-<epoch>, then .1, .2, ... on collision)
 bak() {
-    local f
+    local f base backup result=0
+    local -i suffix
     [[ $# -eq 0 ]] && { print -u2 "bak: usage: bak <file>..."; return 1 }
     for f; do
-        [[ -f $f ]] || { print -u2 "bak: not found: $f"; continue }
-        cp -v -- "$f" "$f.bak-$(date +%s)"
+        [[ -f $f ]] || { print -u2 "bak: not found: $f"; result=1; continue }
+        base="$f.bak-$(date +%s)" || { result=1; continue }
+        backup=$base
+        suffix=0
+        while [[ -e "$backup" || -L "$backup" ]]; do
+            (( ++suffix ))
+            backup="$base.$suffix"
+        done
+        command cp -v -T --update=none-fail -- "$f" "$backup" || result=1
     done
+    return $result
 }
