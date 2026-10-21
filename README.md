@@ -64,7 +64,7 @@ The installer links desktop and shell configs only. Developer-tool configs (tmux
 ├── lib/           # shared plan, verified Gum runtime, wizard, logging
 ├── packages/      # desktop/shell/extra official and AUR manifests
 ├── services/      # optional Fibocom WWAN unit
-├── tests/         # sandboxed installer regression tests (no VM)
+├── tests/         # sandboxed installer regression tests
 ├── hyprland/      # hyprland.lua + modules/, scripts/, hypridle/lock
 ├── matugen/       # config.toml + templates/ (palette hub)
 ├── waybar/        # config.jsonc + style + scripts/
