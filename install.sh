@@ -1,1214 +1,990 @@
 #!/usr/bin/env bash
-# Dotfiles reproducer — Arch Linux + GDM + Hyprland (Lua) fresh-system install.
-#
-# Reapplies this repo exactly as it runs on the source machine:
-#   Hyprland Lua (hyprland.lua + 9 modules), matugen palette hub, waybar,
-#   swaync, rofi type-6/style-9, kitty, btop, gtk3/4, qt6ct, waypaper (backend=none),
-#   zsh (OMZ + p10k), fastfetch, fonts, services, mime, gsettings.
-#
-# Usage:
-#   ./install.sh [--profile core|full] [--only-dotfiles] [--no-aur] [--dry-run]
-#                [--yes] [--verbose|--quiet] [--log-file PATH] [--no-color] [--help]
-#
-# Profiles:
-#   full (default) — every explicit package from the source machine (exact repro).
-#   core           — minimum to boot Hyprland with a working config (no user apps).
-#
-# Safety: idempotent, backs up ~/.config + ~/.zshenv, supports --dry-run.
-# Arch-only. Run as a normal user with sudo access (not as root).
-# UI: guided pure-bash prompts (no dependencies) when run on a terminal
-# without --yes; colors auto-off when piped, NO_COLOR=1, CLICOLOR=0, or
-# TERM=dumb; icons auto-degrade to ASCII with NO_EMOJI=1 or non-UTF-8 locale.
-set -euo pipefail
+# HyprYoru desktop installer for an existing Arch Linux installation.
+# Package intent lives in packages/*.txt; presentation lives in lib/install-ui.sh.
+# --dry-run and --check never initialize logs, locks, backups, or system changes.
+set -Eeuo pipefail
 
-DOTFILES_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LOG_DIR_DEFAULT="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles-install/logs"
-LOG_FILE="$LOG_DIR_DEFAULT/install-$(date +%Y%m%d-%H%M%S).log"
+DOTFILES_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+STATE_ROOT="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles-install"
+RUN_ID="$(date +%Y%m%d-%H%M%S)-$$"
+LOG_DIR_DEFAULT="$STATE_ROOT/logs"
+LOG_FILE="$LOG_DIR_DEFAULT/install-$RUN_ID.log"
 LOG_FILE_EXPLICIT=0
+LOG_ENABLED=0
 LOG_KEEP=10
-BACKUP_DIR="$HOME/.local/state/dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
-YAY_BUILD_DIR=""
-LOCK_FILE="${XDG_RUNTIME_DIR:-/tmp}/dotfiles-install.lock"
+BACKUP_DIR="$STATE_ROOT/backups/$RUN_ID"
+BACKUP_READY=0
+LOCK_FILE="${XDG_RUNTIME_DIR:-$STATE_ROOT}/hypryoru-install.lock"
+DISPLAY_MANAGER_LINK='/etc/systemd/system/display-manager.service'
+WWAN_UNIT_PATH='/etc/systemd/system/wwan-enable.service'
 
-PROFILE="full"
+PROFILE=core
 PROFILE_EXPLICIT=0
 ONLY_DOTFILES=0
+LINK_ONLY=0
+CHECK_ONLY=0
 NO_AUR=0
 DRY_RUN=0
 ASSUME_YES=0
 VERBOSE=0
 QUIET=0
-
-# --------------------------------------------------------------------------
-# TUI (pure bash, zero dependencies). Colors auto-off when piped, NO_COLOR=1,
-# --no-color, CLICOLOR=0, or TERM=dumb. Icons fall back to ASCII when the
-# locale is not UTF-8, TERM=dumb, or NO_EMOJI=1.
-# Plain timestamped mirror of every line goes to $LOG_FILE.
-# --------------------------------------------------------------------------
-setup_colors() {
-  if [[ -n "${NO_COLOR:-}" || "${CLICOLOR:-1}" == "0" || "${TERM:-}" == "dumb" ]] || [[ ! -t 1 ]]; then
-    C_BOLD=''; C_DIM=''; C_RESET=''
-    C_RED=''; C_GREEN=''; C_YELLOW=''
-    C_BLUE=''; C_MAGENTA=''; C_CYAN=''
-  else
-    C_BOLD=$'\e[1m'; C_DIM=$'\e[2m'; C_RESET=$'\e[0m'
-    C_RED=$'\e[31m'; C_GREEN=$'\e[32m'; C_YELLOW=$'\e[33m'
-    C_BLUE=$'\e[34m'; C_MAGENTA=$'\e[35m'; C_CYAN=$'\e[36m'
-  fi
-}
-
-setup_icons() {
-  USE_ASCII=0
-  local loc="${LC_ALL:-}${LC_CTYPE:-}${LANG:-}"
-  local charmap=""
-  charmap=$(locale charmap 2>/dev/null || true)
-  if [[ -n "${NO_EMOJI:-}" || "${TERM:-}" == "dumb" ]]; then
-    USE_ASCII=1
-  elif [[ "$charmap" == [Uu][Tt][Ff]-8 || "$charmap" == [Uu][Tt][Ff]8 ]]; then
-    USE_ASCII=0
-  elif [[ -z "$loc" ]]; then
-    USE_ASCII=1
-  elif [[ "$loc" != *UTF-8* && "$loc" != *utf8* && "$loc" != *UTF8* ]]; then
-    USE_ASCII=1
-  fi
-  if [[ "$USE_ASCII" -eq 1 ]]; then
-    I_OK="ok"; I_WARN="!"; I_FAIL="x"; I_DRY="DRY"
-    I_STEP=">"; I_SPIN="*"; I_SKIP="o"; I_ARROW="=>"
-  else
-    I_OK="✔"; I_WARN="⚠"; I_FAIL="✖"; I_DRY="DRY"
-    I_STEP="▸"; I_SPIN="◌"; I_SKIP="○"; I_ARROW="==>"
-  fi
-}
-
-setup_colors
-setup_icons
+WITH_GDM=0
+WITH_WWAN=0
+CHANGE_SHELL=0
+SET_DEFAULTS=0
+WITH_SHELL=1
+UI_MODE=auto
+UI_BACKEND=plain
+UI_SESSION=0
+SCOPE_EXPLICIT=0
+HELP=0
 
 TOTAL_PHASES=8
 PHASE_NUM=0
+COMPLETED_PHASES=0
 PASS_COUNT=0
 WARN_COUNT=0
 FAIL_COUNT=0
 SKIP_COUNT=0
 SCRIPT_START=0
 LAST_STEP_TS=0
-SUDO_KEEPALIVE_PID=""
+SUDO_KEEPALIVE_PID=''
+ACTIVE_PID=''
+AUR_HELPER=''
+NEW_TEMP=''
+TEMP_FILES=()
+TEMP_DIRS=()
+PACMAN_CORE=()
+PACMAN_SHELL=()
+PACMAN_EXTRA=()
+AUR_CORE=()
+AUR_EXTRA=()
+SEL_OFFICIAL=()
+SEL_AUR=()
+PACMAN_FLAGS=(--needed)
+CONFIRM_FLAGS=()
+MISSING_PACKAGES=()
+FAILED_PACKAGES=()
+SCRIPT_PATHS=()
+declare -A PRESERVED_FILES=()
 
-_log_plain() { printf '[%s] %s\n' "$(date '+%H:%M:%S')" "$*" >>"$LOG_FILE"; }
-hr() {
-  local w
-  w=$(tput cols 2>/dev/null || echo 60)
-  [[ "$w" =~ ^[0-9]+$ ]] || w=60
-  (( w > 68 )) && w=68
-  (( w < 40 )) && w=40
-  local ch line i
-  if [[ "${USE_ASCII:-0}" -eq 1 ]]; then ch='-'; else ch='─'; fi
-  line=""
-  for (( i=0; i<w; i++ )); do line+="$ch"; done
-  printf '%b\n' "${C_DIM}${line}${C_RESET}"
+# shellcheck source=lib/install-ui.sh
+source "$DOTFILES_ROOT/lib/install-ui.sh"
+
+# target relative to HOME : source relative to the repository.
+# Developer-tool configs belong to the separate tools repository.
+LINK_MAP=(
+  '.config/hypr:hyprland'
+  '.config/btop:btop'
+  '.config/kitty:kitty'
+  '.config/matugen:matugen'
+  '.config/qt6ct:qt6ct'
+  '.config/rofi:rofi'
+  '.config/swaync:swaync'
+  '.config/waybar:waybar'
+  '.config/waypaper:waypaper'
+  '.config/zsh:zsh'
+  '.config/fastfetch:fastfetch'
+  '.config/gtk-3.0:gtk-setting/gtk-3.0'
+  '.config/gtk-4.0:gtk-setting/gtk-4.0'
+)
+SYSTEM_SERVICES=()
+USER_SERVICES=(pipewire.socket pipewire-pulse.socket wireplumber.service gnome-keyring-daemon.socket)
+
+# shellcheck source=lib/install-plan.sh
+source "$DOTFILES_ROOT/lib/install-plan.sh"
+# shellcheck source=lib/install-wizard.sh
+source "$DOTFILES_ROOT/lib/install-wizard.sh"
+
+usage() {
+  cat <<'EOF'
+HyprYoru / Arch desktop installer
+
+Usage: ./install.sh [options]
+
+Scope
+  --profile core|full   Desktop + configured shell, or extra apps/dev tools [core]
+  --only-dotfiles       Skip system packages/services; set up configs, shell, palette
+  --link-only           Link configs + set ZDOTDIR; no downloads, theming, or services
+  --no-aur              Skip AUR packages AND helper bootstrap
+  --no-shell            Skip the Zsh package bundle, config, frameworks, and shell palette
+  --with-gdm            Install/enable GDM only if no other display manager owns login
+  --with-wwan           Install ModemManager + the source machine's Fibocom WWAN unit
+  --change-shell        Also change your login shell to zsh (requires a terminal)
+  --set-defaults        Also set installed-app MIME defaults and GTK preferences
+
+Preview and diagnostics (no writes, including logs)
+  --dry-run             Show the selected actions without executing them
+  --check               Check the existing installation without repairing it
+
+Output and automation
+  --yes, -y             Skip wizard/confirmation; use package-manager --noconfirm
+  --verbose             Show unchanged items, every check, and live command output
+  --quiet               Warnings/errors only; requires --yes for installation
+  --ui auto|plain|gum   Optional Gum wizard or plain prompts [auto]; never installs Gum
+  --log-file PATH       Use a NEW log file instead of the default state directory
+  --no-color            Disable colors (also NO_COLOR=1); NO_EMOJI=1 selects ASCII
+  --help, -h            Show this help
+
+Examples
+  ./install.sh --dry-run
+  ./install.sh
+  ./install.sh --profile full --with-gdm --yes
+  ./install.sh --only-dotfiles --yes
+  ./install.sh --link-only --yes
+  ./install.sh --check --verbose
+
+Package lists: packages/{core,shell,core-aur,extra,extra-aur}.txt
+Full adds software, not kernels, bootloaders, GPU drivers, or enabled server services.
+EOF
 }
 
-progress_bar() {
-  local cur="$1" total="$2" width=14
-  local filled=$(( cur * width / total ))
-  (( filled > width )) && filled=$width
-  local empty=$(( width - filled ))
-  local bar fill_ch empty_ch
-  if [[ "${USE_ASCII:-0}" -eq 1 ]]; then fill_ch="#"; empty_ch="-";
-  else fill_ch="█"; empty_ch="░"; fi
-  bar=""
-  local i
-  for (( i=0; i<filled; i++ )); do bar+="$fill_ch"; done
-  for (( i=0; i<empty; i++ )); do bar+="$empty_ch"; done
-  printf '%s %s/%s' "$bar" "$cur" "$total"
-}
+arg_error() { printf 'Error: %s\nTry ./install.sh --help.\n' "$*" >&2; return 2; }
 
-_term() {
-  # _term STREAM PRINTTF-ARGS... — print to terminal unless QUIET mutes it.
-  # STREAM: out|err. QUIET mutes stdout info but never warnings/errors.
-  local stream="$1"; shift
-  if [[ "$stream" == "out" && "$QUIET" -eq 1 ]]; then return 0; fi
-  if [[ "$stream" == "err" ]]; then printf '%b\n' "$@" >&2; else printf '%b\n' "$@"; fi
-}
-
-log()  { _term out "${C_BLUE}${I_ARROW}${C_RESET} $*"; _log_plain "[install] $*"; }
-say()  { _term out "    $*"; _log_plain "[info] $*"; }
-ok()   { PASS_COUNT=$((PASS_COUNT+1)); _term out "  ${C_GREEN}${I_OK}${C_RESET} $*"; _log_plain "[ok] $*"; }
-skip() { SKIP_COUNT=$((SKIP_COUNT+1)); PASS_COUNT=$((PASS_COUNT+1)); _term out "  ${C_DIM}${I_SKIP} SKIP${C_RESET} $*"; _log_plain "[skip] $*"; }
-dry()  { _term out "  ${C_MAGENTA}${I_DRY}${C_RESET} $*"; _log_plain "[dry-run] $*"; }
-warn() { WARN_COUNT=$((WARN_COUNT+1)); _term err "  ${C_YELLOW}${I_WARN} WARN${C_RESET} $*"; _log_plain "[warn] $*"; }
-fail() { FAIL_COUNT=$((FAIL_COUNT+1)); _term err "  ${C_RED}${I_FAIL} FAIL${C_RESET} $*"; _log_plain "[fail] $*"; }
-step() {
-  local now
-  now=$(date +%s)
-  if [[ "$PHASE_NUM" -gt 0 && "$LAST_STEP_TS" -gt 0 && "$QUIET" -eq 0 ]]; then
-    local prev_elapsed=$(( now - LAST_STEP_TS ))
-    printf '%b\n' "${C_DIM}  (previous phase took ${prev_elapsed}s)${C_RESET}"
-    _log_plain "[phase-time] phase $PHASE_NUM took ${prev_elapsed}s"
+parse_args() {
+  while (( $# > 0 )); do
+    case "$1" in
+      --profile)
+        [[ -n "${2:-}" && "$2" != --* ]] || { arg_error 'Missing --profile value (core|full)'; return 2; }
+        PROFILE="$2"; PROFILE_EXPLICIT=1; SCOPE_EXPLICIT=1; shift 2 ;;
+      --profile=*) PROFILE="${1#*=}"; PROFILE_EXPLICIT=1; SCOPE_EXPLICIT=1; shift ;;
+      --only-dotfiles) ONLY_DOTFILES=1; SCOPE_EXPLICIT=1; shift ;;
+      --link-only) LINK_ONLY=1; ONLY_DOTFILES=1; SCOPE_EXPLICIT=1; shift ;;
+      --check) CHECK_ONLY=1; shift ;;
+      --no-aur) NO_AUR=1; SCOPE_EXPLICIT=1; shift ;;
+      --no-shell) WITH_SHELL=0; SCOPE_EXPLICIT=1; shift ;;
+      --with-gdm) WITH_GDM=1; SCOPE_EXPLICIT=1; shift ;;
+      --with-wwan) WITH_WWAN=1; SCOPE_EXPLICIT=1; shift ;;
+      --change-shell) CHANGE_SHELL=1; SCOPE_EXPLICIT=1; shift ;;
+      --set-defaults) SET_DEFAULTS=1; SCOPE_EXPLICIT=1; shift ;;
+      --dry-run) DRY_RUN=1; shift ;;
+      --yes|-y) ASSUME_YES=1; shift ;;
+      --verbose) VERBOSE=1; shift ;;
+      --quiet) QUIET=1; shift ;;
+      --ui)
+        [[ -n "${2:-}" && "$2" != --* ]] || { arg_error 'Missing --ui value (auto|plain|gum)'; return 2; }
+        UI_MODE="$2"; shift 2 ;;
+      --ui=*) UI_MODE="${1#*=}"; shift ;;
+      --log-file)
+        [[ -n "${2:-}" && "$2" != --* ]] || { arg_error 'Missing --log-file path'; return 2; }
+        LOG_FILE="$2"; LOG_FILE_EXPLICIT=1; shift 2 ;;
+      --log-file=*) LOG_FILE="${1#*=}"; LOG_FILE_EXPLICIT=1; shift ;;
+      --no-color) NO_COLOR=1; shift ;;
+      --help|-h) HELP=1; shift ;;
+      *) arg_error "Unknown option: $1"; return 2 ;;
+    esac
+  done
+  [[ "$PROFILE" == core || "$PROFILE" == full ]] || { arg_error 'Profile must be core or full'; return 2; }
+  [[ -n "$LOG_FILE" ]] || { arg_error 'Log path cannot be empty'; return 2; }
+  [[ "$UI_MODE" == auto || "$UI_MODE" == plain || "$UI_MODE" == gum ]] || { arg_error 'UI must be auto, plain, or gum'; return 2; }
+  (( VERBOSE == 0 || QUIET == 0 )) || { arg_error 'Cannot combine --verbose and --quiet'; return 2; }
+  (( DRY_RUN == 0 || CHECK_ONLY == 0 )) || { arg_error 'Choose --dry-run or --check, not both'; return 2; }
+  validate_selection || return 2
+  (( QUIET == 0 || ASSUME_YES == 1 || DRY_RUN == 1 || CHECK_ONLY == 1 )) || { arg_error '--quiet requires --yes for installation'; return 2; }
+  PACMAN_FLAGS=(--needed)
+  CONFIRM_FLAGS=()
+  if [[ "$ASSUME_YES" -eq 1 ]]; then
+    PACMAN_FLAGS+=(--noconfirm)
+    CONFIRM_FLAGS+=(--noconfirm)
   fi
-  PHASE_NUM=$((PHASE_NUM+1))
-  LAST_STEP_TS=$now
-  local bar
-  bar=$(progress_bar "$PHASE_NUM" "$TOTAL_PHASES")
-  printf '\n%b\n' "${C_BOLD}${I_STEP} [${PHASE_NUM}/${TOTAL_PHASES}] $*${C_RESET}"
-  _term out "${C_DIM}  ${bar}${C_RESET}"
-  _log_plain "== phase ${PHASE_NUM}/${TOTAL_PHASES}: $* =="
 }
-_log_cmd() { printf -- '----- %s $ %s\n' "$(date '+%F %T')" "$*" >>"$LOG_FILE"; }
-_log_exit() { printf -- '----- exit code: %s\n' "$1" >>"$LOG_FILE"; }
-run() {
-  if [[ "$DRY_RUN" -eq 1 ]]; then
-    dry "$*"
-  else
-    _log_cmd "$*"
-    local rc=0
-    if [[ "$VERBOSE" -eq 1 ]]; then
-      _term out "${C_DIM}  \$ $*${C_RESET}"
-      eval "$@" </dev/null 2>&1 | tee -a "$LOG_FILE"
-      rc=${PIPESTATUS[0]}
-    else
-      eval "$@" </dev/null
-      rc=$?
+
+# Read data, never source/evaluate a package manifest. Reject duplicates and flags.
+read_manifest() {
+  local -n result="$1"
+  local file="$2" line number=0
+  local -A seen=()
+  result=()
+  [[ -r "$file" ]] || { fail "Package manifest not readable: $file"; return 1; }
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    number=$((number + 1))
+    line="${line%%#*}"
+    line="${line#"${line%%[![:space:]]*}"}"
+    line="${line%"${line##*[![:space:]]}"}"
+    [[ -n "$line" ]] || continue
+    if [[ ! "$line" =~ ^[a-zA-Z0-9@_+][a-zA-Z0-9@._+-]*$ ]]; then
+      fail "Invalid package at $file:$number: $line"; return 1
     fi
-    _log_exit "$rc"
-    return "$rc"
-  fi
+    if [[ -n "${seen[$line]+present}" ]]; then
+      fail "Duplicate package at $file:$number: $line"; return 1
+    fi
+    seen["$line"]=1
+    result+=("$line")
+  done <"$file"
+  (( ${#result[@]} > 0 )) || { fail "Empty package manifest: $file"; return 1; }
 }
-# spin MESSAGE CMD... — long ops get a spinner with elapsed time.
-# Output goes to the log unless --verbose (then streams via tee).
-spin() {
-  local message="$1"; shift
-  local cmd="$*"
-  if [[ "$DRY_RUN" -eq 1 ]]; then
-    dry "$cmd"
+
+load_packages() {
+  read_manifest PACMAN_CORE "$DOTFILES_ROOT/packages/core.txt" || return 1
+  read_manifest PACMAN_SHELL "$DOTFILES_ROOT/packages/shell.txt" || return 1
+  read_manifest PACMAN_EXTRA "$DOTFILES_ROOT/packages/extra.txt" || return 1
+  read_manifest AUR_CORE "$DOTFILES_ROOT/packages/core-aur.txt" || return 1
+  read_manifest AUR_EXTRA "$DOTFILES_ROOT/packages/extra-aur.txt" || return 1
+  local package
+  local -A seen=()
+  for package in "${PACMAN_CORE[@]}" "${PACMAN_SHELL[@]}" "${PACMAN_EXTRA[@]}" "${AUR_CORE[@]}" "${AUR_EXTRA[@]}"; do
+    [[ -z "${seen[$package]+present}" ]] || { fail "Package appears in multiple manifests: $package"; return 1; }
+    seen["$package"]=1
+  done
+}
+
+check_display_manager() {
+  [[ "$WITH_GDM" -eq 1 ]] || return 0
+  [[ -e "$DISPLAY_MANAGER_LINK" || -L "$DISPLAY_MANAGER_LINK" ]] || return 0
+  local owner
+  owner=$(readlink -f -- "$DISPLAY_MANAGER_LINK") || { fail 'Broken display-manager.service; repair it before enabling GDM'; return 1; }
+  [[ "${owner##*/}" == gdm.service ]] || { fail "Another display manager owns login ($owner); it will not be replaced"; return 1; }
+}
+
+phase_preflight() {
+  step 'Preflight'
+  local entry src target file line input prefix='~/.config/matugen/' missing=0 binary
+  local pattern='^[[:space:]]*input_path[[:space:]]*=[[:space:]]*"([^"]+)"'
+  [[ "$HOME" == /* && "$HOME" != / && -d "$HOME" ]] || { fail 'HOME must be an existing absolute user directory'; return 1; }
+  [[ "$HOME$DOTFILES_ROOT" != *$'\n'* && "$HOME$DOTFILES_ROOT" != *$'\t'* ]] || { fail 'HOME/repository paths cannot contain tabs or newlines'; return 1; }
+  for entry in "${PLAN_LINKS[@]}"; do
+    src="$DOTFILES_ROOT/${entry#*:}"
+    target="$HOME/${entry%%:*}"
+    [[ -d "$src" ]] || { fail "Missing config directory: $src"; missing=1; }
+    if [[ "$DOTFILES_ROOT" == "$target" || "$DOTFILES_ROOT" == "$target/"* ]]; then
+      fail "Repository is inside a path the installer would replace: $target"; missing=1
+    fi
+  done
+  for entry in "${PLAN_OWNED_DIRS[@]}"; do
+    target="$HOME/$entry"
+    if [[ "$DOTFILES_ROOT" == "$target" || "$DOTFILES_ROOT" == "$target/"* ]]; then
+      fail "Repository is inside a private config directory the installer would replace: $target"; missing=1
+    fi
+  done
+  for file in "${PLAN_SOURCE_FILES[@]}"; do
+    [[ -s "$DOTFILES_ROOT/$file" ]] || { fail "Missing/empty source config: $file"; missing=1; }
+  done
+  if [[ -r "$DOTFILES_ROOT/matugen/config.toml" ]]; then
+    while IFS= read -r line; do
+      [[ "$line" =~ $pattern ]] || continue
+      input="${BASH_REMATCH[1]}"
+      if [[ "$input" != "$prefix"* || ! -s "$DOTFILES_ROOT/matugen/${input#"$prefix"}" ]]; then
+        fail "Missing or unsupported matugen template: $input"; missing=1
+      fi
+    done < <(render_palette_config)
+  fi
+  [[ "$missing" -eq 0 ]] || return 1
+  ok "Repository ready (${#PLAN_LINKS[@]} config links; package manifests validated)"
+  [[ "$DRY_RUN" -eq 0 ]] || check_display_manager || return 1
+  if (( DRY_RUN == 1 || CHECK_ONLY == 1 )); then
+    [[ -f /etc/arch-release ]] || warn 'Not an Arch host; read-only planning/checks are still available'
     return 0
   fi
-  _log_cmd "$cmd"
-  local start_ts end_ts elapsed
-  start_ts=$(date +%s)
-  if [[ "$VERBOSE" -eq 1 ]]; then
-    _term out "  ${C_CYAN}${I_SPIN}${C_RESET} ${message} ${C_DIM}(live output below)${C_RESET}"
-    eval "$cmd" </dev/null 2>&1 | tee -a "$LOG_FILE"
-    local vst=${PIPESTATUS[0]}
-    end_ts=$(date +%s); elapsed=$(( end_ts - start_ts ))
-    if [[ "$vst" -eq 0 ]]; then _term out "  ${C_GREEN}${I_OK} done${C_RESET} ${C_DIM}(${elapsed}s)${C_RESET}"; PASS_COUNT=$((PASS_COUNT+1));
-    else _term err "  ${C_RED}${I_FAIL} failed${C_RESET} ${C_DIM}(${elapsed}s)${C_RESET}"; FAIL_COUNT=$((FAIL_COUNT+1)); fi
-    _log_exit "$vst"
-    return "$vst"
+  [[ "$EUID" -ne 0 ]] || { fail 'Run as your normal user, not root; sudo is used only for system changes'; return 1; }
+  [[ -f /etc/arch-release ]] || { fail 'Installation requires Arch Linux (/etc/arch-release)'; return 1; }
+  [[ "${XDG_CONFIG_HOME:-$HOME/.config}" == "$HOME/.config" ]] || { fail 'This config expects XDG_CONFIG_HOME=$HOME/.config'; return 1; }
+  command -v flock >/dev/null 2>&1 || { fail 'Required prerequisite missing: flock (util-linux)'; return 1; }
+  if [[ "$CHANGE_SHELL" -eq 1 && ! -t 0 ]]; then fail '--change-shell requires a terminal for chsh authentication'; return 1; fi
+  if [[ "$ONLY_DOTFILES" -eq 0 ]]; then
+    for binary in sudo pacman; do
+      command -v "$binary" >/dev/null 2>&1 || { fail "Required prerequisite missing: $binary"; return 1; }
+    done
+    check_display_manager || return 1
+  elif [[ "$LINK_ONLY" -eq 0 ]]; then
+    local -a prerequisites=(matugen xdg-user-dirs-update fc-cache)
+    [[ "$WITH_SHELL" -eq 0 ]] || prerequisites+=(git zsh)
+    for binary in "${prerequisites[@]}"; do
+      command -v "$binary" >/dev/null 2>&1 || { fail "Dotfiles-only needs $binary already installed; use the package profile first"; return 1; }
+    done
   fi
-  if [[ ! -t 1 ]]; then
-    local plain_st=0
-    eval "$cmd" </dev/null >>"$LOG_FILE" 2>&1 || plain_st=$?
-    end_ts=$(date +%s); elapsed=$(( end_ts - start_ts ))
-    if [[ "$plain_st" -eq 0 ]]; then printf '%b\n' "  ${C_GREEN}${I_OK} done${C_RESET} ${C_DIM}(${elapsed}s) — ${message}${C_RESET}"; PASS_COUNT=$((PASS_COUNT+1)); else printf '%b\n' "  ${C_RED}${I_FAIL} failed${C_RESET} ${C_DIM}(${elapsed}s) — ${message}${C_RESET}"; FAIL_COUNT=$((FAIL_COUNT+1)); fi
-    _log_exit "$plain_st"
-    return "$plain_st"
+  say 'The eDP-1 monitor preset is unchanged; other outputs use the preferred-mode fallback.'
+}
+
+prune_logs() {
+  local record file count=0
+  [[ -d "$LOG_DIR_DEFAULT" ]] || return 0
+  while IFS= read -r -d '' record; do
+    file="${record#* }"
+    count=$((count + 1))
+    if (( count > LOG_KEEP )) && [[ "$file" != "$LOG_FILE" ]]; then rm -f -- "$file"; fi
+  done < <(find "$LOG_DIR_DEFAULT" -maxdepth 1 -type f -name 'install-*.log' -printf '%T@ %p\0' | sort -z -rn)
+}
+
+init_runtime() {
+  (( DRY_RUN == 0 && CHECK_ONLY == 0 )) || return 0
+  umask 077
+  mkdir -p -- "$(dirname -- "$LOCK_FILE")"
+  # Do not put 2>/dev/null on exec: that would silence stderr for the whole script.
+  if ! { exec 200>"$LOCK_FILE"; }; then fail "Cannot open installer lock: $LOCK_FILE"; return 1; fi
+  if ! flock -n 200; then fail 'Another HyprYoru installation is already running'; return 1; fi
+  mkdir -p -- "$(dirname -- "$LOG_FILE")"
+  if [[ -e "$LOG_FILE" || -L "$LOG_FILE" ]] || ! (set -o noclobber; : >"$LOG_FILE"); then
+    fail "Refusing to overwrite an existing/unwritable log: $LOG_FILE"; return 1
   fi
-  printf '%b' "  ${C_CYAN}${I_SPIN}${C_RESET} ${message} "
-  eval "$cmd" </dev/null >>"$LOG_FILE" 2>&1 &
-  local pid=$!
-  local frames
-  if [[ "${USE_ASCII:-0}" -eq 1 ]]; then frames='|/-\'; else frames='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'; fi
-  local nframes=${#frames} i=0
-  local hide_cursor=0
-  if [[ -t 1 ]] && tput civis 2>/dev/null; then hide_cursor=1; fi
-  while kill -0 "$pid" 2>/dev/null; do
-    if [[ "${USE_ASCII:-0}" -eq 1 ]]; then
-      printf '\b%c' "${frames:$((i % nframes)):1}"
-    else
-      printf '\b%s' "${frames:$((i % nframes)):1}"
+  LOG_ENABLED=1
+  [[ "$LOG_FILE_EXPLICIT" -eq 1 ]] || prune_logs
+  _log_plain "[start] profile=$PROFILE dotfiles=$ONLY_DOTFILES link-only=$LINK_ONLY no-aur=$NO_AUR zsh=$WITH_SHELL gdm=$WITH_GDM wwan=$WITH_WWAN shell=$CHANGE_SHELL defaults=$SET_DEFAULTS"
+  _log_plain "[paths] repository=$DOTFILES_ROOT home=$HOME backups=$BACKUP_DIR"
+}
+
+prepare_backup() {
+  [[ "$BACKUP_READY" -eq 0 ]] || return 0
+  if [[ -e "$BACKUP_DIR" || -L "$BACKUP_DIR" ]]; then fail "Refusing to reuse an existing backup: $BACKUP_DIR"; return 1; fi
+  mkdir -p -- "$(dirname -- "$BACKUP_DIR")" || return 1
+  if ! mkdir -m 700 -- "$BACKUP_DIR"; then fail "Cannot create backup directory: $BACKUP_DIR"; return 1; fi
+  printf '# action\toriginal path\tbackup path\n' >"$BACKUP_DIR/manifest.tsv" || return 1
+  BACKUP_READY=1
+}
+
+# Copy individual files before editing. Directory/symlink replacements use moves.
+# Separate trees avoid collisions between an old config dir and an edited repo file.
+preserve_file() {
+  local target="$1" dest
+  [[ -z "${PRESERVED_FILES[$target]+present}" ]] || return 0
+  [[ "$target" == "$HOME/"* ]] || { fail "Backup target is outside HOME: $target"; return 1; }
+  prepare_backup || return 1
+  dest="$BACKUP_DIR/edited/${target#"$HOME/"}"
+  if [[ -e "$target" || -L "$target" ]]; then
+    [[ ! -e "$dest" && ! -L "$dest" ]] || { fail "Backup already exists: $dest"; return 1; }
+    mkdir -p -- "$(dirname -- "$dest")" || return 1
+    if ! cp -a -- "$target" "$dest"; then fail "Backup failed; leaving $target untouched"; return 1; fi
+    printf 'copied\t%s\t%s\n' "$target" "$dest" >>"$BACKUP_DIR/manifest.tsv" || return 1
+  else
+    printf 'created\t%s\t-\n' "$target" >>"$BACKUP_DIR/manifest.tsv" || return 1
+  fi
+  PRESERVED_FILES["$target"]=1
+}
+
+make_temp() {
+  NEW_TEMP=$(mktemp "$(dirname -- "$1")/.hypryoru.XXXXXX") || return 1
+  TEMP_FILES+=("$NEW_TEMP")
+}
+
+replace_file() {
+  local target="$1" temp="$2"
+  if [[ -f "$target" ]] && cmp -s -- "$target" "$temp"; then
+    rm -f -- "$temp"; skip "Unchanged: $target"; return 0
+  fi
+  preserve_file "$target" || return 1
+  [[ ! -f "$target" ]] || chmod --reference="$target" -- "$temp" || return 1
+  mv -fT -- "$temp" "$target" || return 1
+  log "Updated: $target"
+}
+
+link_one() {
+  local target="$HOME/$1" src="$DOTFILES_ROOT/$2" dest='' moved=0
+  [[ -d "$src" ]] || { fail "Cannot link missing source: $src"; return 1; }
+  if [[ -L "$target" && "$target" -ef "$src" ]]; then skip "Link already correct: $target"; return 0; fi
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    [[ ! -e "$target" && ! -L "$target" ]] || dry "Move $target into the backup (including existing symlinks)"
+    dry "Link $target -> $src"; return 0
+  fi
+  mkdir -p -- "$(dirname -- "$target")" || return 1
+  prepare_backup || return 1
+  if [[ -e "$target" || -L "$target" ]]; then
+    dest="$BACKUP_DIR/home/$1"
+    [[ ! -e "$dest" && ! -L "$dest" ]] || { fail "Backup collision: $dest"; return 1; }
+    mkdir -p -- "$(dirname -- "$dest")" || return 1
+    if ! mv -T -- "$target" "$dest"; then fail "Cannot preserve $target; replacement cancelled"; return 1; fi
+    moved=1
+    printf 'moved\t%s\t%s\n' "$target" "$dest" >>"$BACKUP_DIR/manifest.tsv" || return 1
+  fi
+  if ! run ln -sT -- "$src" "$target"; then
+    fail "Cannot create link: $target"
+    if [[ "$moved" -eq 1 && ! -e "$target" && ! -L "$target" ]]; then
+      if mv -T -- "$dest" "$target"; then
+        printf 'restored\t%s\t%s\n' "$target" "$dest" >>"$BACKUP_DIR/manifest.tsv" || return 1
+      else
+        warn "Restore the original manually from $dest"
+      fi
     fi
-    i=$((i+1))
-    sleep 0.12
-  done
-  local st=0
-  wait "$pid" || st=$?
-  if [[ "$hide_cursor" -eq 1 ]]; then [[ -t 1 ]] && tput cnorm 2>/dev/null || true; fi
-  end_ts=$(date +%s); elapsed=$(( end_ts - start_ts ))
-  if [[ "$st" -eq 0 ]]; then printf '\b%b\n' "${C_GREEN}${I_OK} done${C_RESET} ${C_DIM}(${elapsed}s)${C_RESET}"; PASS_COUNT=$((PASS_COUNT+1)); else printf '\b%b\n' "${C_RED}${I_FAIL} failed${C_RESET} ${C_DIM}(${elapsed}s)${C_RESET}"; FAIL_COUNT=$((FAIL_COUNT+1)); fi
-  _log_exit "$st"
-  return "$st"
-}
-
-_restore_cursor() { [[ -t 1 ]] && tput cnorm 2>/dev/null || true; }
-
-cleanup_exit() {
-  _restore_cursor
-  if [[ -n "${SUDO_KEEPALIVE_PID:-}" ]]; then
-    kill "$SUDO_KEEPALIVE_PID" 2>/dev/null || true
-  fi
-  # Only remove temp yay dirs we created (never the repo or $HOME).
-  if [[ -n "${YAY_BUILD_DIR:-}" && "$YAY_BUILD_DIR" == /tmp/* && -d "$YAY_BUILD_DIR" ]]; then
-    rm -rf "$YAY_BUILD_DIR" 2>/dev/null || true
-  fi
-}
-
-# Ask for sudo once, before any hidden-output step, and keep it alive.
-# The keepalive watches the parent script PID so it cannot outlive us.
-ensure_sudo() {
-  [[ "${EUID:-$(id -u)}" -eq 0 ]] && return 0
-  if [[ -n "${SUDO_KEEPALIVE_PID:-}" ]]; then return 0; fi
-  say "Administrator privileges are required to install packages."
-  if ! sudo -v; then
-    fail "sudo access required."
     return 1
   fi
-  ok "sudo access confirmed"
-  ( while kill -0 "$$" 2>/dev/null; do sudo -n true 2>/dev/null || break; sleep 50; done ) &
+  printf 'linked\t%s\t%s\n' "$target" "$src" >>"$BACKUP_DIR/manifest.tsv" || return 1
+}
+
+ensure_zshenv() {
+  local target="$HOME/.zshenv" temp
+  if [[ "$DRY_RUN" -eq 1 ]]; then dry 'Ensure ~/.zshenv has a managed ZDOTDIR block; preserve custom content'; return 0; fi
+  make_temp "$target" || return 1
+  temp="$NEW_TEMP"
+  if [[ -f "$target" ]]; then
+    if ! awk '
+      /^# >>> HyprYoru >>>$/ {if (managed) exit 2; managed=1; next}
+      /^# <<< HyprYoru <<<$/ {if (!managed) exit 2; managed=0; next}
+      !managed {print}
+      END {if (managed) exit 2}
+    ' "$target" >"$temp"; then
+      fail 'Unbalanced HyprYoru markers in ~/.zshenv; repair the block before retrying.'
+      return 1
+    fi
+  fi
+  # Do not delete arbitrary user statements mentioning ZDOTDIR. The final block wins.
+  printf '# >>> HyprYoru >>>\nexport ZDOTDIR="$HOME/.config/zsh"\n# <<< HyprYoru <<<\n' >>"$temp" || return 1
+  replace_file "$target" "$temp"
+}
+
+ensure_sudo() {
+  [[ "$DRY_RUN" -eq 0 ]] || return 0
+  [[ -z "$SUDO_KEEPALIVE_PID" ]] || return 0
+  say 'Authenticating sudo before package installation (password input stays visible).'
+  run sudo -v || return 1
+  (
+    trap - ERR
+    exec 200>&-
+    sleeper=''
+    trap '[[ -z "$sleeper" ]] || kill "$sleeper" 2>/dev/null; exit 0' TERM INT
+    while kill -0 "$$" 2>/dev/null; do
+      sudo -n true || break
+      sleep 50 &
+      sleeper=$!
+      wait "$sleeper" || break
+      sleeper=''
+    done
+  ) </dev/null >/dev/null 2>&1 &
   SUDO_KEEPALIVE_PID=$!
+}
+
+in_dir() { local directory="$1"; shift; (cd -- "$directory" && "$@"); }
+
+find_aur_helper() {
+  local helper
+  for helper in yay paru; do
+    if command -v "$helper" >/dev/null 2>&1; then AUR_HELPER="$helper"; return 0; fi
+  done
+  return 1
+}
+
+ensure_aur_helper() {
+  [[ "$NO_AUR" -eq 0 ]] || return 0
+  if find_aur_helper; then skip "Using existing AUR helper: $AUR_HELPER"; return 0; fi
+  AUR_HELPER=yay
+  if [[ "$DRY_RUN" -eq 1 ]]; then dry 'Bootstrap yay-bin in a temporary directory (base-devel, git clone, makepkg -si)'; return 0; fi
+  local build
+  spin 'Install AUR build tools' sudo pacman -S "${PACMAN_FLAGS[@]}" base-devel git || return 1
+  build=$(mktemp -d "${TMPDIR:-/tmp}/hypryoru-aur.XXXXXX") || return 1
+  TEMP_DIRS+=("$build")
+  spin 'Fetch yay-bin PKGBUILD' git clone -- https://aur.archlinux.org/yay-bin.git "$build" || return 1
+  say 'AUR build scripts are third-party code; review the PKGBUILD before approving installation.'
+  if is_interactive; then
+    run cat -- "$build/PKGBUILD" || return 1
+    if ! ask_yes_no 'Build this AUR helper?' no; then return 1; fi
+  fi
+  spin 'Build and install yay-bin' in_dir "$build" makepkg -si --needed "${CONFIRM_FLAGS[@]}" || return 1
+  command -v yay >/dev/null 2>&1 || return 1
+}
+
+phase_base() {
+  step 'Update Arch packages'
+  ensure_sudo
+  say 'Existing pacman settings and mirror configuration are kept unchanged.'
+  spin 'Full system upgrade (pacman -Syu)' sudo pacman -Syu "${CONFIRM_FLAGS[@]}"
+}
+
+missing_packages() {
+  MISSING_PACKAGES=()
+  if [[ "$DRY_RUN" -eq 1 ]]; then MISSING_PACKAGES=("$@"); return 0; fi
+  local installed package
+  local -A present=()
+  if ! installed=$(pacman -Qq); then fail 'Cannot read the local pacman database'; return 1; fi
+  while IFS= read -r package; do [[ -z "$package" ]] || present["$package"]=1; done <<<"$installed"
+  for package in "$@"; do
+    [[ -n "${present[$package]+yes}" ]] || MISSING_PACKAGES+=("$package")
+  done
+}
+
+install_package_set() {
+  local label="$1" manager="$2"; shift 2
+  local -a requested=("$@") todo=() failed=() command=()
+  local package
+  missing_packages "${requested[@]}" || return 1
+  todo=("${MISSING_PACKAGES[@]}")
+  if (( ${#todo[@]} == 0 )); then skip "$label packages already installed (${#requested[@]})"; return 0; fi
+  say "$label: ${#todo[@]} queued, $(( ${#requested[@]} - ${#todo[@]} )) already installed."
+  if [[ "$manager" == pacman ]]; then command=(sudo pacman -S "${PACMAN_FLAGS[@]}")
+  else command=("$manager" -S "${PACMAN_FLAGS[@]}"); fi
+  if spin "Install ${#todo[@]} $label packages" "${command[@]}" "${todo[@]}"; then return 0; fi
+  if (( ${#todo[@]} == 1 )); then
+    failed=("${todo[@]}")
+  else
+    warn "$label batch failed; retrying packages individually."
+    for package in "${todo[@]}"; do
+      if ! spin "Install $package" "${command[@]}" "$package"; then failed+=("$package"); fi
+    done
+  fi
+  if (( ${#failed[@]} > 0 )); then
+    FAILED_PACKAGES+=("${failed[@]}")
+    fail "$label packages unresolved: ${failed[*]}"
+  else
+    ok "$label packages recovered successfully on retry"
+  fi
+}
+
+is_required_official() {
+  local wanted="$1" package
+  for package in "${PLAN_REQUIRED_OFFICIAL[@]}"; do [[ "$package" != "$wanted" ]] || return 0; done
+  return 1
+}
+
+phase_packages() {
+  step "Install packages / $PROFILE"
+  FAILED_PACKAGES=()
+  install_package_set Official pacman "${PLAN_OFFICIAL[@]}"
+  local package
+  for package in "${FAILED_PACKAGES[@]}"; do
+    if is_required_official "$package"; then
+      fail 'A required desktop package failed; no existing configs have been replaced.'
+      return 1
+    fi
+  done
+  if [[ "$NO_AUR" -eq 1 ]]; then
+    warn 'AUR disabled. Themes and Waypaper must already be installed, or those features will be unavailable.'
+    return 0
+  fi
+  if ! ensure_aur_helper; then
+    fail 'AUR helper setup failed; continuing desktop setup without the requested AUR packages.'
+    return 0
+  fi
+  install_package_set AUR "$AUR_HELPER" "${PLAN_AUR[@]}"
+}
+
+service_in_use() {
+  local state
+  state=$(systemctl is-enabled "$1" 2>/dev/null || true)
+  case "$state" in enabled|enabled-runtime|linked|linked-runtime|alias) return 0 ;; esac
+  systemctl is-active --quiet "$1" 2>/dev/null
+}
+
+enable_unit() {
+  local scope="$1" unit="$2" state
+  local -a query=(systemctl) command=(sudo systemctl)
+  if [[ "$scope" == user ]]; then query+=(--user); command=(systemctl --user); fi
+  if [[ "$DRY_RUN" -eq 1 ]]; then run "${command[@]}" enable "$unit"; return 0; fi
+  state=$("${query[@]}" is-enabled "$unit" 2>/dev/null || true)
+  case "$state" in
+    enabled|enabled-runtime|alias) skip "$unit already enabled"; return 0 ;;
+    static|indirect|generated) skip "$unit is managed automatically ($state)"; return 0 ;;
+    masked|masked-runtime) warn "$unit is masked; leaving the user's choice intact"; return 0 ;;
+    ''|not-found) warn "$unit unavailable in the $scope manager; not enabled"; return 0 ;;
+  esac
+  if ! run "${command[@]}" enable "$unit"; then
+    if [[ "$scope" == user ]]; then warn "Could not enable $unit; retry from a user login session."
+    else fail "Could not enable $unit"; fi
+  fi
+}
+
+write_wwan_unit() {
+  local source="$DOTFILES_ROOT/services/wwan-enable.service"
+  [[ -f "$source" ]] || { fail 'WWAN service template is missing'; return 1; }
+  if [[ -e "$WWAN_UNIT_PATH" || -L "$WWAN_UNIT_PATH" ]]; then
+    if cmp -s -- "$source" "$WWAN_UNIT_PATH"; then skip 'WWAN unit already matches'; return 0; fi
+    fail "Refusing to overwrite an existing custom unit: $WWAN_UNIT_PATH"; return 1
+  fi
+  run sudo install -m 644 -- "$source" "$WWAN_UNIT_PATH" || return 1
+  run sudo systemctl daemon-reload
+}
+
+phase_services() {
+  step 'Enable desktop services'
+  local unit
+  check_display_manager
+  if [[ "$WITH_WWAN" -eq 1 ]]; then write_wwan_unit; fi
+  for unit in "${PLAN_SYSTEM_SERVICES[@]}"; do
+    if [[ "$DRY_RUN" -eq 0 && "$unit" == NetworkManager.service ]] && { service_in_use systemd-networkd.service || service_in_use dhcpcd.service; }; then
+      warn 'Another network service is in use; NetworkManager is not enabled automatically.'; continue
+    fi
+    if [[ "$DRY_RUN" -eq 0 && "$unit" == power-profiles-daemon.service ]] && service_in_use tlp.service; then
+      warn 'TLP is in use; keeping it and not enabling power-profiles-daemon.'; continue
+    fi
+    enable_unit system "$unit"
+  done
+  for unit in "${PLAN_USER_SERVICES[@]}"; do enable_unit user "$unit"; done
+  say 'Services are enabled for future logins/boots, not restarted. Server/firewall services are untouched.'
+}
+
+collect_scripts() {
+  local file
+  SCRIPT_PATHS=()
+  for file in "$DOTFILES_ROOT/hyprland/scripts/"*.sh "$DOTFILES_ROOT/hyprland/whatsong.sh" \
+    "$DOTFILES_ROOT/waybar/scripts/"*.sh "$DOTFILES_ROOT/swaync/scripts/"*.sh \
+    "$DOTFILES_ROOT/rofi/launchers/"*.sh "$DOTFILES_ROOT/rofi/launchers/type-6/"*.sh \
+    "$DOTFILES_ROOT/rofi/launchers/rofi-bluetooth"; do
+    [[ ! -f "$file" ]] || SCRIPT_PATHS+=("$file")
+  done
+}
+
+seed_file() {
+  local source="$1" target="$2"
+  if [[ -e "$target" || -L "$target" ]]; then skip "Already present: $target"; return 0; fi
+  run cp -n -- "$source" "$target"
+}
+
+normalize_qt_path() {
+  local target="$HOME/.config/qt6ct/qt6ct.conf" temp line
+  if [[ "$DRY_RUN" -eq 1 ]]; then dry 'Normalize qt6ct palette path for this HOME (back up before editing)'; return 0; fi
+  [[ -f "$target" ]] || { warn 'qt6ct.conf missing; palette path not normalized'; return 0; }
+  make_temp "$target" || return 1
+  temp="$NEW_TEMP"
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    case "$line" in color_scheme_path=*) line="color_scheme_path=$HOME/.config/qt6ct/colors/matugen.conf" ;; esac
+    printf '%s\n' "$line" >>"$temp" || return 1
+  done <"$target"
+  replace_file "$target" "$temp"
+}
+
+# A shell opt-out must also survive subsequent wallpaper changes. Use a private
+# Matugen config plus a templates symlink, never edit the repository's config.
+prepare_private_palette() {
+  (( ${#PLAN_OWNED_DIRS[@]} > 0 )) || return 0
+  local target="$HOME/.config/matugen" dest="$BACKUP_DIR/home/.config/matugen" temp
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    dry "Prepare $target as a private palette config without the Zsh output; preserve any existing root"
+    return 0
+  fi
+  if ! private_matugen_root; then
+    mkdir -p -- "$HOME/.config" || return 1
+    prepare_backup || return 1
+    if [[ -e "$target" || -L "$target" ]]; then
+      [[ ! -e "$dest" && ! -L "$dest" ]] || { fail "Backup collision: $dest"; return 1; }
+      mkdir -p -- "$(dirname -- "$dest")" || return 1
+      if ! mv -T -- "$target" "$dest"; then fail 'Cannot preserve the existing Matugen directory'; return 1; fi
+      printf 'moved\t%s\t%s\n' "$target" "$dest" >>"$BACKUP_DIR/manifest.tsv" || return 1
+    fi
+    if ! mkdir -- "$target"; then
+      if [[ ! -e "$target" && ! -L "$target" && ( -e "$dest" || -L "$dest" ) ]]; then mv -T -- "$dest" "$target" || true; fi
+      return 1
+    fi
+    printf '%s\n' "$DOTFILES_ROOT" >"$target/.hypryoru-managed" || return 1
+    printf 'created\t%s\t-\n' "$target" >>"$BACKUP_DIR/manifest.tsv" || return 1
+  fi
+  make_temp "$target/config.toml" || return 1
+  temp="$NEW_TEMP"
+  render_palette_config >"$temp" || return 1
+  replace_file "$target/config.toml" "$temp"
+}
+
+path_uri() {
+  local LC_ALL=C path="$1" char code i
+  printf 'file://'
+  for ((i=0; i<${#path}; i++)); do
+    char="${path:i:1}"
+    case "$char" in
+      [a-zA-Z0-9/_.~-]) printf '%s' "$char" ;;
+      *) printf -v code '%02X' "'$char"; printf '%%%s' "$code" ;;
+    esac
+  done
+}
+
+seed_bookmarks() {
+  local target="$HOME/.config/gtk-3.0/bookmarks" key directory fallback temp
+  if [[ -e "$target" || -L "$target" ]]; then skip 'Existing GTK bookmarks preserved'; return 0; fi
+  if [[ "$DRY_RUN" -eq 1 ]]; then dry 'Seed GTK bookmarks only if absent, using actual XDG user directories'; return 0; fi
+  make_temp "$target" || return 1
+  temp="$NEW_TEMP"
+  for key in DOCUMENTS MUSIC PICTURES VIDEOS DOWNLOAD; do
+    case "$key" in DOWNLOAD) fallback=Downloads ;; *) fallback="${key,,}"; fallback="${fallback^}" ;; esac
+    directory=$(xdg-user-dir "$key" 2>/dev/null || true)
+    [[ -n "$directory" ]] || directory="$HOME/$fallback"
+    path_uri "$directory" >>"$temp"
+    printf '\n' >>"$temp"
+  done
+  replace_file "$target" "$temp"
+}
+
+desktop_exists() {
+  local desktop="$1" directory
+  local -a dirs=()
+  IFS=: read -r -a dirs <<<"${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+  dirs=("${XDG_DATA_HOME:-$HOME/.local/share}" "${dirs[@]}")
+  for directory in "${dirs[@]}"; do
+    [[ ! -f "$directory/applications/$desktop" ]] || return 0
+  done
+  return 1
+}
+
+set_mime_group() {
+  local desktop="$1"; shift
+  local mime
+  if [[ "$DRY_RUN" -eq 1 ]]; then dry "Set MIME defaults to $desktop only if its desktop entry is installed: $*"; return 0; fi
+  if ! desktop_exists "$desktop"; then skip "Default application not installed: $desktop"; return 0; fi
+  preserve_file "$HOME/.config/mimeapps.list" || return 1
+  for mime in "$@"; do run xdg-mime default "$desktop" "$mime" || return 1; done
+}
+
+set_gtk_preference() {
+  local key="$1" value="$2" old schema=org.gnome.desktop.interface
+  if [[ "$DRY_RUN" -eq 1 ]]; then run gsettings set "$schema" "$key" "$value"; return 0; fi
+  if [[ "$(gsettings writable "$schema" "$key" 2>/dev/null || true)" != true ]]; then
+    warn "GTK preference is not writable in this session: $key"; return 0
+  fi
+  old=$(gsettings get "$schema" "$key") || return 1
+  prepare_backup || return 1
+  printf 'gsettings set %q %q %q\n' "$schema" "$key" "$old" >>"$BACKUP_DIR/restore-gsettings.sh" || return 1
+  run gsettings set "$schema" "$key" "$value"
+}
+
+apply_defaults() {
+  [[ "$SET_DEFAULTS" -eq 1 ]] || { skip 'Application defaults and GTK preferences left unchanged'; return 0; }
+  set_mime_group chromium.desktop text/html x-scheme-handler/http x-scheme-handler/https
+  set_mime_group org.gnome.Evince.desktop application/pdf application/postscript
+  if [[ "$DRY_RUN" -eq 0 ]] && desktop_exists org.xfce.ristretto.desktop; then
+    set_mime_group org.xfce.ristretto.desktop image/png image/jpeg image/webp image/gif
+  else
+    set_mime_group imv.desktop image/png image/jpeg image/webp image/gif
+  fi
+  if [[ "$DRY_RUN" -eq 1 ]] || command -v gsettings >/dev/null 2>&1; then
+    set_gtk_preference gtk-theme adw-gtk3-dark
+    set_gtk_preference font-name 'Adwaita Sans Medium 11'
+    if [[ "$NO_AUR" -eq 0 ]]; then
+      set_gtk_preference icon-theme kora-pgrey
+      set_gtk_preference cursor-theme Bibata-Modern-Classic
+    fi
+  else
+    warn 'gsettings unavailable; GTK preferences were not applied.'
+  fi
+}
+
+phase_dotfiles() {
+  step 'Link and prepare configs'
+  local entry script file
+  prepare_private_palette
+  for entry in "${PLAN_LINKS[@]}"; do link_one "${entry%%:*}" "${entry#*:}"; done
+  if [[ "$WITH_SHELL" -eq 1 ]]; then ensure_zshenv; else skip 'Zsh config, frameworks, and ZDOTDIR left untouched'; fi
+  if [[ "$DRY_RUN" -eq 1 ]]; then dry "Prepare ${#PLAN_LINKS[@]} selected config links"
+  else ok "${#PLAN_LINKS[@]} selected config links ready"; fi
+  [[ "$LINK_ONLY" -eq 0 ]] || return 0
+  collect_scripts
+  for script in "${SCRIPT_PATHS[@]}"; do [[ -x "$script" ]] || run chmod +x -- "$script"; done
+  run mkdir -p -- "$HOME/Pictures/wallpapers" "$HOME/Pictures/Screenshots" \
+    "$HOME/.cache/matugen" "$HOME/.cache/hyprlock" "${XDG_CACHE_HOME:-$HOME/.cache}/wallpaper-thumbs" \
+    "$HOME/.config/swaync/matugen" "$HOME/.config/matugen/themes" \
+    "$HOME/.config/btop/themes" "$HOME/.config/qt6ct/colors" "$HOME/.config/opencode/themes" \
+    "$HOME/.local/bin" "$HOME/.local/share/fonts"
+  [[ "$WITH_SHELL" -eq 0 ]] || run mkdir -p -- "$HOME/.config/zsh/generated"
+  normalize_qt_path
+  for file in "$DOTFILES_ROOT/hyprland/wallpapers/"*; do
+    [[ ! -f "$file" ]] || seed_file "$file" "$HOME/Pictures/wallpapers/${file##*/}"
+  done
+  seed_file "$DOTFILES_ROOT/waypaper/config.ini.example" "$HOME/.config/waypaper/config.ini"
+  if [[ "$DRY_RUN" -eq 0 ]]; then
+    preserve_file "$HOME/.config/user-dirs.dirs"
+    preserve_file "$HOME/.config/user-dirs.locale"
+  fi
+  run xdg-user-dirs-update
+  seed_bookmarks
+  apply_defaults
+  if ! spin 'Refresh font cache' fc-cache -f; then warn 'Font cache refresh failed; fonts may need a refresh at next login.'; fi
+}
+
+clone_framework() {
+  local label="$1" url="$2" target="$3" marker="$4"
+  if [[ -s "$target/$marker" ]]; then skip "$label already installed"; return 0; fi
+  if [[ -e "$target" || -L "$target" ]]; then fail "Incomplete $label directory; inspect it before retrying: $target"; return 1; fi
+  spin "Install $label" git clone --depth=1 -- "$url" "$target"
+}
+
+phase_shell() {
+  step 'Prepare zsh'
+  clone_framework oh-my-zsh https://github.com/ohmyzsh/ohmyzsh.git "$HOME/.oh-my-zsh" oh-my-zsh.sh
+  clone_framework powerlevel10k https://github.com/romkatv/powerlevel10k.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k" powerlevel10k.zsh-theme
+  if [[ "$CHANGE_SHELL" -eq 1 ]]; then
+    if [[ "$DRY_RUN" -eq 1 ]]; then dry 'Change the account login shell to zsh with chsh'
+    else
+      local current user zsh_path
+      user=$(id -un)
+      current=$(getent passwd "$user" | cut -d: -f7)
+      zsh_path=$(command -v zsh)
+      if [[ "$current" == "$zsh_path" || "$current" == /bin/zsh || "$current" == /usr/bin/zsh ]]; then skip 'Login shell already zsh'
+      else
+        prepare_backup
+        printf 'chsh -s %q\n' "$current" >"$BACKUP_DIR/restore-shell.sh"
+        run chsh -s "$zsh_path"
+      fi
+    fi
+  else
+    skip 'Login shell left unchanged (--change-shell to opt in)'
+  fi
+  run env ZDOTDIR=/dev/null zsh -f -n "$HOME/.config/zsh/.zshrc"
+}
+
+phase_theming() {
+  step 'Generate the palette'
+  local wall=''
+  if [[ -r "$HOME/.cache/matugen/current-wallpaper" ]]; then
+    IFS= read -r wall <"$HOME/.cache/matugen/current-wallpaper" || true
+    [[ -f "$wall" ]] || wall=''
+  fi
+  if [[ -z "$wall" ]]; then
+    if [[ -f "$HOME/Pictures/wallpapers/mystical-night-in-town.jpg" ]]; then wall="$HOME/Pictures/wallpapers/mystical-night-in-town.jpg"
+    else wall="$DOTFILES_ROOT/hyprland/wallpapers/mystical-night-in-town.jpg"; fi
+  fi
+  [[ -f "$wall" ]] || wall="$DOTFILES_ROOT/hyprland/wallpapers/anime3.png"
+  [[ -f "$wall" ]] || { fail 'No seed wallpaper available for palette generation'; return 1; }
+  say 'Generate themes only; wallpaper is restored at login. Template hooks may refresh running apps.'
+  spin 'Generate matugen themes' matugen image "$wall" --mode dark --type scheme-tonal-spot --prefer closest-to-fallback
+}
+
+check_bin() {
+  if command -v "$1" >/dev/null 2>&1; then vpass "Command: $1"; else vfail "Missing command: $1"; fi
+}
+
+verify_defaults() {
+  local file="$HOME/.config/mimeapps.list" line desktop defaults=0
+  local -A unavailable=()
+  [[ -r "$file" ]] || return 0
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    case "$line" in
+      '[Default Applications]') defaults=1; continue ;;
+      '['*) defaults=0; continue ;;
+      ''|'#'*) continue ;;
+    esac
+    [[ "$defaults" -eq 1 && "$line" == *=* ]] || continue
+    desktop="${line#*=}"; desktop="${desktop%%;*}"
+    if [[ -n "$desktop" && -z "${unavailable[$desktop]+present}" ]] && ! desktop_exists "$desktop"; then
+      unavailable["$desktop"]=1
+      vwarn "MIME default references an unavailable app: $desktop"
+    fi
+  done <"$file"
+}
+
+phase_verify() {
+  step 'Verify the installation'
+  local entry target binary file state package before="$FAIL_COUNT" checked=0
+  for entry in "${PLAN_LINKS[@]}"; do
+    target="$HOME/${entry%%:*}"
+    if [[ -L "$target" && "$target" -ef "$DOTFILES_ROOT/${entry#*:}" ]]; then vpass "Config link: $target"
+    else vfail "Missing/broken/incorrect config link: $target"; fi
+  done
+  if [[ "$WITH_SHELL" -eq 1 ]]; then
+    if grep -Fqx 'export ZDOTDIR="$HOME/.config/zsh"' "$HOME/.zshenv" 2>/dev/null; then vpass 'ZDOTDIR configured'
+    else vfail '~/.zshenv does not configure the expected ZDOTDIR'; fi
+  elif private_matugen_root && [[ -r "$HOME/.config/matugen/config.toml" && -s "$HOME/.config/matugen/config.toml" ]] &&
+    ! grep -q '^\[templates.shell\]' "$HOME/.config/matugen/config.toml"; then
+    vpass 'Private palette config leaves the unselected shell alone'
+  else
+    vfail 'Private Matugen config is missing or still manages the unselected shell'
+  fi
+  if [[ "$LINK_ONLY" -eq 1 ]]; then say 'Link-only verification complete; dependencies and generated themes were not checked.'; return 0; fi
+  for binary in "${PLAN_COMMANDS[@]}"; do check_bin "$binary"; done
+  if [[ -x /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 ]]; then vpass 'Polkit authentication agent'
+  else vfail 'Polkit authentication agent missing'; fi
+  if [[ "$NO_AUR" -eq 1 ]] && ! command -v waypaper >/dev/null 2>&1; then vwarn 'Wallpaper picker unavailable (--no-aur)'; fi
+  for file in "${PLAN_SOURCE_FILES[@]}"; do
+    if [[ -s "$DOTFILES_ROOT/$file" ]]; then vpass "Source config: $file"; else vfail "Empty/missing config: $file"; fi
+  done
+  collect_scripts
+  for file in "${SCRIPT_PATHS[@]}"; do
+    if [[ -x "$file" ]]; then vpass "Executable launcher: ${file#"$DOTFILES_ROOT/"}"
+    else vfail "Launcher is not executable: $file"; fi
+  done
+  while IFS= read -r file; do
+    checked=$((checked + 1))
+    if [[ -s "$file" ]]; then vpass "Generated theme: $file"; else vfail "Missing/empty generated theme: $file"; fi
+  done < <(palette_outputs)
+  (( checked > 0 )) || vfail 'No matugen template outputs were found'
+  if [[ "$WITH_SHELL" -eq 1 ]]; then
+    if [[ -s "$HOME/.oh-my-zsh/oh-my-zsh.sh" ]]; then vpass 'oh-my-zsh installed'; else vfail 'oh-my-zsh is missing/incomplete'; fi
+    if [[ -s "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k/powerlevel10k.zsh-theme" ]]; then vpass 'powerlevel10k installed'
+    else vfail 'powerlevel10k is missing/incomplete'; fi
+    if command -v zsh >/dev/null 2>&1; then
+      if env ZDOTDIR=/dev/null zsh -f -n "$HOME/.config/zsh/.zshrc"; then vpass 'zshrc syntax'; else vfail 'zshrc syntax'; fi
+    fi
+  fi
+  if command -v pacman >/dev/null 2>&1; then
+    for package in adwaita-fonts ttf-jetbrains-mono-nerd ttf-go-nerd ttf-martian-mono-nerd; do
+      if pacman -Q -- "$package" >/dev/null 2>&1; then vpass "Font package: $package"; else vwarn "Font package not installed: $package"; fi
+    done
+    log "Installed versions: $(pacman -Q hyprland matugen waybar 2>/dev/null || true)"
+  fi
+  if [[ "$ONLY_DOTFILES" -eq 0 ]]; then
+    for entry in "${PLAN_SYSTEM_SERVICES[@]}"; do
+      state=$(systemctl is-enabled "$entry" 2>/dev/null || true)
+      case "$state" in enabled|enabled-runtime|static|alias) vpass "Service: $entry ($state)" ;; *) vwarn "Service not enabled: $entry (${state:-unavailable})" ;; esac
+    done
+  fi
+  verify_defaults
+  if [[ "$FAIL_COUNT" -eq "$before" ]]; then ok "Verification complete ($checked generated themes checked)"
+  else say 'Verification found failures; see the messages above.'; fi
+}
+
+cleanup_exit() {
+  local directory
+  _restore_cursor
+  if [[ -n "$ACTIVE_PID" ]]; then kill "$ACTIVE_PID" 2>/dev/null || true; wait "$ACTIVE_PID" 2>/dev/null || true; fi
+  if [[ -n "$SUDO_KEEPALIVE_PID" ]]; then kill "$SUDO_KEEPALIVE_PID" 2>/dev/null || true; wait "$SUDO_KEEPALIVE_PID" 2>/dev/null || true; fi
+  if (( ${#TEMP_FILES[@]} > 0 )); then rm -f -- "${TEMP_FILES[@]}"; fi
+  for directory in "${TEMP_DIRS[@]}"; do
+    if [[ "$directory" == "${TMPDIR:-/tmp}/hypryoru-aur."* && -d "$directory" && ! -L "$directory" ]]; then
+      rm -rf -- "$directory"
+    fi
+  done
+  return 0
+}
+
+stop_sudo_keepalive() {
+  if [[ -n "$SUDO_KEEPALIVE_PID" ]]; then
+    kill "$SUDO_KEEPALIVE_PID" 2>/dev/null || true
+    wait "$SUDO_KEEPALIVE_PID" 2>/dev/null || true
+    SUDO_KEEPALIVE_PID=''
+  fi
+}
+
+execute_plan() {
+  activate_plan
+  local phase
+  for phase in "${PLAN_PHASES[@]}"; do
+    if [[ "$phase" == phase_verify && "$DRY_RUN" -eq 1 ]]; then
+      step 'Verification after installation'
+      dry 'Check the commands, links, palette outputs, and services for the selected components'
+    else
+      "$phase"
+    fi
+    COMPLETED_PHASES=$((COMPLETED_PHASES + 1))
+    if [[ "$phase" == phase_preflight && "$CHECK_ONLY" -eq 0 ]]; then init_runtime; fi
+  done
 }
 
 on_err() {
   local line="$1"
   trap - ERR
+  set +e
   _restore_cursor
-  printf '%b\n' "${C_RED}${I_FAIL} FAILED at line ${line}${C_RESET}" >&2
-  _log_plain "[fatal] line $line"
-  say "Last log lines (full log: $LOG_FILE):" >&2
-  tail -n 15 "$LOG_FILE" 2>/dev/null | sed 's/^/  | /' >&2 || true
-  printf '%b\n' "Fix the issue above, then re-run. Re-running is safe (idempotent)." >&2
-  printf '%b\n' "Tip: re-run with ${C_BOLD}--verbose${C_RESET} to see live command output." >&2
-  kill "${SUDO_KEEPALIVE_PID:-}" 2>/dev/null || true
-  SUDO_KEEPALIVE_PID=""
+  fail "Stopped at install.sh:$line. Existing backups are retained."
+  stop_sudo_keepalive
+  if [[ "$LOG_ENABLED" -eq 1 ]]; then
+    _term err "  Recent command output (full log: $LOG_FILE):"
+    tail -n 12 -- "$LOG_FILE" >&2
+  fi
+  final_summary
+  ui_results
   exit 1
-}
-trap 'on_err $LINENO' ERR
-trap cleanup_exit EXIT
-trap '_restore_cursor; printf "\nInterrupted.\n" >&2; exit 130' INT TERM
-
-is_interactive() { [[ "$ASSUME_YES" -eq 0 && "$DRY_RUN" -eq 0 && -t 0 ]]; }
-
-banner() {
-  hr
-  printf '%b\n' "${C_BOLD}HyprYoru — Arch Hyprland reproducer${C_RESET}"
-  printf '%b\n' "${C_DIM}https://github.com/ae-orlando/HyprYoru · single-file, zero-dependency${C_RESET}"
-  if [[ "$QUIET" -eq 0 ]]; then
-    printf '%b\n' "${C_DIM}Profile: $PROFILE · Phases: $TOTAL_PHASES · Log: $LOG_FILE${C_RESET}"
-  fi
-  hr
-  if [[ "$DRY_RUN" -eq 1 ]]; then
-    printf '%b\n' "${C_MAGENTA}${I_DRY} DRY RUN — no changes will be made${C_RESET}"
-  fi
-  if [[ "$VERBOSE" -eq 1 ]]; then
-    say "Verbose mode: long operations stream live output."
-  fi
-}
-
-prompt_profile() {
-  if [[ "$PROFILE_EXPLICIT" -eq 1 ]]; then return 0; fi
-  if ! is_interactive; then return 0; fi
-  if [[ "$ONLY_DOTFILES" -eq 1 ]]; then return 0; fi
-  hr
-  printf '%b\n' "${C_BOLD}1/3 — Installation profile${C_RESET}"
-  say "full  = exact source machine  (151 official + 21 AUR, slower, everything)"
-  say "core  = bootable Hyprland only (111 official + 5 AUR, faster, no user apps)"
-  local ans=""
-  while true; do
-    read -rp "  Select profile [1] full / [2] core (default: 1): " ans || true
-    case "${ans,,}" in
-      ""|"1"|"full") PROFILE="full"; break ;;
-      "2"|"core") PROFILE="core"; break ;;
-      *) printf '%b\n' "  ${C_YELLOW}${I_WARN} WARN${C_RESET} Please enter 1, 2, full, or core." ;;
-    esac
-  done
-  say "Selected profile: $PROFILE"
-}
-
-prompt_aur() {
-  if [[ "$NO_AUR" -eq 1 ]]; then return 0; fi
-  if ! is_interactive; then return 0; fi
-  if [[ "$ONLY_DOTFILES" -eq 1 ]]; then return 0; fi
-  hr
-  printf '%b\n' "${C_BOLD}2/3 — AUR packages${C_RESET}"
-  say "Includes cursor/icon themes (Bibata, Kora, Whitesur, Tela),"
-  say "waypaper, and user apps (brave, spotify, vscodium, ...)."
-  say "Skipping means those themes + waypaper will be missing."
-  local ans=""
-  while true; do
-    read -rp "  Include AUR packages? [Y/n]: " ans || true
-    case "$ans" in
-      ""|[Yy]|[Yy][Ee][Ss]) break ;;
-      [Nn]|[Nn][Oo]) NO_AUR=1; break ;;
-      *) printf '%b\n' "  ${C_YELLOW}${I_WARN} WARN${C_RESET} Please answer y or n." ;;
-    esac
-  done
-  if [[ "$NO_AUR" -eq 1 ]]; then say "AUR packages will be skipped."; else say "AUR packages included."; fi
-}
-
-confirm_run() {
-  if ! is_interactive; then return 0; fi
-  hr
-  printf '%b\n' "${C_BOLD}3/3 — Confirm install${C_RESET}"
-  selected_packages
-  local disk_free
-  disk_free=$(df -h "$HOME" 2>/dev/null | awk 'NR==2 {print $4}' || echo "unknown")
-  say "Profile:        $PROFILE (${#SEL_OFFICIAL[@]} official + ${#SEL_AUR[@]} AUR)"
-  say "Dotfiles:       $DOTFILES_ROOT"
-  say "Backup target:  $BACKUP_DIR"
-  say "Log file:       $LOG_FILE"
-  say "Disk free ($HOME): $disk_free"
-  if [[ "$ONLY_DOTFILES" -eq 1 ]]; then
-    say "Scope:          dotfiles only (base/packages/services skipped)"
-  elif [[ "$NO_AUR" -eq 1 ]]; then
-    say "Scope:          system + official packages (AUR skipped)"
-  else
-    say "Scope:          full system install"
-  fi
-  say "Phases:         $TOTAL_PHASES (preflight → verify)"
-  say "Restore:        cp -a \"$BACKUP_DIR/home/.\" ~/  (if you need to undo)"
-  local ans=""
-  while true; do
-    read -rp "  Proceed with install? [Y/n]: " ans || true
-    case "$ans" in
-      ""|[Yy]|[Yy][Ee][Ss]) break ;;
-      [Nn]|[Nn][Oo]) say "Aborted by user. No changes made."; exit 0 ;;
-      *) printf '%b\n' "  ${C_YELLOW}${I_WARN} WARN${C_RESET} Please answer y or n." ;;
-    esac
-  done
-}
-
-format_elapsed() {
-  local s="$1"
-  if (( s < 60 )); then printf '%ss' "$s";
-  else printf '%sm %ss' $(( s / 60 )) $(( s % 60 )); fi
-}
-
-final_summary() {
-  local end_ts total_elapsed
-  end_ts=$(date +%s)
-  total_elapsed=$(( end_ts - SCRIPT_START ))
-  hr
-  printf '%b\n' "${C_BOLD}Done — summary (${TOTAL_PHASES}/${TOTAL_PHASES} phases, $(format_elapsed "$total_elapsed"))${C_RESET}"
-  say "Profile:  $PROFILE"
-  say "Backup:   $BACKUP_DIR"
-  say "Log:      $LOG_FILE"
-  if (( SKIP_COUNT > 0 )); then
-    printf '%b\n' "  ${C_GREEN}${I_OK} pass: $PASS_COUNT${C_RESET}  ${C_YELLOW}${I_WARN} warnings: $WARN_COUNT${C_RESET}  ${C_RED}${I_FAIL} failures: $FAIL_COUNT${C_RESET}  ${C_DIM}(${SKIP_COUNT} already-ok)${C_RESET}"
-  else
-    printf '%b\n' "  ${C_GREEN}${I_OK} pass: $PASS_COUNT${C_RESET}  ${C_YELLOW}${I_WARN} warnings: $WARN_COUNT${C_RESET}  ${C_RED}${I_FAIL} failures: $FAIL_COUNT${C_RESET}"
-  fi
-  if [[ "$DRY_RUN" -eq 1 ]]; then
-    printf '%b\n' "${C_MAGENTA}${I_DRY} DRY RUN — 0 changes made${C_RESET}"
-  else
-    say "Next steps:"
-    say "  1. Reboot, pick Hyprland in GDM"
-    say "  2. SUPER+W wallpaper · SUPER+R bar restart"
-    if (( FAIL_COUNT > 0 )); then
-      say "Some checks failed — see log: $LOG_FILE"
-    fi
-  fi
-}
-
-usage() {
-  printf '%b\n' "${C_BOLD}Usage:${C_RESET} ./install.sh [options]"
-  printf '\n%b\n' "${C_BOLD}Options:${C_RESET}"
-  printf '  %-22s %s\n' "--profile core|full" "core = bootable minimum (111+5), full = exact machine (151+21) [default: full]"
-  printf '  %-22s %s\n' "--only-dotfiles" "skip base/packages/services; link configs + shell + theming"
-  printf '  %-22s %s\n' "--no-aur" "skip AUR packages (themes + waypaper missing)"
-  printf '  %-22s %s\n' "--dry-run" "print actions without changing anything"
-  printf '  %-22s %s\n' "--yes, -y" "non-interactive (passes --noconfirm to pacman/AUR)"
-  printf '  %-22s %s\n' "--verbose" "stream long-operation output live (default: spinner + log)"
-  printf '  %-22s %s\n' "--quiet" "minimal terminal output (warnings/errors still shown)"
-  printf '  %-22s %s\n' "--log-file PATH" "write plain log here [default: ~/.local/state/dotfiles-install/logs/<timestamp>.log]"
-  printf '  %-22s %s\n' "--no-color" "disable colors (same as NO_COLOR=1)"
-  printf '  %-22s %s\n' "--help, -h" "this help"
-  printf '\n%b\n' "${C_BOLD}Profiles:${C_RESET}"
-  printf '  %-8s %s\n' "full" "exact source machine — every explicit package (default)"
-  printf '  %-8s %s\n' "core" "minimum to boot Hyprland with a working config (no user apps)"
-  printf '\n%b\n' "${C_BOLD}Examples:${C_RESET}"
-  printf '  %s\n' "./install.sh --dry-run"
-  printf '  %s\n' "./install.sh --profile full --yes"
-  printf '  %s\n' "./install.sh --profile core --yes"
-  printf '  %s\n' "./install.sh --only-dotfiles --yes"
-  printf '  %s\n' "./install.sh --no-aur --verbose"
-  printf '\n%b\n' "${C_DIM}Interactive (no --yes, no --dry-run): guided menus for profile, AUR set,${C_RESET}"
-  printf '%b\n' "${C_DIM}then a confirmation screen. NO_COLOR=1 / NO_EMOJI=1 force plain output.${C_RESET}"
-  printf '%b\n' "${C_DIM}Plain log always kept at: $LOG_FILE${C_RESET}"
-}
-
-compute_phases() {
-  if [[ "$ONLY_DOTFILES" -eq 1 ]]; then TOTAL_PHASES=5; else TOTAL_PHASES=8; fi
-}
-
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --profile)
-      [[ -n "${2:-}" ]] || { echo "Missing value for --profile (core|full)" >&2; exit 1; }
-      PROFILE="$2"; PROFILE_EXPLICIT=1; shift 2 ;;
-    --profile=*) PROFILE="${1#*=}"; PROFILE_EXPLICIT=1; shift ;;
-    --only-dotfiles) ONLY_DOTFILES=1; shift ;;
-    --no-aur) NO_AUR=1; shift ;;
-    --dry-run) DRY_RUN=1; shift ;;
-    --yes|-y) ASSUME_YES=1; shift ;;
-    --verbose) VERBOSE=1; shift ;;
-    --quiet) QUIET=1; shift ;;
-    --log-file)
-      [[ -n "${2:-}" ]] || { echo "Missing value for --log-file" >&2; exit 1; }
-      LOG_FILE="$2"; LOG_FILE_EXPLICIT=1; shift 2 ;;
-    --log-file=*) LOG_FILE="${1#*=}"; LOG_FILE_EXPLICIT=1; shift ;;
-    --no-color) NO_COLOR=1; shift ;;
-    --help|-h) usage; exit 0 ;;
-    *) echo "Unknown arg: $1" >&2; usage >&2; exit 1 ;;
-  esac
-done
-[[ "$PROFILE" == "core" || "$PROFILE" == "full" ]] || { echo "Invalid --profile: $PROFILE (use core|full)" >&2; exit 1; }
-if [[ "$VERBOSE" -eq 1 && "$QUIET" -eq 1 ]]; then echo "Cannot combine --verbose and --quiet." >&2; exit 1; fi
-setup_colors
-setup_icons
-compute_phases
-
-PACMAN_FLAGS="--needed"
-AUR_FLAGS="--needed"
-if [[ "$ASSUME_YES" -eq 1 ]]; then
-  PACMAN_FLAGS="$PACMAN_FLAGS --noconfirm"
-  AUR_FLAGS="$AUR_FLAGS --noconfirm"
-fi
-
-# --------------------------------------------------------------------------
-# Package sets (from `pacman -Qqen` / `-Qqm` on source machine, 2026-10-09).
-# *-debug packages excluded (debug symbols, never install explicitly).
-# tela-icon-theme added: rofi/config.rasi requests icon-theme "Tela" but it
-# was missing on source (fallback worked); installing makes it exact.
-# Deliberate additions vs source explicit list:
-#   base (meta, assumed present), curl (oh-my-zsh bootstrap needs it),
-#   playerctl (was dep-of-waybar; binds/whatsong need it directly).
-# --------------------------------------------------------------------------
-
-# Official repo — always needed for the config to function.
-PACMAN_CORE=(
-  base
-  hyprland hypridle hyprlock hyprsunset hyprpicker hyprshot hyprshutdown
-  xdg-desktop-portal-hyprland xdg-user-dirs
-  polkit-gnome qt5-wayland qt6-wayland qt6ct
-  waybar swaync rofi awww matugen nwg-look
-  adw-gtk-theme gnome-themes-extra gnome-keyring seahorse
-  grim slurp wl-clipboard swappy
-  pipewire pipewire-alsa pipewire-jack pipewire-pulse wireplumber pavucontrol
-  bluez bluez-utils bluetui networkmanager network-manager-applet modemmanager modem-manager-gui
-  power-profiles-daemon brightnessctl playerctl
-  kitty zsh zsh-autosuggestions zsh-syntax-highlighting zsh-completions
-  fastfetch btop eza fzf fd bat yazi neovim tmux figlet
-  noto-fonts noto-fonts-emoji ttf-nerd-fonts-symbols
-  ttf-jetbrains-mono ttf-jetbrains-mono-nerd ttf-go-nerd ttf-0xproto-nerd
-  ttf-adwaitamono-nerd ttf-cascadia-code-nerd ttf-cousine-nerd ttf-d2coding-nerd
-  ttf-firacode-nerd ttf-iawriter-nerd ttf-ibmplex-mono-nerd ttf-iosevka-nerd
-  ttf-lilex-nerd ttf-martian-mono-nerd ttf-victor-mono-nerd
-  otf-commit-mono-nerd otf-geist-mono-nerd
-  gdm gvfs gvfs-mtp gvfs-smb
-  pacman-contrib reflector man-db sudo git curl base-devel
-  imagemagick imv
-  mpc mpv
-  nautilus
-  chromium
-  direnv github-cli
-  fnm bun pnpm uv rust cmake ninja
-  7zip zip unrar cabextract atool
-  bc tree
-)
-
-# Official repo — user apps / hardware / extras (source machine had them).
-PACMAN_EXTRA=(
-  firefox nemo evince okular ristretto vlc obs-studio
-  obsidian easyeffects calf lsp-plugins-lv2 mda.lv2 x42-plugins-lv2 zam-plugins-lv2
-  docker docker-buildx docker-compose valkey postgresql
-  linux linux-firmware btrfs-progs grub efibootmgr os-prober mtools fuse2
-  intel-media-driver libva-utils vulkan-intel
-  thermald tlp ufw dnsmasq
-  redshift
-  netstat-nat usb_modeswitch
-  archlinux-wallpaper
-  vim
-  opencode
-)
-
-# AUR — needed for config (cursors/icons/wallpaper helper).
-AUR_CORE=(
-  bibata-cursor-theme-bin
-  kora-icon-theme
-  whitesur-icon-theme
-  tela-icon-theme
-  waypaper
-)
-
-# AUR — user apps from source machine.
-AUR_EXTRA=(
-  brave-bin spotify vscodium-bin
-  packettracer
-  pgadmin4-desktop-bin pgadmin4-server-bin
-  ani-cli keep nmrs lazysql pspg
-  python-imageio-ffmpeg python-screeninfo python-terminaltables3
-  paru yay
-)
-
-SYSTEM_SERVICES=(
-  gdm.service
-  NetworkManager.service NetworkManager-dispatcher.service NetworkManager-wait-online.service
-  bluetooth.service
-  ModemManager.service
-  power-profiles-daemon.service
-  thermald.service
-  ufw.service
-  postgresql.service
-  reflector.timer
-  wwan-enable.service
-)
-USER_SERVICES=(
-  pipewire.socket pipewire-pulse.socket wireplumber.service
-  gnome-keyring-daemon.socket p11-kit-server.socket
-  xdg-user-dirs.service
-)
-
-# Symlink map: target -> source (relative to $HOME / dotfiles root).
-# gtk bookmarks are NOT linked (gitignored user state — generated instead).
-LINK_MAP=(
-  ".config/hypr:hyprland"
-  ".config/btop:btop"
-  ".config/kitty:kitty"
-  ".config/matugen:matugen"
-  ".config/qt6ct:qt6ct"
-  ".config/rofi:rofi"
-  ".config/swaync:swaync"
-  ".config/waybar:waybar"
-  ".config/waypaper:waypaper"
-  ".config/zsh:zsh"
-  ".config/fastfetch:fastfetch"
-  ".config/gtk-3.0:gtk-setting/gtk-3.0"
-  ".config/gtk-4.0:gtk-setting/gtk-4.0"
-  ".config/VSCodium/User:vscodium/User"
-  ".config/tmux:tmux"
-)
-
-# --------------------------------------------------------------------------
-# 0. Preflight
-# --------------------------------------------------------------------------
-phase_preflight() {
-  step "preflight (profile=$PROFILE only-dotfiles=$ONLY_DOTFILES dry-run=$DRY_RUN)"
-  if [[ "$(id -u)" -eq 0 ]]; then
-    fail "Do not run as root; run as your user (sudo is used internally)."
-    exit 1
-  fi
-  ok "Running as user: $USER (not root)"
-  if [[ ! -f /etc/arch-release ]]; then
-    fail "Arch Linux only (no /etc/arch-release). Aborting."
-    exit 1
-  fi
-  ok "Arch Linux detected"
-  mkdir -p "$(dirname "$LOG_FILE")"
-  log "Dotfiles root: $DOTFILES_ROOT"
-  local missing=0
-  for d in hyprland waybar rofi kitty matugen swaync zsh waypaper btop fastfetch gtk-setting qt6ct vscodium tmux; do
-    if [[ ! -d "$DOTFILES_ROOT/$d" ]]; then fail "Missing dir in repo: $d"; missing=1; fi
-  done
-  [[ "$missing" -eq 1 ]] && exit 1
-  ok "Repo layout OK (14 config dirs present)"
-  # Environment snapshot.
-  local disk_free mem_total net_status
-  disk_free=$(df -h "$HOME" 2>/dev/null | awk 'NR==2 {print $4}' || echo "unknown")
-  mem_total=$(free -h 2>/dev/null | awk '/^Mem:/ {print $2}' || echo "unknown")
-  if command -v curl >/dev/null 2>&1 && curl -Is --max-time 8 https://archlinux.org >/dev/null 2>&1; then net_status="reachable (archlinux.org)";
-  elif ping -c1 -W3 archlinux.org >/dev/null 2>&1; then net_status="reachable (ping)";
-  else net_status="UNREACHABLE — pacman/AUR/oh-my-zsh will fail"; fi
-  say "Disk free ($HOME): $disk_free · Memory: $mem_total · Network: $net_status"
-  if [[ "$net_status" == UNREACHABLE* && "$ONLY_DOTFILES" -eq 0 && "$DRY_RUN" -eq 0 ]]; then
-    warn "No network detected; package phases are likely to fail."
-  fi
-  # Backup preview: count real (non-symlink) entries we would move aside.
-  local backup_count=0
-  for entry in "${LINK_MAP[@]}"; do
-    target="$HOME/${entry%%:*}"
-    if [[ -e "$target" && ! -L "$target" ]]; then backup_count=$((backup_count+1)); fi
-  done
-  [[ -f "$HOME/.zshenv" ]] && backup_count=$((backup_count+1))
-  [[ -f "$HOME/.config/mimeapps.list" ]] && backup_count=$((backup_count+1))
-  [[ -f "$HOME/.config/gtk-3.0/bookmarks" && ! -L "$HOME/.config/gtk-3.0" ]] && backup_count=$((backup_count+1))
-  # Backup anything we are about to replace, preserving paths relative
-  # to $HOME (e.g. $BACKUP_DIR/home/.config/hypr) so names cannot collide.
-  if [[ "$DRY_RUN" -eq 1 ]]; then
-    dry "mkdir -p $BACKUP_DIR (would back up $backup_count path(s): .config entries + .zshenv + mime/bookmarks)"
-  else
-    mkdir -p "$BACKUP_DIR"
-    for entry in "${LINK_MAP[@]}"; do
-      target="$HOME/${entry%%:*}"
-      if [[ -e "$target" && ! -L "$target" ]]; then
-        log "Backing up real dir/file $target"
-        dest="$BACKUP_DIR/home/${entry%%:*}"
-        mkdir -p "$(dirname "$dest")"
-        cp -a "$target" "$dest" 2>/dev/null || true
-      fi
-    done
-    if [[ -f "$HOME/.zshenv" ]]; then
-      mkdir -p "$BACKUP_DIR/home"
-      cp -a "$HOME/.zshenv" "$BACKUP_DIR/home/.zshenv" 2>/dev/null || true
-    fi
-    if [[ -f "$HOME/.config/mimeapps.list" ]]; then
-      mkdir -p "$BACKUP_DIR/home/.config"
-      cp -a "$HOME/.config/mimeapps.list" "$BACKUP_DIR/home/.config/mimeapps.list" 2>/dev/null || true
-    fi
-    ok "Backup dir ready: $BACKUP_DIR ($backup_count path(s) preserved)"
-    say "Restore if needed: cp -a \"$BACKUP_DIR/home/.\" ~/ (then re-link)"
-  fi
-  if [[ "$ONLY_DOTFILES" -eq 1 || "$DRY_RUN" -eq 1 ]]; then
-    skip "sudo check (only-dotfiles or dry-run needs no privilege)"
-  else
-    ensure_sudo || exit 1
-  fi
-  # Warn on machine-specific settings carried over verbatim.
-  warn "monitors.lua hardcodes eDP-1 1920x1080@60.02; empty-output fallback covers other monitors."
-  warn "Desktop entries / mime assume chromium, evince, ristretto installed (core profile does)."
-}
-
-# --------------------------------------------------------------------------
-# 1. Base system (pacman conf, mirrors, full upgrade, AUR helper)
-# --------------------------------------------------------------------------
-ensure_pacman_conf() {
-  log "Ensuring pacman.conf: Color + ParallelDownloads=5 (multilib left disabled, as on source)"
-  if [[ "$DRY_RUN" -eq 0 ]]; then
-    sudo cp -a /etc/pacman.conf "/etc/pacman.conf.pre-dotfiles-$(date +%s)" 2>/dev/null || true
-  else
-    dry "backup /etc/pacman.conf before editing"
-  fi
-  if grep -q "^#Color" /etc/pacman.conf; then
-    run "sudo sed -i 's/^#Color/Color/' /etc/pacman.conf"
-  fi
-  if grep -q "^#ParallelDownloads" /etc/pacman.conf; then
-    run "sudo sed -i 's/^#ParallelDownloads.*/ParallelDownloads = 5/' /etc/pacman.conf"
-  elif ! grep -q "^ParallelDownloads" /etc/pacman.conf; then
-    run "sudo sh -c 'printf \"ParallelDownloads = 5\\n\" >> /etc/pacman.conf'"
-  fi
-}
-
-ensure_reflector() {
-  # Source used reflector with --save/--protocol https/--latest 5/--sort age.
-  if command -v reflector >/dev/null 2>&1; then
-    log "Refreshing mirrors with reflector (may take a minute)"
-    spin "Refreshing mirrors" "sudo reflector --protocol https --latest 5 --sort age --save /etc/pacman.d/mirrorlist || true"
-  else
-    warn "reflector not installed yet; mirrors left as-is (reflector installed in step 2)"
-  fi
-}
-
-ensure_aur_helper() {
-  if command -v yay >/dev/null 2>&1; then
-    skip "AUR helper yay already present"
-    return
-  fi
-  if command -v paru >/dev/null 2>&1; then
-    skip "AUR helper paru already present (yay missing — will use paru)"
-    return
-  fi
-  log "Bootstrapping yay-bin from AUR"
-  if [[ "$DRY_RUN" -eq 1 ]]; then
-    dry "mktemp -d for yay-bin build + makepkg -si"
-    return 0
-  fi
-  YAY_BUILD_DIR="$(mktemp -d -t yay-bin-XXXXXX)"
-  spin "Installing build tools" "sudo pacman -S --needed --noconfirm base-devel git"
-  spin "Cloning yay-bin" "git clone https://aur.archlinux.org/yay-bin.git \"$YAY_BUILD_DIR\""
-  spin "Building yay-bin" "sh -c 'cd \"$YAY_BUILD_DIR\" && makepkg -si --noconfirm'"
-}
-
-aur_cmd() {
-  if command -v yay >/dev/null 2>&1; then echo "yay"; else echo "paru"; fi
-}
-
-phase_base() {
-  step "base system"
-  ensure_pacman_conf
-  ensure_reflector
-  log "Full system upgrade (pacman -Syu)"
-  if [[ "$ASSUME_YES" -eq 1 ]]; then
-    spin "Full system upgrade (pacman -Syu)" "sudo pacman -Syu --noconfirm"
-  else
-    spin "Full system upgrade (pacman -Syu)" "sudo pacman -Syu"
-  fi
-  ensure_aur_helper
-}
-
-# --------------------------------------------------------------------------
-# 2. Packages
-# --------------------------------------------------------------------------
-selected_packages() {
-  SEL_OFFICIAL=("${PACMAN_CORE[@]}")
-  SEL_AUR=("${AUR_CORE[@]}")
-  if [[ "$PROFILE" == "full" ]]; then
-    SEL_OFFICIAL+=("${PACMAN_EXTRA[@]}")
-    SEL_AUR+=("${AUR_EXTRA[@]}")
-  fi
-}
-
-# Print the subset of "$@" not installed locally (one per line).
-# Single pacman snapshot instead of one fork per package (151+ calls).
-missing_official() {
-  local installed p
-  installed="$(pacman -Qq 2>/dev/null || true)"
-  for p in "$@"; do
-    grep -Fxq "$p" <<<"$installed" || printf '%s\n' "$p"
-  done
-}
-
-missing_aur() {
-  local helper="$1"; shift
-  local installed p
-  installed="$("$helper" -Qq 2>/dev/null || true)"
-  for p in "$@"; do
-    grep -Fxq "$p" <<<"$installed" || printf '%s\n' "$p"
-  done
-}
-
-phase_packages() {
-  step "packages (profile=$PROFILE)"
-  selected_packages
-  local official=("${SEL_OFFICIAL[@]}")
-  local aur=("${SEL_AUR[@]}")
-  say "Already-installed packages are skipped automatically."
-  local official_todo=()
-  if (( ${#official[@]} > 0 )); then
-    mapfile -t official_todo < <(missing_official "${official[@]}")
-  fi
-  local official_skipped=$(( ${#official[@]} - ${#official_todo[@]} ))
-  if (( official_skipped > 0 )); then
-    say "Official: $official_skipped of ${#official[@]} already installed, skipping"
-  fi
-  if (( ${#official_todo[@]} == 0 )); then
-    skip "official packages (all ${#official[@]} present)"
-  else
-    log "Installing ${#official_todo[@]} official packages (${official_skipped} already present)"
-    # shellcheck disable=SC2086
-    if ! spin "Installing ${#official_todo[@]} official packages" "sudo pacman -S $PACMAN_FLAGS ${official_todo[*]}"; then
-      warn "Batch install failed; retrying per package to isolate failures"
-      local failed_official=() p
-      for p in "${official_todo[@]}"; do
-        # shellcheck disable=SC2086
-        if spin "Installing $p" "sudo pacman -S $PACMAN_FLAGS $p"; then :; else failed_official+=("$p"); fi
-      done
-      if (( ${#failed_official[@]} > 0 )); then
-        warn "Official package(s) failed (${#failed_official[@]}): ${failed_official[*]} (continuing)"
-      else
-        ok "All official packages installed on retry"
-      fi
-    fi
-  fi
-  if [[ "$NO_AUR" -eq 1 ]]; then
-    warn "Skipping AUR (--no-aur). Cursor/icon themes + waypaper will be missing."
-    return
-  fi
-  local helper
-  helper="$(aur_cmd)"
-  if ! command -v "$helper" >/dev/null 2>&1; then
-    warn "No AUR helper found ($helper missing); skipping ${#aur[@]} AUR packages"
-    return
-  fi
-  local aur_todo=()
-  if (( ${#aur[@]} > 0 )); then
-    mapfile -t aur_todo < <(missing_aur "$helper" "${aur[@]}")
-  fi
-  local aur_skipped=$(( ${#aur[@]} - ${#aur_todo[@]} ))
-  if (( aur_skipped > 0 )); then
-    say "AUR: $aur_skipped of ${#aur[@]} already installed, skipping"
-  fi
-  if (( ${#aur_todo[@]} == 0 )); then
-    skip "AUR packages (all ${#aur[@]} present)"
-  else
-    log "Installing ${#aur_todo[@]} AUR packages via $helper (${aur_skipped} already present)"
-    # shellcheck disable=SC2086
-    if ! spin "Installing ${#aur_todo[@]} AUR packages via $helper" "$helper -S $AUR_FLAGS ${aur_todo[*]}"; then
-      warn "Batch AUR install failed; retrying per package to isolate failures"
-      local failed_aur=() p
-      for p in "${aur_todo[@]}"; do
-        # shellcheck disable=SC2086
-        if spin "Installing $p via $helper" "$helper -S $AUR_FLAGS $p"; then :; else failed_aur+=("$p"); fi
-      done
-      if (( ${#failed_aur[@]} > 0 )); then
-        warn "AUR package(s) failed (${#failed_aur[@]}): ${failed_aur[*]} (continuing)"
-      else
-        ok "All AUR packages installed on retry"
-      fi
-    fi
-  fi
-}
-
-# --------------------------------------------------------------------------
-# 3. Services (incl. custom wwan-enable.service found on source machine)
-# --------------------------------------------------------------------------
-WWAN_UNIT_PATH="/etc/systemd/system/wwan-enable.service"
-write_wwan_unit() {
-  # Verbatim copy of the source machine's custom unit (Fibocom WWAN modem).
-  if [[ -f "$WWAN_UNIT_PATH" ]] && grep -q "Fibocom WWAN Modem" "$WWAN_UNIT_PATH" 2>/dev/null; then
-    skip "wwan-enable.service already present"
-    return
-  fi
-  log "Installing wwan-enable.service (custom unit from source machine)"
-  if [[ "$DRY_RUN" -eq 1 ]]; then
-    dry "write $WWAN_UNIT_PATH"
-    return
-  fi
-  sudo tee "$WWAN_UNIT_PATH" >/dev/null <<'EOF'
-[Unit]
-Description=Auto-enable Fibocom WWAN Modem
-After=ModemManager.service NetworkManager.service
-Wants=ModemManager.service
-
-[Service]
-Type=oneshot
-ExecStartPre=/usr/bin/rfkill unblock wwan
-ExecStart=/bin/sh -c 'sleep 3; MM_ID=$(mmcli -L | grep -oP "Modem/\K[0-9]+"); if [ -n "$MM_ID" ]; then mmcli -m "$MM_ID" -e; fi'
-RemainAfterExit=yes
-
-[Install]
-WantedBy=multi-user.target sleep.target
-EOF
-}
-
-phase_services() {
-  step "services"
-  write_wwan_unit
-  run "sudo systemctl daemon-reload"
-  for svc in "${SYSTEM_SERVICES[@]}"; do
-    # tlp is installed but was DISABLED on source (conflicts with power-profiles-daemon).
-    if [[ "$svc" == "tlp.service" ]]; then continue; fi
-    if systemctl list-unit-files --no-legend 2>/dev/null | awk '{print $1}' | grep -x "$svc" >/dev/null; then
-      run "sudo systemctl enable $svc"
-    else
-      warn "Unit not found, skipping enable: $svc"
-    fi
-  done
-  # Source had tlp installed-but-disabled; enforce that to avoid power-profile fights.
-  if systemctl list-unit-files --no-legend 2>/dev/null | awk '{print $1}' | grep -x "tlp.service" >/dev/null; then
-    run "sudo systemctl disable tlp.service || true"
-  fi
-  for svc in "${USER_SERVICES[@]}"; do
-    run "systemctl --user enable $svc || true"
-  done
-  warn "postgresql.service enabled but not initialized here — run 'sudo -iu postgres initdb -D /var/lib/postgres/data' if needed."
-  warn "ufw.service enabled but no rules set here — configure manually (e.g. 'sudo ufw enable')."
-}
-
-# --------------------------------------------------------------------------
-# 4. Dotfiles: symlinks, zshenv, perms, dirs, wallpapers, gtk/mime/gsettings
-# --------------------------------------------------------------------------
-link_one() {
-  local target="$HOME/$1" src="$DOTFILES_ROOT/$2"
-  # Parent may not exist yet (e.g. .config/VSCodium/User on a fresh system);
-  # ln -s cannot create missing parents, so ensure the directory first.
-  if [[ "$DRY_RUN" -eq 0 ]]; then
-    mkdir -p "$(dirname "$target")"
-  fi
-  if [[ -L "$target" && "$(readlink "$target")" == "$src" ]]; then
-    skip "Link OK: $target"
-    return
-  fi
-  if [[ -e "$target" && ! -L "$target" ]]; then
-    # Preflight already copied real paths into $BACKUP_DIR; remove here so
-    # re-runs stay idempotent without littering *.pre-dotfiles-* in $HOME.
-    log "Replacing real $target (backed up in $BACKUP_DIR)"
-    if [[ "$DRY_RUN" -eq 0 ]]; then
-      rm -rf "$target" || true
-    fi
-  fi
-  log "Linking $target -> $src"
-  run "ln -sfn \"$src\" \"$target\""
-}
-
-phase_dotfiles() {
-  step "dotfiles"
-  run "mkdir -p \"$HOME/.config\""
-  for entry in "${LINK_MAP[@]}"; do
-    link_one "${entry%%:*}" "${entry#*:}"
-  done
-  # ~/.zshenv must exist BEFORE first zsh start so ZDOTDIR resolves.
-  # Idempotent: preserve custom content; append when missing.
-  log "Ensuring ~/.zshenv (ZDOTDIR)"
-  if [[ "$DRY_RUN" -eq 1 ]]; then
-    dry 'ensure $HOME/.zshenv: export ZDOTDIR="$HOME/.config/zsh"'
-  elif grep -Fqx 'export ZDOTDIR="$HOME/.config/zsh"' "$HOME/.zshenv" 2>/dev/null; then
-    skip "~/.zshenv already correct"
-  elif [[ -f "$HOME/.zshenv" ]] && grep -Fq 'ZDOTDIR=' "$HOME/.zshenv" 2>/dev/null; then
-    log "Updating stale ZDOTDIR in ~/.zshenv (original in $BACKUP_DIR)"
-    grep -v 'ZDOTDIR=' "$HOME/.zshenv" >"$HOME/.zshenv.tmp" || true
-    printf 'export ZDOTDIR="$HOME/.config/zsh"\n' >>"$HOME/.zshenv.tmp"
-    mv "$HOME/.zshenv.tmp" "$HOME/.zshenv"
-  else
-    printf 'export ZDOTDIR="$HOME/.config/zsh"\n' >>"$HOME/.zshenv"
-  fi
-  # Executable bits: repo has 644 on two rofi launchers; binds.lua + swaync
-  # invoke them directly, so force +x (fresh clones preserve 644 otherwise).
-  log "Fixing executable bits on scripts"
-  run "chmod +x \"$DOTFILES_ROOT/hyprland/scripts/\"*.sh \"$DOTFILES_ROOT/hyprland/whatsong.sh\""
-  run "chmod +x \"$DOTFILES_ROOT/waybar/scripts/\"*.sh"
-  run "chmod +x \"$DOTFILES_ROOT/swaync/scripts/\"*.sh"
-  run "chmod +x \"$DOTFILES_ROOT/rofi/launchers/\"*.sh \"$DOTFILES_ROOT/rofi/launchers/type-6/\"*.sh \"$DOTFILES_ROOT/rofi/launchers/rofi-bluetooth\""
-  # Runtime dirs (matugen/set-wall.sh + waybar + swaync + qt6ct expect them).
-  run "mkdir -p \"$HOME/Pictures/wallpapers\" \"$HOME/Pictures/Screenshots\""
-  run "mkdir -p \"$HOME/.cache/matugen\" \"$HOME/.cache/hyprlock\" \"${XDG_CACHE_HOME:-$HOME/.cache}/wallpaper-thumbs\""
-  run "mkdir -p \"$HOME/.config/qt6ct/colors\" \"$HOME/.local/bin\" \"$HOME/.local/share/fonts\""
-  # Normalize machine-specific absolute home paths (source was /home/orlando).
-  # qt6ct.conf requires an absolute color_scheme_path; rewrite any stale
-  # /home/<user> prefix to the current $HOME. Idempotent on source machine.
-  if [[ "$DRY_RUN" -eq 1 ]]; then
-    dry "normalize qt6ct color_scheme_path to $HOME"
-  elif [[ -f "$HOME/.config/qt6ct/qt6ct.conf" ]]; then
-    sed -i "s|color_scheme_path=/home/[^/]*/.config/qt6ct/colors/matugen.conf|color_scheme_path=$HOME/.config/qt6ct/colors/matugen.conf|g" "$HOME/.config/qt6ct/qt6ct.conf" 2>/dev/null || true
-  fi
-  # Seed wallpapers without overwriting the user's 229-file library.
-  log "Seeding ~/Pictures/wallpapers from repo (no overwrite)"
-  run "cp -n \"$DOTFILES_ROOT/hyprland/wallpapers/\"* \"$HOME/Pictures/wallpapers/\" 2>/dev/null || true"
-  # Waypaper runtime state is gitignored; seed it from the example on fresh clones.
-  if [[ "$DRY_RUN" -eq 1 ]]; then
-    dry 'ensure ~/.config/waypaper/config.ini from config.ini.example (no overwrite)'
-  elif [[ ! -f "$HOME/.config/waypaper/config.ini" && -f "$DOTFILES_ROOT/waypaper/config.ini.example" ]]; then
-    log "Seeding waypaper/config.ini from example (no overwrite)"
-    cp -n "$DOTFILES_ROOT/waypaper/config.ini.example" "$HOME/.config/waypaper/config.ini" 2>/dev/null || true
-  else
-    skip "waypaper/config.ini already present"
-  fi
-  # Matugen output dirs that would otherwise vanish on fresh clones
-  # (their only tracked content was the now-gitignored generated file).
-  run "mkdir -p \"$HOME/.config/swaync/matugen\" \"$HOME/.config/matugen/themes\" \"$HOME/.config/zsh/generated\" \"$HOME/.config/btop/themes\" \"$HOME/.config/qt6ct/colors\" \"$HOME/.config/opencode/themes\""
-  # XDG dirs + PROJECTS line (source had XDG_PROJECTS_DIR="$HOME/").
-  run "xdg-user-dirs-update || true"
-  if [[ "$DRY_RUN" -eq 0 ]]; then
-    if ! grep -q "XDG_PROJECTS_DIR" "$HOME/.config/user-dirs.dirs" 2>/dev/null; then
-      echo 'XDG_PROJECTS_DIR="$HOME/"' >>"$HOME/.config/user-dirs.dirs"
-    else
-      skip "XDG_PROJECTS_DIR already set"
-    fi
-  else
-    dry 'ensure XDG_PROJECTS_DIR in ~/.config/user-dirs.dirs'
-  fi
-  # GTK bookmarks (gitignored user state — regenerate the 5 defaults).
-  log "Writing gtk-3.0/bookmarks"
-  if [[ "$DRY_RUN" -eq 1 ]]; then
-    dry "write bookmarks (Documents Music Pictures Videos Downloads)"
-  else
-    cat >"$HOME/.config/gtk-3.0/bookmarks" <<'EOF'
-file:///home/ORLANDO_PLACEHOLDER/Documents
-file:///home/ORLANDO_PLACEHOLDER/Music
-file:///home/ORLANDO_PLACEHOLDER/Pictures
-file:///home/ORLANDO_PLACEHOLDER/Videos
-file:///home/ORLANDO_PLACEHOLDER/Downloads
-EOF
-    sed -i "s|ORLANDO_PLACEHOLDER|$USER|g" "$HOME/.config/gtk-3.0/bookmarks"
-  fi
-  # mimeapps.list — verbatim from source (chromium/evince/ristretto/packettracer).
-  # Idempotent: original preserved in $BACKUP_DIR on first run; skip rewrite when identical.
-  log "Ensuring ~/.config/mimeapps.list"
-  if [[ "$DRY_RUN" -eq 1 ]]; then
-    dry "write mimeapps.list"
-  else
-    tmp_mime="$(mktemp)"
-    cat >"$tmp_mime" <<'EOF'
-[Default Applications]
-# Browser / schemes
-text/html=chromium.desktop
-x-scheme-handler/about=chromium.desktop
-x-scheme-handler/http=chromium.desktop
-x-scheme-handler/https=chromium.desktop
-x-scheme-handler/unknown=chromium.desktop
-
-# Cisco Packet Tracer
-application/x-pka=CiscoPacketTracer-9.0.1.desktop
-application/x-pkt=CiscoPacketTracer-9.0.1.desktop
-application/x-pkz=CiscoPacketTracer-9.0.1.desktop
-application/x-pksz=CiscoPacketTracer-9.0.1.desktop
-x-scheme-handler/pttp=CiscoPacketTracerPtsa-9.0.1.desktop
-
-# Documents - Evince
-application/pdf=org.gnome.Evince.desktop
-application/postscript=org.gnome.Evince.desktop
-application/x-bzpdf=org.gnome.Evince.desktop
-application/x-gzpdf=org.gnome.Evince.desktop
-application/x-xzpdf=org.gnome.Evince.desktop
-
-# Images - Ristretto
-image/bmp=org.xfce.ristretto.desktop
-image/gif=org.xfce.ristretto.desktop
-image/jpeg=org.xfce.ristretto.desktop
-image/png=org.xfce.ristretto.desktop
-image/svg+xml=org.xfce.ristretto.desktop
-image/tiff=org.xfce.ristretto.desktop
-image/webp=org.xfce.ristretto.desktop
-image/x-pixmap=org.xfce.ristretto.desktop
-image/x-xpixmap=org.xfce.ristretto.desktop
-EOF
-    if [[ -f "$HOME/.config/mimeapps.list" ]] && cmp -s "$tmp_mime" "$HOME/.config/mimeapps.list"; then
-      skip "mimeapps.list already correct"
-    else
-      cp -a "$tmp_mime" "$HOME/.config/mimeapps.list"
-    fi
-    rm -f "$tmp_mime"
-  fi
-  # gsettings (matches gtk-setting/*/settings.ini + live gsettings).
-  if command -v gsettings >/dev/null 2>&1; then
-    run "gsettings set org.gnome.desktop.interface gtk-theme 'adw-gtk3-dark' || true"
-    run "gsettings set org.gnome.desktop.interface icon-theme 'kora-pgrey' || true"
-    run "gsettings set org.gnome.desktop.interface cursor-theme 'Bibata-Modern-Classic' || true"
-    run "gsettings set org.gnome.desktop.interface font-name 'Adwaita Sans Medium 11' || true"
-  else
-    warn "gsettings not found; GTK theme live-applied only via settings.ini"
-  fi
-  spin "Rebuilding font cache" "fc-cache -f >/dev/null 2>&1 || true"
-  warn "rofi type-6/style-9 references ~/.config/rofi/images/i.jpg which does not exist (blank imagebox, harmless)."
-  warn "waypaper stylesheet ~/.config/waypaper/style.css does not exist upstream-side; Waypaper uses its default (harmless)."
-}
-
-# --------------------------------------------------------------------------
-# 5. Shell: oh-my-zsh + powerlevel10k + default shell
-# --------------------------------------------------------------------------
-phase_shell() {
-  step "shell"
-  if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
-    log "Installing oh-my-zsh (unattended)"
-    spin "Installing oh-my-zsh" "sh -c \"\$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)\" \"\" --unattended"
-  else
-    skip "oh-my-zsh already present"
-  fi
-  local p10k_dir="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
-  if [[ ! -d "$p10k_dir" ]]; then
-    log "Installing powerlevel10k"
-    spin "Installing powerlevel10k" "git clone --depth=1 https://github.com/romkatv/powerlevel10k.git \"$p10k_dir\""
-  else
-    skip "powerlevel10k already present"
-  fi
-  if [[ "$SHELL" != "/usr/bin/zsh" && "$SHELL" != "/bin/zsh" ]]; then
-    log "Setting default shell to zsh (needs password)"
-    run "chsh -s /usr/bin/zsh || chsh -s /bin/zsh"
-  else
-    skip "default shell already zsh"
-  fi
-  run "zsh -n \"\$HOME/.config/zsh/.zshrc\" && echo 'zshrc syntax OK' || echo 'zshrc check skipped/failed'"
-}
-
-# --------------------------------------------------------------------------
-# 6. Theming: one matugen run regenerates all 12 outputs + wallpaper
-# --------------------------------------------------------------------------
-phase_theming() {
-  step "theming (matugen)"
-  # Generated palette files are gitignored artifacts (see .gitignore).
-  # They are rebuilt here on every install and on every login via
-  # hyprland autostart -> set-wall.sh, so wallpaper changes never dirty git.
-  local wall=""
-  if [[ -f "$HOME/Pictures/wallpapers/mystical-night-in-town.jpg" ]]; then
-    wall="$HOME/Pictures/wallpapers/mystical-night-in-town.jpg"
-  elif [[ -f "$HOME/.config/hypr/wallpapers/anime3.png" ]]; then
-    wall="$HOME/.config/hypr/wallpapers/anime3.png"
-  fi
-  if [[ -z "$wall" ]]; then
-    warn "No wallpaper found; skipping matugen (run ~/.config/hypr/scripts/set-wall.sh <wall> later)"
-    return
-  fi
-  if ! command -v matugen >/dev/null 2>&1; then
-    fail "matugen not installed; palette files (gitignored) cannot be generated. Install matugen, then run: ~/.config/hypr/scripts/set-wall.sh $wall"
-    return
-  fi
-  # Output dirs for gitignored artifacts (empty on fresh clones).
-  run "mkdir -p \"$HOME/.config/swaync/matugen\" \"$HOME/.config/matugen/themes\" \"$HOME/.config/zsh/generated\" \"$HOME/.config/btop/themes\" \"$HOME/.config/qt6ct/colors\" \"$HOME/.config/opencode/themes\""
-  log "Generating palette from $wall"
-  if ! spin "Generating palette (matugen)" "matugen image \"$wall\" --mode dark --type scheme-tonal-spot --prefer closest-to-fallback"; then
-    fail "matugen run failed for $wall (palette left stale)"
-    return
-  fi
-}
-
-# --------------------------------------------------------------------------
-# 7. Verify (read-only; never fails the install, just reports)
-# --------------------------------------------------------------------------
-vpass() { PASS_COUNT=$((PASS_COUNT+1)); printf '%b\n' "  ${C_GREEN}${I_OK} PASS${C_RESET}  $*"; _log_plain "[verify-pass] $*"; }
-vfail() { FAIL_COUNT=$((FAIL_COUNT+1)); printf '%b\n' "  ${C_RED}${I_FAIL} FAIL${C_RESET}  $*"; _log_plain "[verify-fail] $*"; }
-vwarn() { WARN_COUNT=$((WARN_COUNT+1)); printf '%b\n' "  ${C_YELLOW}${I_WARN} WARN${C_RESET}  $*"; _log_plain "[verify-warn] $*"; }
-
-check_bin() {
-  if command -v "$1" >/dev/null 2>&1; then
-    vpass "binary $1"
-  else
-    vfail "binary missing: $1"
-  fi
-}
-
-phase_verify() {
-  step "verify"
-  say "Binaries referenced by binds/autostart/waybar/swaync:"
-  for b in kitty nautilus chromium spotify rofi hyprctl hyprlock hypridle hyprsunset \
-    waybar swaync swaync-client nm-applet polkit-gnome-authentication-agent-1 awww-daemon \
-    grim slurp wl-copy playerctl wpctl brightnessctl waypaper matugen magick \
-    pavucontrol bluetoothctl nmcli checkupdates; do
-    # Profile-aware: full-only / AUR-skipped binaries warn instead of failing.
-    if [[ "$b" == "spotify" && "$PROFILE" != "full" ]]; then
-      vwarn "binary $b not expected on profile=$PROFILE (skip)"
-      continue
-    fi
-    if [[ "$b" == "waypaper" && "$NO_AUR" -eq 1 ]]; then
-      vwarn "binary $b skipped (--no-aur)"
-      continue
-    fi
-    if [[ "$b" == "polkit-gnome-authentication-agent-1" ]]; then
-      if [[ -x /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 ]]; then vpass "$b"; else vfail "$b"; fi
-    elif [[ "$b" == "awww-daemon" ]]; then
-      if command -v awww >/dev/null 2>&1; then vpass "awww (+daemon)"; else vfail "awww"; fi
-    else
-      check_bin "$b"
-    fi
-  done
-  say "Symlinks:"
-  for entry in "${LINK_MAP[@]}"; do
-    target="$HOME/${entry%%:*}"
-    if [[ -L "$target" ]]; then vpass "link $target"; else vfail "not a symlink: $target"; fi
-  done
-  if [[ -f "$HOME/.zshenv" ]]; then vpass "~/.zshenv"; else vfail "~/.zshenv"; fi
-  say "Configs:"
-  if [[ -f "$HOME/.config/hypr/hyprland.lua" ]]; then vpass "hyprland.lua"; else vfail "hyprland.lua"; fi
-  if [[ -f "$HOME/.config/waybar/config.jsonc" ]]; then vpass "waybar config.jsonc"; else vfail "waybar config"; fi
-  if [[ -f "$HOME/.config/matugen/config.toml" ]]; then vpass "matugen config"; else vfail "matugen config"; fi
-  if command -v zsh >/dev/null 2>&1 && zsh -n "$HOME/.config/zsh/.zshrc" 2>/dev/null; then vpass "zshrc syntax"; else vwarn "zshrc syntax unchecked"; fi
-  if command -v fc-list >/dev/null 2>&1 && fc-list | grep -qi "JetBrainsMono Nerd"; then vpass "JetBrains Nerd font"; else vwarn "JetBrains Nerd font not found"; fi
-  if fc-list 2>/dev/null | grep -qi "GoMono Nerd"; then vpass "GoMono Nerd font"; else vwarn "GoMono Nerd font not found (hyprlock labels)"; fi
-  if fc-list 2>/dev/null | grep -qi "MartianMono Nerd"; then vpass "MartianMono Nerd font"; else vwarn "MartianMono Nerd font not found (yoru rofi theme)"; fi
-  say "Services (enabled?):"
-  for svc in gdm.service NetworkManager.service bluetooth.service power-profiles-daemon.service reflector.timer; do
-    if systemctl is-enabled "$svc" 2>/dev/null | grep -q "enabled"; then vpass "$svc enabled"; else vwarn "$svc not enabled"; fi
-  done
-}
-
-prune_logs() {
-  [[ -d "$LOG_DIR_DEFAULT" ]] || return 0
-  find "$LOG_DIR_DEFAULT" -maxdepth 1 -name 'install-*.log' -type f -printf '%T@ %p\n' 2>/dev/null | sort -rn | awk -v keep="$LOG_KEEP" 'NR>keep {sub(/^[^ ]+ /, ""); print}' | while IFS= read -r f; do rm -f -- "$f"; done
 }
 
 main() {
   SCRIPT_START=$(date +%s)
-  LAST_STEP_TS=0
-  # Single-instance guard (shared laptop / double-clicked installer).
-  exec 200>"$LOCK_FILE" 2>/dev/null || true
-  if ! flock -n 200 2>/dev/null; then
-    echo "Another dotfiles install is already running ($LOCK_FILE). Aborting." >&2
-    exit 1
+  setup_ui
+  parse_args "$@"
+  setup_ui
+  if [[ "$HELP" -eq 1 ]]; then usage; return 0; fi
+  if (( DRY_RUN == 0 && CHECK_ONLY == 0 && ASSUME_YES == 0 )) && [[ ! -t 0 || ! -t 1 ]]; then
+    arg_error 'Installation without a terminal requires --yes; use --dry-run to preview first'
+    return 2
   fi
-  mkdir -p "$(dirname "$LOG_FILE")"
-  : >"$LOG_FILE" || true
-  if [[ "$LOG_FILE_EXPLICIT" -eq 0 ]]; then prune_logs; fi
-  _log_plain "[start] profile=$PROFILE only-dotfiles=$ONLY_DOTFILES no-aur=$NO_AUR dry-run=$DRY_RUN verbose=$VERBOSE quiet=$QUIET log=$LOG_FILE"
+  trap 'on_err "$LINENO"' ERR
+  trap cleanup_exit EXIT
+  trap 'printf "\nInterrupted; backups are retained.\n" >&2; exit 130' INT
+  trap 'printf "\nTerminated; backups are retained.\n" >&2; exit 143' TERM
+  load_packages
+  select_ui_backend
   banner
-  prompt_profile
-  prompt_aur
-  confirm_run
-  log "=== dotfiles install start: profile=$PROFILE ==="
-  phase_preflight
-  if [[ "$ONLY_DOTFILES" -eq 0 ]]; then
-    phase_base
-    phase_packages
-    phase_services
-  else
-    log "Skipping base/packages/services (--only-dotfiles)"
-  fi
-  phase_dotfiles
-  phase_shell
-  phase_theming
-  phase_verify
-  final_summary
-  # Propagate failures to callers/CI (verify is report-only by itself).
-  # Disable ERR trap first so a non-zero exit doesn't re-trigger on_err.
-  if (( FAIL_COUNT > 0 && DRY_RUN == 0 )); then
+  if ! prepare_wizard_plan; then
+    _term out '' '  Cancelled. No files or settings changed.'
     trap - ERR
-    exit 1
+    return "$UI_ABORT_CODE"
   fi
+  section '04 / Execute the reviewed plan'
+  execute_plan
+  stop_sudo_keepalive
+  final_summary
+  ui_results
+  trap - ERR
+  (( FAIL_COUNT == 0 ))
 }
 
-main "$@"
+# Sourceable by sandbox tests without parsing arguments, installing traps, or writing.
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then main "$@"; fi

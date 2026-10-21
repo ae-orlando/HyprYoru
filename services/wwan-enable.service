@@ -1,0 +1,13 @@
+[Unit]
+Description=Auto-enable Fibocom WWAN Modem
+After=ModemManager.service NetworkManager.service
+Wants=ModemManager.service
+
+[Service]
+Type=oneshot
+ExecStartPre=/usr/bin/rfkill unblock wwan
+ExecStart=/bin/sh -c 'sleep 3; mmcli -L | grep -oE "/org/freedesktop/ModemManager1/Modem/[0-9]+" | while read -r modem; do mmcli -m "$$modem" -e || exit; done'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

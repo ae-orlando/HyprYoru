@@ -1,0 +1,72 @@
+# Additional desktop applications. full includes this list plus core.txt.
+firefox
+nemo
+evince
+okular
+ristretto
+vlc
+obs-studio
+obsidian
+easyeffects
+calf
+lsp-plugins-lv2
+mda.lv2
+x42-plugins-lv2
+zam-plugins-lv2
+bluetui
+mpc
+mpv
+
+# Development tools. Their configs are managed by the separate tools repository.
+tmux
+direnv
+github-cli
+fnm
+bun
+pnpm
+uv
+rust
+cmake
+ninja
+docker
+docker-buildx
+docker-compose
+valkey
+postgresql
+vim
+opencode
+
+# Utilities. Installing these does not enable their services or alter mirrors.
+curl
+reflector
+ufw
+dnsmasq
+netstat-nat
+fuse2
+7zip
+zip
+unrar
+cabextract
+atool
+bc
+tree
+archlinux-wallpaper
+
+# Optional font collection from the source machine.
+ttf-jetbrains-mono
+ttf-0xproto-nerd
+ttf-adwaitamono-nerd
+ttf-cascadia-code-nerd
+ttf-cousine-nerd
+ttf-d2coding-nerd
+ttf-firacode-nerd
+ttf-iawriter-nerd
+ttf-ibmplex-mono-nerd
+ttf-iosevka-nerd
+ttf-lilex-nerd
+ttf-victor-mono-nerd
+otf-commit-mono-nerd
+otf-geist-mono-nerd
+
+# Deliberately excluded: kernels, bootloaders, GPU drivers, TLP, and Redshift.
+# Provision hardware separately; this desktop uses power-profiles-daemon/hyprsunset.

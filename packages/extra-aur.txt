@@ -1,0 +1,16 @@
+# Additional user applications. Review AUR PKGBUILDs before installing.
+brave-bin
+spotify
+vscodium-bin
+# Packet Tracer may require a separately downloaded, licensed upstream installer.
+packettracer
+pgadmin4-desktop-bin
+pgadmin4-server-bin
+ani-cli
+keep
+nmrs
+lazysql
+pspg
+
+# yay/paru are selected or bootstrapped separately, never installed together here.
+# Application dependencies belong to their PKGBUILDs, not this manifest.

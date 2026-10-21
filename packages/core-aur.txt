@@ -1,0 +1,6 @@
+# Optional AUR assets used by the supplied themes and wallpaper picker.
+bibata-cursor-theme-bin
+kora-icon-theme
+whitesur-icon-theme
+tela-icon-theme
+waypaper

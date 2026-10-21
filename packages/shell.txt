@@ -1,0 +1,12 @@
+# Optional Zsh component. Shared desktop dependencies remain in core.txt.
+zsh
+zsh-autosuggestions
+zsh-syntax-highlighting
+zsh-completions
+eza
+fzf
+fd
+bat
+yazi
+neovim
+figlet
