@@ -12,9 +12,7 @@ Shared dark theme: `adw-gtk3-dark`, icons `kora-pgrey`, cursor `Bibata-Modern-Cl
 | `gtk-setting/gtk-3.0/bookmarks`    | Gitignored file-manager bookmarks        |
 | `gtk-setting/gtk-4.0/settings.ini` | GTK4 theme/icon/cursor/font              |
 | `gtk-setting/gtk-4.0/colors.css`   | Generated palette (matugen)              |
-| `gtk-setting/gtk-4.0/gtk.css`      | GTK4 overrides                           |
-| `gtk-setting/gtk-4.0/gtk-dark.css` | Dark variant                             |
-| `gtk-setting/gtk-4.0/assets/`      | Theme assets                             |
+| `gtk-setting/gtk-4.0/gtk.css`      | Imports `colors.css` (matugen)            |
 | `qt6ct/qt6ct.conf`                 | Fusion style + `colors/matugen.conf`     |
 | `qt6ct/colors/matugen.conf`        | Generated palette (matugen)              |
 | `qt6ct/qss/`                       | Empty stylesheet dir                     |
