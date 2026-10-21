@@ -7,7 +7,7 @@
 -- _______________________________________________________________________
 
 hl.on("hyprland.start", function()
-    hl.exec_cmd("hyprctl setcursor Bibata-Modern-Classic 24") -- cursor theme
+    -- Cursor theme/size come from env.lua (XCURSOR_* + HYPRCURSOR_*); do not
     hl.exec_cmd("waybar") -- status bar
     hl.exec_cmd("swaync") -- notifications
     hl.exec_cmd("hypridle") -- idle / lock / dpms

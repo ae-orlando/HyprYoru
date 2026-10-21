@@ -1,3 +1,7 @@
 # local backup, not part of the config
 *.bak
 hyprland.lua.monolith.bak
+
+# NOTE: matugen-generated modules/colors.lua and hyprlock-colors.conf are not
+# ignored here -- they are listed in the repository root .gitignore alongside
+# the other generated palettes (waybar, swaync, kitty, btop, zsh).

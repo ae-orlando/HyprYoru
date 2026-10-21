@@ -22,16 +22,16 @@ Launcher + applets. Base config: `rofi/config.rasi` (`modi: drun,run,filebrowser
 
 ## Shared and Styles
 
-| Path                      | Purpose                                    |
-| ------------------------- | ------------------------------------------ |
-| `shared/colors.rasi`      | Generated palette (matugen)                |
-| `shared/fonts.rasi`       | Shared font                                |
-| `shared/theme.bash`       | `applets.rasi` selector for applet scripts |
+| Path                      | Purpose                                                   |
+| ------------------------- | --------------------------------------------------------- |
+| `shared/colors.rasi`      | Generated palette (matugen)                               |
+| `shared/fonts.rasi`       | Shared font                                               |
+| `shared/theme.bash`       | `applets.rasi` selector for applet scripts                |
 | `styles/yoru-main.rasi`   | Main theme (ML4W-inspired, `ae. Orlando`; matugen colors) |
-| `styles/launcher.rasi`    | Full launcher theme                        |
-| `styles/applets.rasi`     | Applet theme                               |
-| `styles/wifi-blue.rasi`   | Wi-Fi/Bluetooth menu theme                 |
-| `styles/wall-picker.rasi` | Wallpaper grid theme                       |
+| `styles/launcher.rasi`    | Full launcher theme                                       |
+| `styles/applets.rasi`     | Applet theme                                              |
+| `styles/wifi-blue.rasi`   | Wi-Fi/Bluetooth menu theme                                |
+| `styles/wall-picker.rasi` | Wallpaper grid theme                                      |
 
 ## Commands
 
@@ -45,6 +45,6 @@ rofi -dump-config
 
 ## Notes
 
-- Default bindings: SUPER+Space app launcher, SHIFT+SUPER+Space run prompt (`hyprland/modules/binds.lua`); Waybar `custom/apps` also opens `yoru-main.sh`. Type-6 stays as fallback.
+- Default bindings: SUPER+Space app launcher, SHIFT+SUPER+Space run prompt (`hyprland/modules/binds.lua:37-38`); Waybar `custom/apps` also opens `yoru-main.sh`. Type-6 stays as fallback.
 - `install.sh` forces `+x` on `launchers/*.sh`, `type-6/*.sh`, `rofi-bluetooth` (repo has two `644` files).
 - `type-6/style-9.rasi` references `~/.config/rofi/images/i.jpg`, which does not exist (blank imagebox, harmless).

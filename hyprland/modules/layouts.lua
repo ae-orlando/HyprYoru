@@ -18,6 +18,8 @@ hl.config({
 })
 
 -- Master (https://wiki.hypr.land/Configuring/Layouts/Master-Layout/)
+-- Dormant: general.lua pins layout = "dwindle"; kept so switching layouts
+-- needs no edits here. Enable by changing general.lua's layout.
 hl.config({
     master = {
         new_status = "master",
@@ -25,6 +27,7 @@ hl.config({
 })
 
 -- Scrolling (https://wiki.hypr.land/Configuring/Layouts/Scrolling-Layout/)
+-- Dormant: same reason as the master block above.
 hl.config({
     scrolling = {
         fullscreen_on_one_column = true,

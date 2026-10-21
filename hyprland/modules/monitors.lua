@@ -4,6 +4,9 @@
 --  /_/  /_/\___/_//_/_/\__/\___/_/ /___/
 
 -- Primary output + fallback for anything else hot-plugged.
+-- eDP-1 is this machine's laptop panel: adjust mode/scale per machine. The
+-- empty-output rule below is the fallback, so hot-plugged or different
+-- outputs still get a sane mode without editing this file.
 -- By ae. Orlando
 -- _______________________________________________________________________
 

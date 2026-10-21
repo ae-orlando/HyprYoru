@@ -10,14 +10,9 @@
 -- https://wiki.hypr.land/Configuring/Basics/Variables/
 
 local ok, mod = pcall(require, "modules.colors")
--- Fallback palette (matches mystical-night-in-town defaults) for first boot
--- before matugen regenerates modules/colors.lua (gitignored artifact).
-local colors = ok and mod
-    or {
-        active_border = { colors = { "rgba(8ad6b7ee)", "rgba(b3ccbfee)" }, angle = 45 },
-        inactive_border = "rgba(89938daa)",
-        shadow = 0xee000000,
-    }
+-- Live matugen palette when present; otherwise the tracked static fallback.
+-- The generated modules/colors.lua is a gitignored artifact (see .gitignore).
+local colors = ok and mod or require("modules.colors-fallback")
 
 hl.config({
     general = {
