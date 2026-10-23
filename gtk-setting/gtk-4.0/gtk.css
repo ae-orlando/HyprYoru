@@ -1,1 +1,9 @@
 @import 'colors.css';
+
+/* These libadwaita roles have no built-in named-color compatibility aliases. */
+:root {
+  --overview-bg-color: @overview_bg_color;
+  --overview-fg-color: @overview_fg_color;
+  --active-toggle-bg-color: @active_toggle_bg_color;
+  --active-toggle-fg-color: @active_toggle_fg_color;
+}
