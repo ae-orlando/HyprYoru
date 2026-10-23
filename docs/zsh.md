@@ -13,26 +13,39 @@
    - `10-aliases.zsh` (`eza`, `nvim`, `git`, `pacman`, `python`/`uv`, `bat`/`cat`, `diff --color`, `grep --color`).
    - `15-matugen.zsh` (sources `generated/colors.sh`, `precmd` reload).
    - `20-functions.zsh` (`ascii` banner, `fonts` list, `shot` screenshots, `bak` backups).
+   - `40-zoxide.zsh` (guarded zoxide initialization; `z`/`zi` directory jumping).
    - `50-autosuggestions.zsh` (system plugin + `MATUGEN_AUTOSUGGEST` style).
    - `99-syntaxh.zsh` (system plugin + `main/brackets/pattern/cursor/regexp/root/line` highlighters, 8-color ANSI tokens, `rm -rf` pattern).
 5. `.p10k.zsh` (`$ZDOTDIR` first, `~/.p10k.zsh` fallback).
 
 ## Files
 
-| Path                                 | Purpose                                              |
-| ------------------------------------ | ---------------------------------------------------- |
-| `.zshrc`                             | Entry point above                                    |
-| `.p10k.zsh`                          | Powerlevel10k lean config                            |
-| `conf.d/pre/01-env.zsh`              | Paths, editor, theme, `fnm`                          |
-| `conf.d/pre/02-plugins.zsh`          | OMZ plugin list                                      |
-| `conf.d/post/10-aliases.zsh`         | Aliases                                              |
-| `conf.d/post/15-matugen.zsh`         | Palette reload hook                                  |
-| `conf.d/post/20-functions.zsh`       | `ascii`, `fonts`, `shot`, `bak`                      |
-| `conf.d/post/25-fzf.zsh`            | fzf keybindings (CTRL-R/T, ALT-C)                    |
-| `conf.d/post/30-history.zsh`        | History dedup/sharing tuning                         |
-| `conf.d/post/50-autosuggestions.zsh` | Ghost-text styling                                   |
-| `conf.d/post/99-syntaxh.zsh`         | Highlight token colors + brackets/root/pattern     |
+| Path                                 | Purpose                                                        |
+| ------------------------------------ | -------------------------------------------------------------- |
+| `.zshrc`                             | Entry point above                                              |
+| `.p10k.zsh`                          | Powerlevel10k lean config                                      |
+| `conf.d/pre/01-env.zsh`              | Paths, editor, theme, `fnm`                                    |
+| `conf.d/pre/02-plugins.zsh`          | OMZ plugin list                                                |
+| `conf.d/post/10-aliases.zsh`         | Aliases                                                        |
+| `conf.d/post/15-matugen.zsh`         | Palette reload hook                                            |
+| `conf.d/post/20-functions.zsh`       | `ascii`, `fonts`, `shot`, `bak`                                |
+| `conf.d/post/25-fzf.zsh`             | fzf keybindings (CTRL-R/T, ALT-C)                              |
+| `conf.d/post/30-history.zsh`         | History dedup/sharing tuning                                   |
+| `conf.d/post/40-zoxide.zsh`          | `z`/`zi` directory jumping via zoxide                          |
+| `conf.d/post/50-autosuggestions.zsh` | Ghost-text styling                                             |
+| `conf.d/post/99-syntaxh.zsh`         | Highlight token colors + brackets/root/pattern                 |
 | `generated/colors.sh`                | Generated `MATUGEN_AUTOSUGGEST` + `FZF_DEFAULT_OPTS` + preview |
+
+## Zoxide
+
+The guarded initialization in `zsh/conf.d/post/40-zoxide.zsh:13` enables directory jumping when zoxide is installed. It learns directories as you visit them; regular `cd` remains unchanged.
+
+```zsh
+cd ~/Dev/dotfiles  # Visit a directory to record it.
+cd ~
+z dotfiles        # Jump back using part of its path.
+zi                # Select a remembered directory with fzf.
+```
 
 ## Provisioning
 
