@@ -40,10 +40,6 @@ hl.config({
         rounding = 10,
         rounding_power = 3,
 
-        -- Window transparency (focused / unfocused).
-        active_opacity = 0.9,
-        inactive_opacity = 0.8,
-
         shadow = {
             enabled = true,
             range = 4,
