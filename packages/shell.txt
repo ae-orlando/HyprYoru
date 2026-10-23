@@ -10,3 +10,4 @@ bat
 yazi
 neovim
 figlet
+zoxide
