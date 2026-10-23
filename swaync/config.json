@@ -171,11 +171,25 @@
             "buttons-per-row": 2,
             "actions": [
                 {
-                    "label": "  Wi-Fi  ›",
+                    "label": "  Wi-Fi",
+                    "command": "~/.config/swaync/scripts/radio-control.sh wifi",
+                    "type": "toggle",
+                    "active": false,
+                    "update-command": "~/.config/swaync/scripts/wifi-state.sh"
+                },
+                {
+                    "label": "Networks  ›",
                     "command": "~/.config/swaync/scripts/open-rofi.sh wifi"
                 },
                 {
-                    "label": "󰂯  Bluetooth  ›",
+                    "label": "󰂯  Bluetooth",
+                    "command": "~/.config/swaync/scripts/radio-control.sh bluetooth",
+                    "type": "toggle",
+                    "active": false,
+                    "update-command": "~/.config/swaync/scripts/bluetooth-state.sh"
+                },
+                {
+                    "label": "Devices  ›",
                     "command": "~/.config/swaync/scripts/open-rofi.sh bluetooth"
                 }
             ]

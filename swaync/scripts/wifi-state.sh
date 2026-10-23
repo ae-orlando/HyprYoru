@@ -4,17 +4,10 @@
 #  | |/ |/ / / _/ /\ \/ __/ _ `/ __/ -_)
 #  |__/|__/_/_//_/___/\__/\_,_/\__/\__/
 
-# By ae. Orlando
+# Author: ae Orland
+# GitHub: https://github.com/ae-orlando
 # ================================================
 
-# Echo true when wifi radio is enabled.
+# Read the same authoritative state as the menu and power action.
 set -uo pipefail
-if ! command -v nmcli >/dev/null 2>&1; then
-    echo false
-    exit 0
-fi
-if [ "$(nmcli radio wifi 2>/dev/null)" = "enabled" ]; then
-    echo true
-else
-    echo false
-fi
+python -B "$HOME/.config/rofi/launchers/connectivity/menu.py" wifi --state 2>/dev/null || echo false

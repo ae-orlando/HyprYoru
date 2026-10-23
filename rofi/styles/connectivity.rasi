@@ -1,0 +1,122 @@
+/* Yoru Connections — companion drawer for the notification dashboard.
+ * Author: ae Orland
+ * GitHub: https://github.com/ae-orlando
+ */
+@import "~/.config/rofi/shared/colors.rasi"
+@import "~/.config/rofi/shared/fonts.rasi"
+
+configuration {
+    show-icons: true;
+    icon-theme: "Tela";
+    disable-history: true;
+    click-to-exit: true;
+}
+
+* {
+    font: "Adwaita Sans 11";
+    background-color: transparent;
+    text-color: var(on-surface);
+    border-color: var(outline-variant);
+}
+
+window {
+    width: 420px;
+    location: northeast;
+    anchor: northeast;
+    x-offset: -14px;
+    y-offset: 14px;
+    fullscreen: false;
+    background-color: var(surface-container-low);
+    border: 1px;
+    border-radius: 24px;
+    padding: 0px;
+}
+
+mainbox {
+    children: [ inputbar, message, listview ];
+    orientation: vertical;
+    padding: 20px 16px 16px;
+    spacing: 12px;
+}
+
+inputbar {
+    children: [ prompt, entry ];
+    spacing: 12px;
+    padding: 2px 4px;
+}
+
+prompt {
+    font: "Adwaita Sans Bold 14";
+    expand: false;
+}
+
+entry {
+    placeholder: "Search…";
+    placeholder-color: var(on-surface-variant);
+    text-color: var(on-surface);
+}
+
+message {
+    background-color: var(surface-container);
+    border-radius: 12px;
+    padding: 10px 12px;
+}
+
+textbox {
+    font: "Adwaita Sans 10";
+    text-color: var(on-surface-variant);
+    highlight: none;
+    markup: true;
+    vertical-align: 0.0;
+    horizontal-align: 0.0;
+}
+
+listview {
+    columns: 1;
+    lines: 8;
+    fixed-height: false;
+    dynamic: true;
+    scrollbar: true;
+    spacing: 4px;
+    padding: 0px;
+}
+
+element {
+    padding: 11px 12px;
+    spacing: 10px;
+    border: 1px;
+    border-color: transparent;
+    border-radius: 12px;
+    background-color: var(surface-container);
+}
+
+element-text {
+    vertical-align: 0.5;
+    text-color: inherit;
+    highlight: none;
+}
+
+element-icon {
+    size: 20px;
+    vertical-align: 0.5;
+    background-color: transparent;
+}
+
+element normal.active, element alternate.active {
+    background-color: var(primary-container);
+    text-color: var(on-primary-container);
+}
+
+element selected.normal, element selected.active {
+    background-color: var(primary-container);
+    text-color: var(on-primary-container);
+    border-color: var(primary);
+}
+
+element normal.urgent, element alternate.urgent, element selected.urgent {
+    background-color: var(error-container);
+    text-color: var(on-error-container);
+}
+
+element selected.urgent { border-color: var(error); }
+scrollbar { handle-width: 4px; handle-color: var(outline); border-radius: 12px; }

@@ -1,7 +1,8 @@
 /* Yoru Deck — control center dashboard
  * Header tools, true toggles, connection menus, and an app mixer.
  * Content-sized panel, adaptive media, and a scrollable notification inbox.
- * by ae. Orlando
+ * Author: ae Orland
+ * GitHub: https://github.com/ae-orlando
  */
 
 /* ==================== PANEL ==================== */
@@ -432,6 +433,20 @@
 .widget-buttons-grid.connections > flowbox > flowboxchild > button:hover {
   background: @accent-soft;
   border-color: @accent-line;
+}
+
+.widget-buttons-grid.connections > flowbox > flowboxchild > button:checked {
+  background: @accent-container;
+  border-color: @accent-line;
+  color: @on-accent-container;
+}
+
+.widget-buttons-grid.connections > flowbox > flowboxchild:nth-child(odd) > button {
+  border-radius: 12px 6px 6px 12px;
+}
+
+.widget-buttons-grid.connections > flowbox > flowboxchild:nth-child(even) > button {
+  border-radius: 6px 12px 12px 6px;
 }
 
 /* ==================== SLIDERS + APP MIXER ==================== */
