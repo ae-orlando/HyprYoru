@@ -6,7 +6,7 @@
     "control-center-layer": "top",
     "cssPriority": "user",
     "control-center-width": 420,
-    "control-center-height": 820,
+    "control-center-height": -1,
     "control-center-margin-top": 14,
     "control-center-margin-bottom": 14,
     "control-center-margin-right": 14,
@@ -40,7 +40,8 @@
     "widgets": [
         "menubar#top",
         "label#controls",
-        "buttons-grid",
+        "buttons-grid#toggles",
+        "buttons-grid#connections",
         "volume",
         "backlight",
         "mpris",
@@ -57,6 +58,22 @@
                     {
                         "label": "  Yoru Deck",
                         "command": "swaync-client -cp; nwg-look"
+                    }
+                ]
+            },
+            "menu#tools": {
+                "label": "Tools  ",
+                "position": "right",
+                "animation-type": "slide_down",
+                "animation-duration": 180,
+                "actions": [
+                    {
+                        "label": "  Capture screen",
+                        "command": "~/.config/swaync/scripts/open-rofi.sh screenshot"
+                    },
+                    {
+                        "label": "󰏘  Pick a color",
+                        "command": "swaync-client -cp; hyprpicker -a"
                     }
                 ]
             },
@@ -100,10 +117,19 @@
             "loop-carousel": false
         },
         "volume": {
-            "label": "󰕾 "
+            "label": "󰕾  Volume",
+            "show-per-app": true,
+            "show-per-app-icon": true,
+            "show-per-app-label": false,
+            "expand-per-app": false,
+            "expand-button-label": "Apps  ",
+            "collapse-button-label": "Apps  ",
+            "empty-list-label": "No apps playing audio",
+            "animation-type": "slide_down",
+            "animation-duration": 180
         },
         "backlight": {
-            "label": "󰃠 ",
+            "label": "☀︎  Brightness",
             "subsystem": "backlight",
             "min": 1
         },
@@ -115,8 +141,8 @@
         "dnd": {
             "text": "Do not disturb"
         },
-        "buttons-grid": {
-            "buttons-per-row": 4,
+        "buttons-grid#toggles": {
+            "buttons-per-row": 3,
             "actions": [
                 {
                     "label": "󰕾  Sound",
@@ -133,37 +159,24 @@
                     "update-command": "~/.config/swaync/scripts/mic-state.sh"
                 },
                 {
-                    "label": "  Wi-Fi",
-                    "command": "~/.config/swaync/scripts/open-rofi.sh wifi",
-                    "type": "toggle",
-                    "active": false,
-                    "update-command": "~/.config/swaync/scripts/wifi-state.sh"
-                },
-                {
-                    "label": "󰂯  Bluetooth",
-                    "command": "~/.config/swaync/scripts/open-rofi.sh bluetooth",
-                    "type": "toggle",
-                    "active": false,
-                    "update-command": "~/.config/swaync/scripts/bluetooth-state.sh"
-                },
-                {
                     "label": "  Dark",
                     "command": "~/.config/swaync/scripts/toggle-theme.sh",
                     "type": "toggle",
                     "active": false,
                     "update-command": "~/.config/swaync/scripts/theme-state.sh"
+                }
+            ]
+        },
+        "buttons-grid#connections": {
+            "buttons-per-row": 2,
+            "actions": [
+                {
+                    "label": "  Wi-Fi  ›",
+                    "command": "~/.config/swaync/scripts/open-rofi.sh wifi"
                 },
                 {
-                    "label": "  Capture",
-                    "command": "~/.config/swaync/scripts/open-rofi.sh screenshot"
-                },
-                {
-                    "label": "󰏘  Picker",
-                    "command": "swaync-client -cp; hyprpicker -a"
-                },
-                {
-                    "label": "  Power",
-                    "command": "~/.config/swaync/scripts/open-rofi.sh powermenu"
+                    "label": "󰂯  Bluetooth  ›",
+                    "command": "~/.config/swaync/scripts/open-rofi.sh bluetooth"
                 }
             ]
         }

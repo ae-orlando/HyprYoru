@@ -1,6 +1,6 @@
 /* Yoru Deck — control center dashboard
- * Header menubar, labeled quick settings, paired sliders,
- * adaptive media, quiet mode, and a scrollable notification inbox.
+ * Header tools, true toggles, connection menus, and an app mixer.
+ * Content-sized panel, adaptive media, and a scrollable notification inbox.
  * by ae. Orlando
  */
 
@@ -47,6 +47,10 @@
   margin: 0;
 }
 
+.widget-menubar > .menu-button-bar > .widget-menubar-container.end > button {
+  margin-left: 6px;
+}
+
 .widget-menubar > .menu-button-bar > .widget-menubar-container button {
   background: @chip;
   border: 1px solid @chip-line;
@@ -79,12 +83,18 @@
 }
 
 .widget-menubar .end > button > label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.widget-menubar .end > button:last-child > label {
   font-family: "GoMono Nerd Font Propo", monospace;
   font-size: 16px;
 }
 
-/* SwayNC's power menu is a revealer, not a Gtk.Menu. */
-.widget-menubar > revealer > .power {
+/* SwayNC's header menus are revealers, not Gtk.Menus. */
+.widget-menubar > revealer > .power,
+.widget-menubar > revealer > .tools {
   background: @card;
   border: 1px solid @line-soft;
   border-radius: var(--radius-card);
@@ -349,7 +359,7 @@
   opacity: 0;
 }
 
-/* ==================== QUICK SETTINGS GRID ==================== */
+/* ==================== TOGGLES + CONNECTION MENUS ==================== */
 
 .widget-buttons-grid {
   background: transparent;
@@ -386,13 +396,13 @@
 }
 
 .widget-buttons-grid > flowbox > flowboxchild > button:checked {
-  background: @accent;
-  border-color: @accent;
-  color: @on-accent;
+  background: @accent-container;
+  border-color: @accent-line;
+  color: @on-accent-container;
 }
 
 .widget-buttons-grid > flowbox > flowboxchild > button:checked:hover {
-  background: mix(@accent, @ink, 0.08);
+  background: mix(@accent-container, @accent, 0.12);
 }
 
 .widget-buttons-grid > flowbox > flowboxchild > button label {
@@ -405,10 +415,26 @@
 }
 
 .widget-buttons-grid > flowbox > flowboxchild > button:checked label {
-  color: @on-accent;
+  color: @on-accent-container;
 }
 
-/* ==================== SLIDERS CARD ==================== */
+.widget-buttons-grid.connections {
+  margin-top: 2px;
+}
+
+.widget-buttons-grid.connections > flowbox > flowboxchild > button {
+  background: @card;
+  border-color: @line-soft;
+  min-height: 30px;
+  border-radius: var(--radius-chip);
+}
+
+.widget-buttons-grid.connections > flowbox > flowboxchild > button:hover {
+  background: @accent-soft;
+  border-color: @accent-line;
+}
+
+/* ==================== SLIDERS + APP MIXER ==================== */
 
 .widget-volume,
 .widget-backlight {
@@ -451,15 +477,77 @@
   border-radius: var(--radius-pill);
 }
 
-.widget-volume label,
-.widget-backlight label {
-  font-family: "GoMono Nerd Font Propo", monospace;
-  font-size: 18px;
-  color: @accent;
-  min-width: 24px;
-  margin: 0 12px 0 0;
+.widget-volume > box > label,
+.widget-backlight > label {
+  font-size: 12px;
+  font-weight: 600;
+  color: @ink-dim;
+  min-width: 90px;
+  margin: 0 10px 0 0;
   padding: 0;
   opacity: 1;
+}
+
+.widget-volume > box > button {
+  background: @chip;
+  border: 1px solid @chip-line;
+  border-radius: var(--radius-pill);
+  min-height: 22px;
+  min-width: 44px;
+  padding: 3px 8px;
+  margin-left: 10px;
+  color: @ink-dim;
+}
+
+.widget-volume > box > button > label {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.widget-volume > box > button:hover,
+.widget-volume > box > button:checked {
+  background: @accent-soft;
+  border-color: @accent-line;
+  color: @accent;
+}
+
+.widget-volume .per-app-volume {
+  background: @surface-low;
+  border: 1px solid @line-soft;
+  border-radius: var(--radius-chip);
+  margin: 10px 0 0;
+  padding: 4px 6px;
+}
+
+.widget-volume .per-app-volume > row {
+  background: transparent;
+  border-radius: 8px;
+  padding: 6px;
+  margin: 0;
+}
+
+.widget-volume .per-app-volume > row:hover {
+  background: alpha(@ink, 0.035);
+}
+
+.widget-volume .per-app-volume image {
+  /* Icon-only rows cannot be widened by unbounded application/stream names. */
+  color: @ink-dim;
+  margin-right: 12px;
+}
+
+.widget-volume .per-app-volume label {
+  color: @ink-faint;
+  font-size: 11px;
+  font-weight: 400;
+  margin: 0;
+  padding: 4px;
+}
+
+.widget-volume .per-app-volume slider {
+  min-width: 10px;
+  min-height: 10px;
+  margin: -4px 0;
 }
 
 .widget-volume slider,

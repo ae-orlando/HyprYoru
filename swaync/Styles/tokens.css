@@ -36,11 +36,11 @@
 @define-color on-danger     @on_error;
 @define-color on-danger-dim @on_error_container;
 
-/* Foreground solid, backdrop frosted: cards/popup opaque so text
- * stays razor-sharp; only the panel shows blurred wallpaper. */
+/* Opaque Material surfaces keep background windows out of the dashboard.
+ * Cards and popups stay palette-driven without sacrificing text clarity. */
 @define-color card         @surface_container;
 @define-color card-hover   @surface_container_high;
-@define-color panel        alpha(@surface_container_low, 0.92);
+@define-color panel        @surface_container_low;
 @define-color popup        @surface_container_high;
 @define-color chip         @surface_container_high;
 @define-color chip-line    alpha(@outline, 0.2);
