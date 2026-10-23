@@ -5,15 +5,14 @@
     "layer": "overlay",
     "control-center-layer": "top",
     "cssPriority": "user",
-    "control-center-width": 400,
-    "control-center-height": -1,
-    "control-center-margin-top": 10,
-    "control-center-margin-bottom": 10,
-    "control-center-margin-right": 10,
+    "control-center-width": 420,
+    "control-center-height": 820,
+    "control-center-margin-top": 14,
+    "control-center-margin-bottom": 14,
+    "control-center-margin-right": 14,
     "control-center-margin-left": 0,
-    "notification-window-width": 400,
+    "notification-window-width": 380,
     "notification-window-height": -1,
-    "notification-icon-size": 48,
     "notification-body-image-height": 100,
     "notification-body-image-width": 200,
     "timeout": 6,
@@ -23,7 +22,7 @@
     "keyboard-shortcuts": true,
     "image-visibility": "when-available",
     "transition-time": 200,
-    "hide-on-clear": true,
+    "hide-on-clear": false,
     "hide-on-action": true,
     "text-empty": "No notifications — enjoy the quiet",
     "script-fail-notify": true,
@@ -40,16 +39,15 @@
     },
     "widgets": [
         "menubar#top",
-        "title",
-        "notifications",
-        "label#media",
-        "mpris",
         "label#controls",
         "buttons-grid",
         "volume",
         "backlight",
+        "mpris",
+        "dnd",
         "inhibitors",
-        "dnd"
+        "title",
+        "notifications"
     ],
     "widget-config": {
         "menubar#top": {
@@ -57,7 +55,7 @@
                 "position": "left",
                 "actions": [
                     {
-                        "label": " Yoru",
+                        "label": "  Yoru Deck",
                         "command": "swaync-client -cp; nwg-look"
                     }
                 ]
@@ -66,18 +64,18 @@
                 "label": "",
                 "position": "right",
                 "animation-type": "slide_down",
-                "animation-duration": 220,
+                "animation-duration": 180,
                 "actions": [
                     {
-                        "label": "Lock",
+                        "label": "  Lock session",
                         "command": "swaync-client -cp; hyprlock"
                     },
                     {
-                        "label": "Suspend",
+                        "label": "  Suspend",
                         "command": "swaync-client -cp; hyprshutdown suspend 2>/dev/null || systemctl suspend"
                     },
                     {
-                        "label": "Power menu",
+                        "label": "  Power menu",
                         "command": "swaync-client -cp; ~/.config/rofi/launchers/powermenu.sh"
                     }
                 ]
@@ -86,11 +84,10 @@
         "title": {
             "text": "Notifications",
             "clear-all-button": true,
-            "button-text": "Clear All"
+            "button-text": "Clear all"
         },
-        "label#media": {
-            "max-lines": 1,
-            "text": "NOW PLAYING"
+        "notifications": {
+            "vexpand": true
         },
         "label#controls": {
             "max-lines": 1,
@@ -113,7 +110,7 @@
         "inhibitors": {
             "text": "Inhibitors",
             "clear-all-button": true,
-            "button-text": "Clear All"
+            "button-text": "Clear all"
         },
         "dnd": {
             "text": "Do not disturb"
@@ -122,50 +119,50 @@
             "buttons-per-row": 4,
             "actions": [
                 {
-                    "label": "󰕾",
+                    "label": "󰕾  Sound",
                     "command": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
                     "type": "toggle",
-                    "active": true,
+                    "active": false,
                     "update-command": "~/.config/swaync/scripts/sink-state.sh"
                 },
                 {
-                    "label": "",
+                    "label": "  Mic",
                     "command": "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle",
                     "type": "toggle",
-                    "active": true,
+                    "active": false,
                     "update-command": "~/.config/swaync/scripts/mic-state.sh"
                 },
                 {
-                    "label": "",
+                    "label": "  Wi-Fi",
                     "command": "~/.config/swaync/scripts/open-rofi.sh wifi",
                     "type": "toggle",
-                    "active": true,
+                    "active": false,
                     "update-command": "~/.config/swaync/scripts/wifi-state.sh"
                 },
                 {
-                    "label": "󰂯",
+                    "label": "󰂯  Bluetooth",
                     "command": "~/.config/swaync/scripts/open-rofi.sh bluetooth",
                     "type": "toggle",
-                    "active": true,
+                    "active": false,
                     "update-command": "~/.config/swaync/scripts/bluetooth-state.sh"
                 },
                 {
-                    "label": "",
+                    "label": "  Dark",
                     "command": "~/.config/swaync/scripts/toggle-theme.sh",
                     "type": "toggle",
-                    "active": true,
+                    "active": false,
                     "update-command": "~/.config/swaync/scripts/theme-state.sh"
                 },
                 {
-                    "label": "",
+                    "label": "  Capture",
                     "command": "~/.config/swaync/scripts/open-rofi.sh screenshot"
                 },
                 {
-                    "label": "󰏘",
-                    "command": "hyprpicker -a"
+                    "label": "󰏘  Picker",
+                    "command": "swaync-client -cp; hyprpicker -a"
                 },
                 {
-                    "label": "",
+                    "label": "  Power",
                     "command": "~/.config/swaync/scripts/open-rofi.sh powermenu"
                 }
             ]

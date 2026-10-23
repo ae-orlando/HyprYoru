@@ -10,7 +10,7 @@
  * matugen name with a self-reference) */
 @define-color ink            @on_surface;
 @define-color ink-dim        @on_surface_variant;
-@define-color ink-faint      alpha(@on_surface_variant, 0.7);
+@define-color ink-faint      alpha(@on_surface_variant, 0.82);
 @define-color surface-low    @surface_container_low;
 @define-color surface-card   @surface_container;
 @define-color surface-high   @surface_container_high;
@@ -21,31 +21,53 @@
 @define-color accent-container    @primary_container;
 @define-color on-accent           @on_primary;
 @define-color on-accent-container @on_primary_container;
-@define-color accent-soft         alpha(@primary, 0.16);
-@define-color accent-line         alpha(@primary, 0.38);
+@define-color accent-soft         alpha(@primary, 0.12);
+@define-color accent-line         alpha(@primary, 0.32);
 
 /* Secondary / tertiary accents for per-module hints */
 @define-color accent-2  @secondary;
 @define-color accent-3  @tertiary;
 
 /* Lines + danger */
-@define-color line          alpha(@outline_variant, 0.9);
-@define-color line-soft     alpha(@outline_variant, 0.55);
+@define-color line          alpha(@outline, 0.28);
+@define-color line-soft     alpha(@outline_variant, 0.5);
 @define-color danger        @error;
 @define-color danger-dim    @error_container;
 @define-color on-danger     @on_error;
+@define-color on-danger-dim @on_error_container;
 
 /* Foreground solid, backdrop frosted: cards/popup opaque so text
  * stays razor-sharp; only the panel shows blurred wallpaper. */
-@define-color card         @surface_container_highest;
-@define-color card-hover   @surface_bright;
-@define-color panel        alpha(@surface_container_high, 0.72);
-@define-color popup        @surface_container_highest;
-@define-color chip         alpha(@on_surface, 0.08);
-@define-color chip-line    alpha(@on_surface, 0.12);
+@define-color card         @surface_container;
+@define-color card-hover   @surface_container_high;
+@define-color panel        alpha(@surface_container_low, 0.92);
+@define-color popup        @surface_container_high;
+@define-color chip         @surface_container_high;
+@define-color chip-line    alpha(@outline, 0.2);
 
-/* Radii: Waybar 45px pills, Rofi 25px, Deck 20/16/45 */
-@define-color radius-outer 20px;
-@define-color radius-card 16px;
-@define-color radius-chip 12px;
-@define-color radius-pill 45px;
+/* GTK4 custom properties hold lengths; @define-color only accepts colors.
+ * Keep upstream widget variables in sync with the semantic palette. */
+:root {
+  --radius-outer: 24px;
+  --radius-card: 16px;
+  --radius-chip: 12px;
+  --radius-pill: 45px;
+  --notification-icon-size: 40px;
+  --notification-app-icon-size: 18px;
+  --notification-group-icon-size: 18px;
+  --mpris-album-art-icon-size: 64px;
+  --mpris-album-art-shadow: none;
+  --widget-volume-row-icon-size: 20px;
+  --cc-bg: @panel;
+  --noti-border-color: @line-soft;
+  --noti-bg-hover: @card-hover;
+  --noti-bg-focus: @accent-soft;
+  --noti-close-bg: @chip;
+  --noti-close-bg-hover: @danger;
+  --text-color: @ink;
+  --text-color-disabled: @ink-faint;
+  --bg-selected: @accent;
+  --notification-shadow: none;
+  --font-size-body: 13px;
+  --font-size-summary: 14px;
+}

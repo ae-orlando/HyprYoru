@@ -1,114 +1,164 @@
-/* Yoru Deck — floating notification popups
- * Glass popup: opaque card + accent hairline, urgency-coded.
+/* Yoru Deck — shared notification content + floating popups
+ * Content-sized cards, quiet actions, and a static urgency accent.
  * by ae. Orlando
  */
 
-/* Popup frame */
-.floating-notifications.background .notification-row .notification-background {
-  background: @popup;
-  border: 1px solid @accent-line;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
-  margin: 10px 12px 2px 12px;
+/* Card + popup frame */
+.notification-row .notification-background {
+  background: transparent;
+  margin: 0;
   padding: 0;
 }
 
-.floating-notifications.background .notification-row .notification-background .notification {
-  padding: 6px;
-  border-radius: 12px;
+.notification-row .notification-background .notification {
+  background: @popup;
+  border: 1px solid @line;
+  border-radius: var(--radius-card);
+  padding: 0;
+  box-shadow: none;
+}
+
+.floating-notifications .notification-row .notification-background {
+  margin: 8px 12px;
+}
+
+.floating-notifications .notification-row .notification-background .notification {
+  border-color: @accent-line;
+  box-shadow: 0 4px 12px alpha(@shadow, 0.22);
 }
 
 /* Urgency treatments */
-.floating-notifications.background .notification-row .notification-background .notification.low {
-  opacity: 0.85;
+.notification-row .notification-background .notification.low {
+  border-color: @line-soft;
 }
 
-.floating-notifications.background .notification-row .notification-background .notification.critical {
-  border: 1px solid @danger;
+.notification-row .notification-background .notification.critical {
+  background: mix(@popup, @danger, 0.08);
+  border-color: alpha(@danger, 0.55);
   border-left: 3px solid @danger;
-  background: alpha(@danger, 0.08);
-  animation: critical-pulse 2s ease-in-out infinite;
+}
+
+.notification-row .notification.critical .summary {
+  color: @danger;
 }
 
 /* Content */
-.floating-notifications.background .notification-row .notification-background .notification .notification-content {
-  margin: 12px 14px 8px 14px;
-  min-height: 100px;
+.notification-row .notification .notification-default-action {
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-card);
+  margin: 0;
+  padding: 14px;
 }
 
-.image {
-  margin: 10px 14px 10px 6px;
+.notification-row .notification .notification-default-action:hover {
+  background: alpha(@ink, 0.035);
+}
+
+.notification-row .notification .notification-content {
+  background: transparent;
+  margin: 0;
+  padding: 0;
+  min-height: 0;
+}
+
+.notification-row .image {
+  margin: 0 12px 0 0;
   border-radius: 10px;
 }
 
-.summary {
-  font-family: "GoMono Nerd Font Propo", monospace;
+.notification-row .summary {
   font-weight: 700;
-  font-size: 1.02rem;
+  font-size: var(--font-size-summary);
   color: @ink;
 }
 
-.body {
-  font-size: 0.92rem;
+.notification-row .body {
+  font-size: var(--font-size-body);
   color: @ink-dim;
-  line-height: 1.5;
+  line-height: 1.4;
   padding-top: 4px;
 }
 
-.time {
-  font-family: "GoMono Nerd Font Propo", monospace;
-  font-size: 0.78rem;
+.notification-row .time {
+  font-size: 10px;
+  font-weight: 400;
   color: @ink-faint;
+  margin: 2px 24px 0 8px;
 }
 
-/* Actions */
-.floating-notifications.background .notification-row .notification-background .notification > *:last-child > * {
-  min-height: 2.6em;
-  margin: 0 8px 8px 8px;
+/* GTK4 actions are FlowBox children containing the actual buttons. */
+.notification-row .notification-alt-actions {
+  background: transparent;
+  padding: 0 8px 8px;
 }
 
-.floating-notifications.background .notification-row .notification-background .notification > *:last-child > * .notification-action {
+.notification-row .notification-action {
+  margin: 0;
+  padding: 3px;
+}
+
+.notification-row .notification-action > button {
   background: @chip;
   border: 1px solid @chip-line;
-  border-radius: 12px;
-  margin: 4px;
-  padding: 8px 14px;
+  border-radius: 10px;
+  min-height: 28px;
+  padding: 4px 10px;
   color: @ink;
   font-weight: 600;
 }
 
-.floating-notifications.background .notification-row .notification-background .notification > *:last-child > * .notification-action:hover {
+.notification-row .notification-action > button:hover {
   background: @accent-soft;
   border-color: @accent-line;
   color: @accent;
 }
 
-.floating-notifications.background .notification-row .notification-background .notification > *:last-child > * .notification-action:active {
+.notification-row .notification-action > button:active {
   background: @accent;
   border-color: @accent;
   color: @on-accent;
 }
 
 /* Inline replies + 2FA copy button */
-.floating-notifications.background .notification-row .notification-background .notification entry {
+.notification-row .inline-reply {
+  margin-top: 4px;
+}
+
+.notification-row .inline-reply-entry {
   background: alpha(@ink, 0.06);
   border: 1px solid @chip-line;
   border-radius: 10px;
+  min-height: 22px;
   padding: 8px 10px;
-  margin: 6px 12px;
   color: @ink;
+  caret-color: @accent;
 }
 
-.floating-notifications.background .notification-row .notification-background .notification entry:focus {
+.notification-row .inline-reply-entry:focus-within {
   border-color: @accent;
 }
 
+.notification-row .inline-reply-button {
+  background: @accent-soft;
+  border: 1px solid @accent-line;
+  border-radius: 10px;
+  margin-left: 6px;
+  padding: 8px 12px;
+  color: @accent;
+}
+
+.notification-row .inline-reply-button:hover {
+  background: @accent;
+  color: @on-accent;
+}
+
 /* Close */
-.floating-notifications.background .notification-row .notification-background .close-button {
+.notification-row .close-button {
   background: alpha(@ink, 0.05);
   border: 1px solid transparent;
-  border-radius: 8px;
-  margin: 6px;
+  border-radius: var(--radius-pill);
+  margin: 8px;
   padding: 0;
   min-width: 22px;
   min-height: 22px;
@@ -116,33 +166,41 @@
   font-size: 12px;
 }
 
-.floating-notifications.background .notification-row .notification-background .close-button:hover {
+.notification-row .close-button:hover {
   background: @danger;
   color: @on-danger;
 }
 
-.floating-notifications.background .notification-row .notification-background .close-button:active {
+.notification-row .close-button:active {
   background: @danger-dim;
-  color: @on-danger;
+  color: @on-danger-dim;
 }
 
 /* Progress (downloads, copy) */
-.notification progress,
-.notification trough {
-  border-radius: 8px;
-  min-height: 6px;
-  margin: 6px 14px 10px 14px;
+.notification-row progressbar {
+  margin-top: 4px;
 }
 
-.notification trough {
-  background: alpha(@ink, 0.12);
+.notification-row progressbar trough,
+.notification-row progressbar progress {
+  border: none;
+  border-radius: var(--radius-pill);
+  min-height: 4px;
+  margin: 0;
 }
 
-.notification.low progress,
-.notification.normal progress {
+.notification-row progressbar trough {
+  background: alpha(@ink, 0.1);
+}
+
+.notification-row progressbar progress {
   background: @accent;
 }
 
-.notification.critical progress {
+.notification-row .notification.critical progress {
   background: @danger;
+}
+
+.notification-row .notification-content picture {
+  border-radius: 10px;
 }

@@ -1,6 +1,6 @@
 /* Yoru Deck — control center dashboard
- * Header menubar, grouped notifications, immersive mpris,
- * 4-col quick settings, slider card, quiet footer.
+ * Header menubar, labeled quick settings, paired sliders,
+ * adaptive media, quiet mode, and a scrollable notification inbox.
  * by ae. Orlando
  */
 
@@ -8,10 +8,10 @@
 
 .control-center {
   background: @panel;
-  border: 1px solid @accent-line;
-  border-radius: 20px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
-  margin: 10px;
+  border: 1px solid @line;
+  border-radius: var(--radius-outer);
+  box-shadow: 0 6px 20px alpha(@shadow, 0.22);
+  margin: 0;
   padding: 0;
 }
 
@@ -19,10 +19,19 @@
   background: transparent;
 }
 
-.control-center-list-placeholder {
+.control-center .control-center-list-placeholder {
   color: @ink-faint;
-  font-style: italic;
-  padding: 24px;
+  opacity: 1;
+  padding: 24px 12px;
+}
+
+.control-center-list-placeholder image {
+  opacity: 0.3;
+}
+
+.control-center-list-placeholder label {
+  font-size: 12px;
+  line-height: 1.6;
 }
 
 /* ==================== MENUBAR HEADER ==================== */
@@ -30,42 +39,73 @@
 .widget-menubar {
   background: transparent;
   margin: 0;
-  padding: 14px 16px 6px 16px;
+  padding: 18px 16px 12px;
 }
 
-.widget-menubar > box > button,
-.widget-menubar > box > box > button {
+.widget-menubar > .menu-button-bar > .start,
+.widget-menubar > .menu-button-bar > .end {
+  margin: 0;
+}
+
+.widget-menubar > .menu-button-bar > .widget-menubar-container button {
   background: @chip;
   border: 1px solid @chip-line;
-  border-radius: 45px;
-  padding: 6px 14px;
-  margin: 2px;
-  min-height: 32px;
+  border-radius: var(--radius-pill);
+  padding: 4px 12px;
+  margin: 0;
+  min-height: 30px;
+  min-width: 20px;
   color: @ink;
-  font-weight: 600;
 }
 
-.widget-menubar > box > button:hover,
-.widget-menubar > box > box > button:hover {
+.widget-menubar > .menu-button-bar > .widget-menubar-container button:hover,
+.widget-menubar > .menu-button-bar > .widget-menubar-container button:checked {
   background: @accent-soft;
   border-color: @accent-line;
+  color: @accent;
 }
 
-.widget-menubar menu {
-  background: @surface-card;
-  border: 1px solid @line;
-  border-radius: 16px;
-  padding: 8px;
+.widget-menubar > .menu-button-bar .user > button {
+  background: transparent;
+  border-color: transparent;
+  padding: 2px 4px;
+  min-height: 34px;
 }
 
-.widget-menubar menu menuitem {
+.widget-menubar .user > button > label {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+}
+
+.widget-menubar .end > button > label {
+  font-family: "GoMono Nerd Font Propo", monospace;
+  font-size: 16px;
+}
+
+/* SwayNC's power menu is a revealer, not a Gtk.Menu. */
+.widget-menubar > revealer > .power {
+  background: @card;
+  border: 1px solid @line-soft;
+  border-radius: var(--radius-card);
+  margin: 12px 0 0;
+  padding: 6px;
+}
+
+.widget-menubar > revealer button {
+  background: transparent;
+  border: 1px solid transparent;
   border-radius: 10px;
   padding: 8px 12px;
+  margin: 2px 0;
+  min-height: 24px;
   color: @ink;
 }
 
-.widget-menubar menu menuitem:hover {
+.widget-menubar > revealer button:hover {
   background: @accent-soft;
+  border-color: @accent-line;
+  color: @accent;
 }
 
 /* ==================== SECTION LABELS ==================== */
@@ -73,32 +113,43 @@
 .widget-label {
   background: transparent;
   margin: 0;
-  padding: 10px 20px 2px 20px;
+  padding: 4px 20px 6px;
+}
+
+.widget-label > label {
   color: @ink-faint;
-  font-family: "GoMono Nerd Font Propo", monospace;
-  font-size: 0.78rem;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 1.5px;
+  letter-spacing: 1.4px;
 }
 
 /* ==================== TITLE + NOTIFICATIONS ==================== */
 
 .widget-title {
-  font-size: 1.15em;
+  border-top: 1px solid @line-soft;
+  border-radius: 0;
+  margin: 14px 0 0;
+  padding: 12px 20px 8px;
+}
+
+.widget-title > label {
+  font-size: 15px;
   font-weight: 700;
   color: @ink;
-  margin: 0;
-  padding: 8px 16px 6px 20px;
 }
 
 .widget-title button {
   background: @chip;
   border: 1px solid @chip-line;
-  border-radius: 12px;
-  padding: 6px 14px;
-  min-height: 34px;
+  border-radius: var(--radius-pill);
+  padding: 4px 12px;
+  min-height: 24px;
+  color: @ink-dim;
+}
+
+.widget-title button > label {
+  font-size: 11px;
   font-weight: 600;
-  color: @ink;
 }
 
 .widget-title button:hover {
@@ -113,114 +164,64 @@
   color: @on-accent;
 }
 
-.control-center .notification-row {
-  margin: 0;
-  padding: 6px 12px;
+.widget-notifications {
+  margin: 0 10px 4px;
 }
 
-.control-center .notification-row .notification-background {
+.widget-notifications > stack {
+  min-height: 112px;
+}
+
+.control-center .notification-row {
+  margin: 0;
+  padding: 4px 6px;
+}
+
+.control-center .notification-row .notification-background .notification {
   background: @card;
   border: 1px solid @line-soft;
-  border-radius: 16px;
-  margin: 3px 0;
+  border-radius: var(--radius-card);
   padding: 0;
   box-shadow: none;
 }
 
-.control-center .notification-row .notification-background:hover {
+.control-center .notification-row .notification-background .notification:hover {
   background: @card-hover;
   border-color: @accent-line;
 }
 
 .control-center .notification-row .notification-background .notification.critical {
+  background: mix(@card, @danger, 0.08);
+  border-color: alpha(@danger, 0.55);
   border-left: 3px solid @danger;
-  border-radius: 16px;
-  background: alpha(@danger, 0.08);
 }
 
-.control-center .notification-row .notification-background .notification.low {
-  opacity: 0.8;
-}
-
-.control-center .notification-row .notification-background .notification .notification-content {
-  margin: 0;
-  padding: 12px 14px;
-  min-height: 100px;
-}
-
-.control-center .notification-row .notification-background .notification .image {
-  margin: 8px 12px 8px 6px;
-  border-radius: 10px;
-}
-
-.control-center .notification-row .notification-background .notification .notification-content .summary {
-  font-family: "GoMono Nerd Font Propo", monospace;
-  font-weight: 700;
-  font-size: 1rem;
-  color: @ink;
-}
-
-.control-center .notification-row .notification-background .notification .notification-content .notification-body,
-.control-center .notification-row .notification-background .notification .notification-content .body {
-  color: @ink-dim;
-  padding-top: 4px;
-  line-height: 1.5;
-}
-
-.control-center .notification-row .notification-background .notification > *:last-child > * {
-  min-height: 0;
-  padding: 4px 10px 10px 10px;
-}
-
-.control-center .notification-row .notification-background .notification > *:last-child > * .notification-action {
-  background: @accent-soft;
-  border: 1px solid @accent-line;
-  border-radius: 12px;
-  color: @accent;
-  margin: 4px;
-  padding: 8px 14px;
-  min-height: 34px;
-  font-weight: 600;
-}
-
-.control-center .notification-row .notification-background .notification > *:last-child > * .notification-action:hover {
-  background: alpha(@accent, 0.28);
-}
-
-.control-center .notification-row .notification-background .notification > *:last-child > * .notification-action:active {
-  background: @accent;
+.control-center .notification-row:focus .notification-background .notification,
+.control-center .notification-group:focus .notification-background .notification {
   border-color: @accent;
-  color: @on-accent;
 }
 
-.control-center .notification-row .notification-background .close-button {
-  background: alpha(@ink, 0.05);
-  border: 1px solid transparent;
-  border-radius: 8px;
-  color: @ink-faint;
-  margin: 6px;
-  padding: 0;
-  min-width: 22px;
-  min-height: 22px;
-  font-size: 12px;
-}
-
-.control-center .notification-row .notification-background .close-button:hover {
-  background: @danger;
-  color: @on-danger;
+.control-center .notification-row .notification .notification-default-action {
+  padding: 12px 14px;
 }
 
 /* Grouped notifications */
 .notification-group {
   background: transparent;
-  margin: 0;
+  margin: 0 0 6px;
   padding: 0;
+}
+
+.notification-group-headers,
+.notification-group-buttons {
+  margin: 4px 6px;
 }
 
 .notification-group-header {
   color: @ink-dim;
+  font-size: 11px;
   font-weight: 600;
-  padding: 6px 20px 2px 20px;
+  padding: 0;
 }
 
 .notification-group-collapse-button,
@@ -228,9 +229,10 @@
   background: @chip;
   border: 1px solid @chip-line;
   border-radius: 10px;
-  min-width: 28px;
-  min-height: 28px;
-  margin: 2px 4px;
+  min-width: 26px;
+  min-height: 26px;
+  margin: 2px;
+  padding: 0;
   color: @ink-dim;
 }
 
@@ -246,79 +248,92 @@
 .widget-mpris {
   background: transparent;
   color: @ink;
-  margin: 0;
-  padding: 6px 12px;
+  margin: 12px 16px 0;
+  padding: 0;
 }
 
-.widget-mpris-player {
+.widget-mpris .widget-mpris-player {
   background: @card;
   border: 1px solid @line-soft;
-  border-radius: 16px;
+  border-radius: var(--radius-card);
   padding: 0;
   margin: 0;
   box-shadow: none;
 }
 
 .widget-mpris .widget-mpris-player .mpris-background {
-  opacity: 0.18;
-  border-radius: 16px;
+  opacity: 0.1;
+  border-radius: var(--radius-card);
 }
 
 /* Overlay replaces upstream's rgba(0,0,0,0.55) slab: transparent, card shows */
 .widget-mpris .widget-mpris-player .mpris-overlay {
   background: transparent;
-  border-radius: 16px;
-  padding: 16px;
+  border-radius: var(--radius-card);
+  padding: 14px;
 }
 
-.widget-mpris-album-art {
+.widget-mpris .widget-mpris-album-art {
   border-radius: 12px;
   border: 1px solid @line-soft;
-  margin: 0 14px 0 0;
-  min-width: 88px;
-  min-height: 88px;
+  margin: 0;
 }
 
-.widget-mpris-title {
+.widget-mpris .widget-mpris-title {
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 15px;
   color: @ink;
 }
 
-.widget-mpris-subtitle {
+.widget-mpris .widget-mpris-subtitle {
   font-weight: 400;
-  font-size: 0.88rem;
+  font-size: 12px;
   color: @ink-dim;
 }
 
-.widget-mpris button {
+.widget-mpris .mpris-overlay button {
   background: @chip;
   border: 1px solid transparent;
-  border-radius: 50%;
+  border-radius: var(--radius-pill);
   color: @ink;
-  margin: 8px 3px 0 3px;
-  min-width: 38px;
-  min-height: 38px;
+  margin: 10px 0 0;
+  min-width: 30px;
+  min-height: 30px;
   padding: 0;
 }
 
-.widget-mpris button:hover {
+.widget-mpris .mpris-overlay button:hover,
+.widget-mpris .mpris-overlay button:not(.flat) {
   background: @accent-soft;
   border-color: @accent-line;
+  color: @accent;
 }
 
-.widget-mpris button:active {
+.widget-mpris .mpris-overlay button:active,
+.widget-mpris .mpris-overlay > box:last-child > button:nth-child(3) {
   background: @accent;
   color: @on-accent;
+}
+
+.widget-mpris .mpris-overlay > box:last-child > button:nth-child(3) {
+  min-width: 36px;
+  min-height: 36px;
+  margin-top: 7px;
+}
+
+.widget-mpris .mpris-overlay > box:last-child > button:nth-child(3):hover {
+  background: mix(@accent, @ink, 0.1);
 }
 
 /* Carousel side arrows: slim, and fully hidden when disabled (single player) */
 .widget-mpris > box > button {
   background: transparent;
   border-color: transparent;
-  min-width: 24px;
-  min-height: 24px;
+  border-radius: var(--radius-chip);
+  min-width: 20px;
+  min-height: 28px;
   margin: 0 2px;
+  padding: 0;
   color: @ink-faint;
 }
 
@@ -338,18 +353,29 @@
 
 .widget-buttons-grid {
   background: transparent;
+  margin: 0 13px;
+  padding: 0;
+}
+
+.widget-buttons-grid > flowbox {
+  padding: 0;
+}
+
+.widget-buttons-grid > flowbox > flowboxchild {
+  background: transparent;
+  border-radius: var(--radius-card);
   margin: 0;
-  padding: 6px 12px;
+  padding: 3px;
 }
 
 .widget-buttons-grid > flowbox > flowboxchild > button {
   background: @chip;
   border: 1px solid @chip-line;
-  border-radius: 14px;
-  margin: 4px;
-  min-height: 54px;
-  min-width: 64px;
-  padding: 4px;
+  border-radius: var(--radius-card);
+  margin: 0;
+  min-height: 44px;
+  min-width: 62px;
+  padding: 6px;
   box-shadow: none;
   color: @ink;
 }
@@ -365,10 +391,15 @@
   color: @on-accent;
 }
 
+.widget-buttons-grid > flowbox > flowboxchild > button:checked:hover {
+  background: mix(@accent, @ink, 0.08);
+}
+
 .widget-buttons-grid > flowbox > flowboxchild > button label {
-  font-family: "GoMono Nerd Font Propo", monospace;
-  font-size: 20px;
-  margin: auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: @ink-dim;
+  margin: 0;
   padding: 0;
   opacity: 1;
 }
@@ -383,41 +414,50 @@
 .widget-backlight {
   background: @card;
   border: 1px solid @line-soft;
-  border-radius: 16px;
-  margin: 4px 12px;
-  padding: 10px 16px;
+  border-radius: var(--radius-card);
+  margin: 0 16px;
+  padding: 8px 12px;
 }
 
 .widget-volume {
+  margin-top: 12px;
   margin-bottom: 0;
   border-radius: 16px 16px 6px 6px;
 }
 
 .widget-backlight {
-  margin-top: 6px;
+  margin-top: 4px;
   border-radius: 6px 6px 16px 16px;
+}
+
+.widget-volume scale,
+.widget-backlight scale {
+  padding: 6px 0;
+  margin: 0;
 }
 
 .widget-volume trough,
 .widget-backlight trough {
-  background: alpha(@ink, 0.12);
-  border-radius: 12px;
-  min-height: 8px;
+  background: alpha(@ink, 0.1);
+  border: none;
+  border-radius: var(--radius-pill);
+  min-height: 6px;
+  box-shadow: none;
 }
 
 .widget-volume highlight,
 .widget-backlight highlight {
   background: @accent;
-  border-radius: 12px;
+  border-radius: var(--radius-pill);
 }
 
 .widget-volume label,
 .widget-backlight label {
   font-family: "GoMono Nerd Font Propo", monospace;
-  font-size: 20px;
+  font-size: 18px;
   color: @accent;
-  min-width: 30px;
-  margin: 0 10px 0 0;
+  min-width: 24px;
+  margin: 0 12px 0 0;
   padding: 0;
   opacity: 1;
 }
@@ -426,29 +466,29 @@
 .widget-backlight slider {
   background: @ink;
   border: 2px solid @accent;
-  border-radius: 50%;
-  min-height: 14px;
-  min-width: 14px;
-  margin: -4px 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  border-radius: var(--radius-pill);
+  min-height: 12px;
+  min-width: 12px;
+  margin: -5px 0;
+  box-shadow: none;
 }
 
-/* ==================== INHIBITORS + DND FOOTER ==================== */
+/* ==================== INHIBITORS + QUIET MODE ==================== */
 
 .widget-inhibitors {
   background: transparent;
-  margin: 0;
-  padding: 10px 20px 2px 20px;
-  color: @ink;
+  margin: 8px 16px 0;
+  padding: 6px 4px;
+  color: @ink-dim;
   font-weight: 600;
 }
 
 .widget-inhibitors button {
   background: @chip;
   border: 1px solid @chip-line;
-  border-radius: 12px;
-  padding: 6px 14px;
-  min-height: 34px;
+  border-radius: var(--radius-pill);
+  padding: 4px 12px;
+  min-height: 24px;
   color: @ink;
   font-weight: 600;
 }
@@ -460,22 +500,27 @@
 }
 
 .widget-dnd {
-  background: transparent;
-  border-top: 1px solid @line-soft;
-  margin: 8px 0 0 0;
-  padding: 12px 20px 16px 20px;
-  font-size: 1rem;
+  background: @card;
+  border: 1px solid @line-soft;
+  border-radius: var(--radius-card);
+  margin: 12px 16px 0;
+  padding: 10px 12px;
+  color: @ink;
+}
+
+.widget-dnd label {
+  font-size: 12px;
   font-weight: 600;
   color: @ink;
 }
 
 .widget-dnd > switch {
-  background: alpha(@ink, 0.15);
+  background: alpha(@ink, 0.14);
   border: 1px solid @chip-line;
-  border-radius: 24px;
+  border-radius: var(--radius-pill);
   padding: 3px;
-  min-width: 48px;
-  min-height: 26px;
+  min-width: 40px;
+  min-height: 20px;
 }
 
 .widget-dnd > switch:hover {
@@ -488,10 +533,12 @@
 }
 
 .widget-dnd > switch slider {
-  background: @ink;
-  border-radius: 50%;
-  min-width: 20px;
-  min-height: 20px;
+  background: @ink-faint;
+  border: none;
+  border-radius: var(--radius-pill);
+  min-width: 16px;
+  min-height: 16px;
+  box-shadow: none;
 }
 
 .widget-dnd > switch:checked slider {
