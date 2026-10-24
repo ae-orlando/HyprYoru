@@ -54,7 +54,7 @@
 
 .widget-menubar > .menu-button-bar > .widget-menubar-container button {
   background: @chip;
-  border: 1px solid @chip-line;
+  border: 1px solid transparent;
   border-radius: var(--radius-pill);
   padding: 4px 12px;
   margin: 0;
@@ -66,7 +66,7 @@
 .widget-menubar > .menu-button-bar > .widget-menubar-container button:hover,
 .widget-menubar > .menu-button-bar > .widget-menubar-container button:checked {
   background: @accent-soft;
-  border-color: @accent-line;
+  border-color: transparent;
   color: @accent;
 }
 
@@ -198,7 +198,7 @@
 
 .control-center .notification-row .notification-background .notification:hover {
   background: @card-hover;
-  border-color: @accent-line;
+  border-color: @line-soft;
 }
 
 .control-center .notification-row .notification-background .notification.critical {
@@ -207,9 +207,9 @@
   border-left: 3px solid @danger;
 }
 
-.control-center .notification-row:focus .notification-background .notification,
-.control-center .notification-group:focus .notification-background .notification {
-  border-color: @accent;
+.control-center .notification-row:focus-visible .notification-default-action,
+.control-center .notification-group:focus-visible .notification-default-action {
+  background: alpha(@ink, 0.04);
 }
 
 .control-center .notification-row .notification .notification-default-action {
@@ -265,7 +265,7 @@
 
 .widget-mpris .widget-mpris-player {
   background: @card;
-  border: 1px solid @line-soft;
+  border: 1px solid transparent;
   border-radius: var(--radius-card);
   padding: 0;
   margin: 0;
@@ -374,6 +374,8 @@
 
 .widget-buttons-grid > flowbox > flowboxchild {
   background: transparent;
+  border: none;
+  box-shadow: none;
   border-radius: var(--radius-card);
   margin: 0;
   padding: 3px;
@@ -381,7 +383,7 @@
 
 .widget-buttons-grid > flowbox > flowboxchild > button {
   background: @chip;
-  border: 1px solid @chip-line;
+  border: 1px solid transparent;
   border-radius: var(--radius-card);
   margin: 0;
   min-height: 44px;
@@ -393,12 +395,12 @@
 
 .widget-buttons-grid > flowbox > flowboxchild > button:hover {
   background: @accent-soft;
-  border-color: @accent-line;
+  border-color: transparent;
 }
 
 .widget-buttons-grid > flowbox > flowboxchild > button:checked {
   background: @accent-container;
-  border-color: @accent-line;
+  border-color: transparent;
   color: @on-accent-container;
 }
 
@@ -425,19 +427,19 @@
 
 .widget-buttons-grid.connections > flowbox > flowboxchild > button {
   background: @card;
-  border-color: @line-soft;
+  border-color: transparent;
   min-height: 30px;
   border-radius: var(--radius-chip);
 }
 
 .widget-buttons-grid.connections > flowbox > flowboxchild > button:hover {
   background: @accent-soft;
-  border-color: @accent-line;
+  border-color: transparent;
 }
 
 .widget-buttons-grid.connections > flowbox > flowboxchild > button:checked {
   background: @accent-container;
-  border-color: @accent-line;
+  border-color: transparent;
   color: @on-accent-container;
 }
 
@@ -454,7 +456,7 @@
 .widget-volume,
 .widget-backlight {
   background: @card;
-  border: 1px solid @line-soft;
+  border: 1px solid transparent;
   border-radius: var(--radius-card);
   margin: 0 16px;
   padding: 8px 12px;
@@ -505,7 +507,7 @@
 
 .widget-volume > box > button {
   background: @chip;
-  border: 1px solid @chip-line;
+  border: 1px solid transparent;
   border-radius: var(--radius-pill);
   min-height: 22px;
   min-width: 44px;
@@ -522,7 +524,7 @@
 .widget-volume > box > button:hover,
 .widget-volume > box > button:checked {
   background: @accent-soft;
-  border-color: @accent-line;
+  border-color: transparent;
   color: @accent;
 }
 
@@ -604,7 +606,7 @@
 
 .widget-dnd {
   background: @card;
-  border: 1px solid @line-soft;
+  border: 1px solid transparent;
   border-radius: var(--radius-card);
   margin: 12px 16px 0;
   padding: 10px 12px;

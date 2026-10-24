@@ -1,6 +1,7 @@
 /* Yoru Deck — shared notification content + floating popups
  * Content-sized cards, quiet actions, and a static urgency accent.
- * by ae. Orlando
+ * Author: ae Orland
+ * GitHub: https://github.com/ae-orlando
  */
 
 /* Card + popup frame */
@@ -136,7 +137,8 @@
 }
 
 .notification-row .inline-reply-entry:focus-within {
-  border-color: @accent;
+  background: alpha(@accent, 0.08);
+  border-color: @chip-line;
 }
 
 .notification-row .inline-reply-button {

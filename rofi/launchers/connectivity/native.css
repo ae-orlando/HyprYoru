@@ -19,44 +19,71 @@
 
 * { font-family: "Adwaita Sans", "GoMono Nerd Font Propo", sans-serif; font-size: 13px; text-shadow: none; }
 .connections-window, .connections-backdrop { background: transparent; }
-.drawer-shell { background: @surface_container_low; border: 1px solid alpha(@outline, 0.3); border-radius: 24px; color: @on_surface; }
-.drawer-header { padding: 18px 16px 14px; }
-.eyebrow { font-size: 9px; font-weight: 700; letter-spacing: 1.6px; color: @on_surface_variant; }
-.drawer-title { font-size: 21px; font-weight: 800; letter-spacing: -0.5px; }
-.header-button { background: transparent; border: 1px solid transparent; border-radius: 45px; min-width: 28px; min-height: 28px; padding: 4px; box-shadow: none; }
-.header-button:hover { background: alpha(@primary, 0.12); color: @primary; }
-.page-tabs { margin: 0 16px 4px; padding: 4px; border: 1px solid alpha(@outline_variant, 0.5); border-radius: 45px; background: @surface_container; }
-.page-tabs button { border: none; border-radius: 45px; padding: 7px 14px; background: transparent; color: @on_surface_variant; font-weight: 600; box-shadow: none; }
-.page-tabs button:checked { background: @primary_container; color: @on_primary_container; }
+.drawer-shell { background: @surface_container_low; border: 1px solid alpha(@outline, 0.2); border-radius: 24px; color: @on_surface; }
+.drawer-header { padding: 18px 16px 16px; }
+.drawer-title { font-size: 21px; font-weight: 750; letter-spacing: -0.5px; }
+
+/* Mouse interaction never leaves a focus ring behind. */
+.connections-window * { outline-style: none; outline-width: 0; }
+.connections-window button, .connections-window row, .connections-window entry, .connections-window switch { box-shadow: none; }
+.connections-window button:focus, .connections-window row:focus,
+.connections-window entry:focus-within, .connections-window .boxed-list:focus-within { outline: none; box-shadow: none; border-color: transparent; }
+.connections-window row:focus { background: transparent; }
+.connections-window.keyboard-nav button:focus-visible:not(:checked),
+.connections-window.keyboard-nav row:focus-visible { background: alpha(@primary, 0.1); }
+.connections-window.keyboard-nav .suggested-action:focus-visible { background: mix(@primary, @on_primary, 0.08); color: @on_primary; }
+.connections-window.keyboard-nav .destructive-action:focus-visible { background: @error_container; color: @on_error_container; }
+.connections-window.keyboard-nav .radio-list row:focus-within { background: alpha(@primary, 0.06); }
+
+.header-button { background: transparent; border: none; border-radius: 45px; min-width: 28px; min-height: 28px; padding: 4px; color: @on_surface_variant; }
+.header-button:hover { background: alpha(@on_surface, 0.06); color: @on_surface; }
+.page-tabs { margin: 0 16px 2px; padding: 3px; border: none; border-radius: 45px; background: @surface_container; }
+.page-tabs button { border: none; border-radius: 45px; padding: 8px 14px; background: transparent; color: @on_surface_variant; font-weight: 600; }
+.page-tabs button:checked { background: alpha(@primary, 0.12); color: @primary; }
 .page-content { padding: 12px 16px 18px; }
-.boxed-list { background: @surface_container; border: 1px solid alpha(@outline_variant, 0.5); border-radius: 16px; box-shadow: none; }
-.boxed-list row { background: transparent; padding: 4px 2px; border-radius: 12px; box-shadow: none; }
-.boxed-list row:hover { background: alpha(@on_surface, 0.035); }
-.boxed-list row .title { font-size: 13px; font-weight: 600; }
+
+/* Flat lists: hierarchy comes from spacing, not nested outlines. */
+.boxed-list { background: transparent; border: none; border-radius: 14px; box-shadow: none; }
+.boxed-list row { background: transparent; padding: 5px 0; border: none; border-radius: 12px; box-shadow: none; }
+.boxed-list row:hover { background: alpha(@on_surface, 0.04); }
+.boxed-list row .title { font-size: 13px; font-weight: 550; }
 .boxed-list row .subtitle { font-size: 11px; color: @on_surface_variant; }
-.row-icon { color: @primary; }
-.hero { padding: 18px; border: 1px solid alpha(@primary, 0.24); border-radius: 18px; background: linear-gradient(135deg, @primary_container, @surface_container_high); color: @on_primary_container; }
-.hero-eyebrow { font-size: 9px; font-weight: 700; letter-spacing: 1.3px; color: alpha(@on_primary_container, 0.8); }
-.hero-title { font-size: 23px; font-weight: 800; letter-spacing: -0.7px; }
-.hero-subtitle { font-size: 12px; color: alpha(@on_primary_container, 0.85); line-height: 1.4; }
-.hero-button { padding: 8px 12px; margin-top: 4px; background: alpha(@on_primary_container, 0.09); border: 1px solid alpha(@on_primary_container, 0.16); border-radius: 45px; color: @on_primary_container; box-shadow: none; font-size: 12px; font-weight: 600; }
-.hero-button:hover { background: alpha(@on_primary_container, 0.16); }
-.badge { min-width: 32px; padding: 4px 8px; border-radius: 45px; background: alpha(@on_primary_container, 0.12); color: @on_primary_container; font-size: 9px; font-weight: 800; letter-spacing: 0.8px; }
-.section-label { color: @on_surface_variant; font-size: 10px; font-weight: 700; letter-spacing: 1.1px; margin: 4px 2px 0; }
-.muted { color: @on_surface_variant; font-size: 11px; line-height: 1.5; }
-.info-note { background: alpha(@tertiary, 0.08); color: @on_surface_variant; border-radius: 12px; padding: 10px 12px; font-size: 11px; line-height: 1.4; }
-.operation { margin: 8px 16px 0; padding: 10px; border-radius: 12px; background: alpha(@primary, 0.1); color: @primary; }
+.radio-list row { padding: 0; }
+.radio-list .title { font-weight: 650; }
+.row-icon { color: @on_surface_variant; }
+.row-status { color: @on_surface_variant; font-size: 11px; margin-right: 4px; }
+.status-icon { color: @on_surface_variant; margin-right: 8px; }
+.settings-list { background: @surface_container; }
+.settings-list row:not(:last-child) { border-bottom: 1px solid alpha(@outline_variant, 0.3); }
+.settings-list row:focus-within { background: alpha(@on_surface, 0.035); box-shadow: none; }
+.section-label { color: @on_surface_variant; font-size: 12px; font-weight: 600; margin: 6px 4px 0; }
+
+.connection-summary { padding: 14px; border-radius: 16px; background: @surface_container; }
+.connection-summary > image { color: @primary; }
+.summary-title { font-size: 16px; font-weight: 650; }
+.summary-subtitle { font-size: 11px; color: @on_surface_variant; }
+.hero { padding: 18px; border: none; border-radius: 18px; background: linear-gradient(145deg, mix(@surface_container, @primary_container, 0.28), @surface_container); color: @on_surface; }
+.hero > box > image { color: @primary; }
+.hero-label { font-size: 12px; color: @on_surface_variant; }
+.hero-title { font-size: 24px; font-weight: 750; letter-spacing: -0.6px; margin: 8px 0 0; }
+.hero-subtitle { font-size: 12px; color: @on_surface_variant; margin-bottom: 10px; }
+.badge { min-width: 28px; padding: 4px 7px; border-radius: 45px; background: alpha(@primary, 0.1); color: @primary; font-size: 9px; font-weight: 700; }
+.muted { color: @on_surface_variant; font-size: 11px; line-height: 1.4; margin: 2px 4px; }
+
+.operation { margin: 8px 16px 0; padding: 10px; border-radius: 12px; background: alpha(@primary, 0.08); color: @primary; }
 .error-banner { margin: 8px 16px 0; padding: 10px; border-radius: 12px; background: @error_container; color: @on_error_container; }
 .error-banner button { background: transparent; border: none; box-shadow: none; }
-.quiet-button { background: @surface_container_high; color: @on_surface; border: 1px solid alpha(@outline, 0.2); border-radius: 45px; padding: 7px 12px; box-shadow: none; }
-.suggested-action { background: @primary; color: @on_primary; border-radius: 45px; padding: 9px 14px; box-shadow: none; }
-.destructive-action { background: @error_container; color: @on_error_container; border-radius: 45px; padding: 9px 14px; box-shadow: none; }
-.detail-title { font-size: 24px; font-weight: 800; }
-.share-name { font-size: 16px; font-weight: 700; }
+.quiet-button { background: alpha(@on_surface, 0.055); color: @on_surface; border: none; border-radius: 45px; padding: 8px 14px; }
+.quiet-button:hover { background: alpha(@on_surface, 0.09); }
+.text-button { background: transparent; color: @on_surface_variant; border: none; border-radius: 12px; padding: 7px 10px; font-size: 12px; }
+.text-button:hover { color: @on_surface; background: alpha(@on_surface, 0.035); }
+.suggested-action { background: @primary; color: @on_primary; border: none; border-radius: 45px; padding: 10px 16px; font-weight: 600; }
+.destructive-action { background: alpha(@error, 0.08); color: @error; border: none; border-radius: 45px; padding: 10px 16px; }
+.detail-title { font-size: 24px; font-weight: 750; letter-spacing: -0.5px; }
+.share-name { font-size: 17px; font-weight: 650; }
 .secret-entry { border-radius: 12px; padding: 8px; }
 .qr-code { background: white; border-radius: 12px; padding: 8px; }
 switch { border-radius: 45px; }
 switch:checked { background: @primary; color: @on_primary; }
-button:focus-visible, switch:focus-visible, entry:focus-within { outline: 2px solid @primary; outline-offset: 2px; }
 scrollbar { background: transparent; }
-scrollbar slider { background: alpha(@on_surface, 0.18); border-radius: 45px; min-width: 4px; }
+scrollbar slider { background: alpha(@on_surface, 0.14); border-radius: 45px; min-width: 4px; }

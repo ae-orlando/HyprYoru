@@ -31,6 +31,7 @@ from gi.repository import Adw, Gdk, Gio, GLib, GObject, Gtk, Gtk4LayerShell as L
 from common import Cancelled, ConnectionError, panel, text
 from hotspot import engaged, generate_password, qr_png
 from native_service import DemoService, NativeService, stable_entries
+from presentation import client_name, connected_text, elapsed_text, security_text, signal_icon
 
 
 def label(value="", css=None, wrap=False):
@@ -48,6 +49,7 @@ def label(value="", css=None, wrap=False):
 
 def button(title=None, icon=None, callback=None, css=None):
     widget = Gtk.Button(label=title) if title else Gtk.Button(icon_name=icon)
+    widget.set_focus_on_click(False)
     if callback:
         widget.connect("clicked", lambda *_args: callback())
     if css:
@@ -150,6 +152,7 @@ class Drawer(Adw.ApplicationWindow):
         self.busy = False
         self.reading = False
         self.updating = False
+        self.input_mode = "pointer"
         self.dirty = False
         self.data = {}
         self.form_profile = None
@@ -160,6 +163,7 @@ class Drawer(Adw.ApplicationWindow):
         self.refresh_source = 0
         self.detail_target = None
         self.detail_signature = None
+        self.client_value_labels = {}
         self.watched = False
         Layer.init_for_window(self)
         Layer.set_namespace(self, "yoru-connections-demo" if demo else "yoru-connections")
@@ -193,10 +197,8 @@ class Drawer(Adw.ApplicationWindow):
         self.back = button(icon="go-previous-symbolic", callback=self.go_back, css="header-button")
         self.back.set_tooltip_text("Back to Wi-Fi / quick settings")
         header.append(self.back)
-        titles = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True, spacing=2)
-        titles.append(label("YORU  /  CONNECTIVITY", "eyebrow"))
-        titles.append(label("Connections", "drawer-title"))
-        header.append(titles)
+        self.header_title = label("Connections", "drawer-title")
+        header.append(self.header_title)
         if demo:
             header.append(label("PREVIEW", "badge"))
         header.append(button(icon="window-close-symbolic", callback=self.close, css="header-button"))
@@ -207,6 +209,7 @@ class Drawer(Adw.ApplicationWindow):
         self.tabs = {}
         for name, title in [("wifi", "Wi-Fi"), ("bluetooth", "Bluetooth")]:
             tab = Gtk.ToggleButton(label=title, hexpand=True)
+            tab.set_focus_on_click(False)
             tab.connect("clicked", lambda _widget, value=name: self.navigate(value))
             tabs.append(tab)
             self.tabs[name] = tab
@@ -253,16 +256,23 @@ class Drawer(Adw.ApplicationWindow):
         self.build_wifi()
         self.build_bluetooth()
         self.build_hotspot()
+        self.build_hotspot_editor()
         self.build_details()
         self.set_controls()
         self.navigate(page)
         keys = Gtk.EventControllerKey()
+        keys.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
         keys.connect("key-pressed", self.on_key)
         self.add_controller(keys)
+        pointer = Gtk.GestureClick()
+        pointer.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
+        pointer.connect("pressed", lambda *_args: self.pointer_input())
+        self.add_controller(pointer)
         self.connect("close-request", self.on_close)
         self.poll_source = GLib.timeout_add_seconds(3, self.poll_clients)
         self.backdrop.present()
         self.present()
+        idle_once(self.reset_open_focus)
         self.request_read()
 
     def new_page(self, name):
@@ -282,6 +292,7 @@ class Drawer(Adw.ApplicationWindow):
         row = Adw.ActionRow(title=text(title), subtitle=text(subtitle), use_markup=False)
         row.set_title_lines(1)
         row.set_subtitle_lines(2)
+        row.set_focus_on_click(False)
         if icon:
             image = Gtk.Image(icon_name=icon, pixel_size=20)
             image.add_css_class("row-icon")
@@ -291,9 +302,11 @@ class Drawer(Adw.ApplicationWindow):
     def radio(self, content, title, action):
         box = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE)
         box.add_css_class("boxed-list")
+        box.add_css_class("radio-list")
         icons = {"wifi_power": "network-wireless-symbolic", "bt_power": "bluetooth-symbolic", "hotspot_power": "network-transmit-receive-symbolic"}
         row = self.action_row(title, "Checking adapter…", icons[action])
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        switch.set_focus_on_click(False)
         switch.connect("state-set", lambda widget, state: self.radio_request(widget, state, action))
         row.add_suffix(switch)
         box.append(row)
@@ -303,23 +316,30 @@ class Drawer(Adw.ApplicationWindow):
     def build_wifi(self):
         content = self.new_page("wifi")
         self.wifi_row, self.wifi_switch = self.radio(content, "Wi-Fi", "wifi_power")
-        self.wifi_hero = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-        self.wifi_hero.add_css_class("hero")
-        self.wifi_hero.append(label("YOUR CONNECTION", "hero-eyebrow"))
-        self.wifi_headline = label("Finding your connection…", "hero-title", wrap=True)
-        self.wifi_description = label("Live system state. No scan is started automatically.", "hero-subtitle", wrap=True)
-        self.wifi_hero.append(self.wifi_headline)
-        self.wifi_hero.append(self.wifi_description)
-        self.manage_hotspot = button("Hotspot settings  →", callback=lambda: self.navigate("hotspot"), css="hero-button")
+        self.wifi_hero = Gtk.Box(spacing=12)
+        self.wifi_hero.add_css_class("connection-summary")
+        self.wifi_hero.append(Gtk.Image(icon_name="network-wireless-symbolic", pixel_size=24))
+        description = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3, hexpand=True)
+        self.wifi_headline = label("Connecting…", "summary-title", wrap=True)
+        self.wifi_description = label("", "summary-subtitle", wrap=True)
+        description.append(self.wifi_headline)
+        description.append(self.wifi_description)
+        self.wifi_hero.append(description)
+        self.manage_hotspot = button("Hotspot ›", callback=lambda: self.navigate("hotspot"), css="quiet-button")
+        self.manage_hotspot.set_valign(Gtk.Align.CENTER)
         self.wifi_hero.append(self.manage_hotspot)
         content.append(self.wifi_hero)
         tools = Gtk.Box(spacing=8)
-        tools.append(label("NEARBY NETWORKS", "section-label"))
+        self.network_tools = tools
+        tools.append(label("Networks", "section-label"))
+        search = button(icon="system-search-symbolic", callback=lambda: self.reveal_search("wifi"), css="header-button")
+        search.set_tooltip_text("Search networks · Ctrl+F")
+        tools.append(search)
         self.scan_wifi = button(icon="view-refresh-symbolic", callback=lambda: self.run_action("wifi_scan", {}, "Refreshing nearby networks…"), css="header-button")
         self.scan_wifi.set_tooltip_text("Scan for networks")
         tools.append(self.scan_wifi)
         content.append(tools)
-        self.network_search = Gtk.SearchEntry(placeholder_text="Search saved and nearby networks")
+        self.network_search = Gtk.SearchEntry(placeholder_text="Search networks")
         self.network_search.connect("search-changed", lambda *_args: self.filter_rows("networks", self.network_search.get_text()))
         content.append(self.network_search)
         self.networks = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE)
@@ -327,22 +347,32 @@ class Drawer(Adw.ApplicationWindow):
         content.append(self.networks)
         self.wifi_note = label("", "muted", wrap=True)
         content.append(self.wifi_note)
-        self.advanced_wifi = button("Advanced network settings", callback=self.open_editor, css="quiet-button")
+        self.advanced_wifi = button("More settings…", callback=self.open_editor, css="text-button")
         content.append(self.advanced_wifi)
 
     def build_bluetooth(self):
         content = self.new_page("bluetooth")
         self.bt_row, self.bt_switch = self.radio(content, "Bluetooth", "bt_power")
-        hero = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-        hero.add_css_class("hero")
-        hero.append(label("YOUR DEVICES", "hero-eyebrow"))
-        self.bt_headline = label("Ready when you are", "hero-title")
-        hero.append(self.bt_headline)
-        hero.append(label("Connected devices first. Nearby discovery stays off until you ask.", "hero-subtitle", wrap=True))
-        self.scan_bt = button("Find a device", callback=lambda: self.run_action("bt_scan", {}, "Looking for Bluetooth devices…"), css="hero-button")
+        hero = Gtk.Box(spacing=12)
+        hero.add_css_class("connection-summary")
+        hero.append(Gtk.Image(icon_name="bluetooth-symbolic", pixel_size=24))
+        description = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3, hexpand=True)
+        self.bt_headline = label("Not connected", "summary-title", wrap=True)
+        self.bt_description = label("", "summary-subtitle")
+        description.append(self.bt_headline)
+        description.append(self.bt_description)
+        hero.append(description)
+        self.scan_bt = button("Add", callback=lambda: self.run_action("bt_scan", {}, "Searching…"), css="quiet-button")
+        self.scan_bt.set_valign(Gtk.Align.CENTER)
+        self.scan_bt.set_tooltip_text("Find a device")
         hero.append(self.scan_bt)
         content.append(hero)
-        content.append(label("PAIRED & AVAILABLE", "section-label"))
+        tools = Gtk.Box(spacing=8)
+        tools.append(label("Devices", "section-label"))
+        search = button(icon="system-search-symbolic", callback=lambda: self.reveal_search("bluetooth"), css="header-button")
+        search.set_tooltip_text("Search devices · Ctrl+F")
+        tools.append(search)
+        content.append(tools)
         self.device_search = Gtk.SearchEntry(placeholder_text="Search devices")
         self.device_search.connect("search-changed", lambda *_args: self.filter_rows("devices", self.device_search.get_text()))
         content.append(self.device_search)
@@ -351,38 +381,63 @@ class Drawer(Adw.ApplicationWindow):
         content.append(self.devices)
         self.bt_note = label("", "muted", wrap=True)
         content.append(self.bt_note)
-        advanced = self.section(content, "NEARBY VISIBILITY")
+        more = Adw.ExpanderRow(title="More", use_markup=False)
+        advanced = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE)
+        advanced.add_css_class("boxed-list")
+        advanced.append(more)
+        content.append(advanced)
         self.bt_option_buttons = []
         for option, title in [("Discoverable", "Make this computer discoverable"), ("Pairable", "Allow incoming pairing")]:
-            row = self.action_row(title, "Two-minute window; never enabled automatically")
+            row = self.action_row(title)
+            row.set_tooltip_text("Allow for two minutes")
             allow = button("Allow…", callback=lambda value=option: self.run_action("bt_option", {"option": value, "enabled": True}, "Updating Bluetooth visibility…"), css="quiet-button")
             self.bt_option_buttons.append(allow)
             row.add_suffix(allow)
-            advanced.append(row)
+            more.add_row(row)
 
     def build_hotspot(self):
         content = self.new_page("hotspot")
-        self.hotspot_row, self.hotspot_switch = self.radio(content, "Personal hotspot", "hotspot_power")
         hero = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
         hero.add_css_class("hero")
         heading = Gtk.Box(spacing=10)
-        heading.append(Gtk.Image(icon_name="network-transmit-receive-symbolic", pixel_size=30))
-        heading.append(label("SHARE YOUR CONNECTION", "hero-eyebrow"))
+        heading.append(Gtk.Image(icon_name="network-transmit-receive-symbolic", pixel_size=24))
+        heading.append(label("Personal hotspot", "hero-label"))
         self.hotspot_badge = label("OFF", "badge")
         self.hotspot_badge.set_hexpand(False)
         self.hotspot_badge.set_ellipsize(Pango.EllipsizeMode.NONE)
         heading.append(self.hotspot_badge)
+        self.hotspot_switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        self.hotspot_switch.set_focus_on_click(False)
+        self.hotspot_switch.connect("state-set", lambda widget, state: self.radio_request(widget, state, "hotspot_power"))
+        heading.append(self.hotspot_switch)
         hero.append(heading)
         self.hotspot_name = label("Personal hotspot", "hero-title", wrap=True)
         self.hotspot_description = label("", "hero-subtitle", wrap=True)
         hero.append(self.hotspot_name)
         hero.append(self.hotspot_description)
-        self.share_button = button("Share password / QR", callback=self.share, css="hero-button")
-        hero.append(self.share_button)
+        actions = Gtk.Box(spacing=8)
+        self.share_button = button("Share QR", callback=self.share, css="suggested-action")
+        self.share_button.set_hexpand(True)
+        self.edit_hotspot = button("Edit", callback=lambda: self.navigate("hotspot-edit"), css="quiet-button")
+        actions.append(self.share_button)
+        actions.append(self.edit_hotspot)
+        hero.append(actions)
         content.append(hero)
-        self.upstream_note = label("", "info-note", wrap=True)
-        content.append(self.upstream_note)
-        fields = self.section(content, "HOTSPOT SETTINGS")
+        self.clients_heading = label("Devices", "section-label")
+        content.append(self.clients_heading)
+        self.clients = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE)
+        self.clients.add_css_class("boxed-list")
+        self.clients.add_css_class("device-list")
+        content.append(self.clients)
+        self.clients_note = label("", "muted", wrap=True)
+        content.append(self.clients_note)
+
+    def build_hotspot_editor(self):
+        content = self.new_page("hotspot-edit")
+        fields = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE)
+        fields.add_css_class("boxed-list")
+        fields.add_css_class("settings-list")
+        content.append(fields)
         self.ssid_entry = Adw.EntryRow(title="Network name", use_markup=False)
         self.password_entry = Adw.PasswordEntryRow(title="New password", use_markup=False)
         self.password_entry.set_tooltip_text("Leave blank to keep the saved password")
@@ -396,28 +451,20 @@ class Drawer(Adw.ApplicationWindow):
         self.password_entry.connect("changed", self.mark_dirty)
         self.band_row.connect("notify::selected", self.mark_dirty)
         actions = Gtk.Box(spacing=8)
-        self.save_button = button("Save settings", callback=self.save_hotspot, css="suggested-action")
+        self.save_button = button("Save", callback=self.save_hotspot, css="suggested-action")
         self.save_button.set_hexpand(True)
-        self.reload_button = button("Reset", callback=self.reset_form, css="quiet-button")
+        self.reload_button = button("Cancel", callback=self.cancel_edit, css="quiet-button")
         actions.append(self.save_button)
         actions.append(self.reload_button)
         content.append(actions)
-        self.form_note = label("Changes are staged until you apply them. Hotspots do not start automatically at login.", "muted", wrap=True)
+        self.form_note = label("", "muted", wrap=True)
+        self.form_note.set_visible(False)
         content.append(self.form_note)
-        self.clients_heading = label("CONNECTED DEVICES", "section-label")
-        content.append(self.clients_heading)
-        self.clients = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE)
-        self.clients.add_css_class("boxed-list")
-        content.append(self.clients)
-        self.clients_note = label("", "muted", wrap=True)
-        content.append(self.clients_note)
 
     def build_details(self):
         content = self.new_page("details")
-        self.detail_kind = label("CONNECTION DETAILS", "section-label")
         self.detail_title = label("", "detail-title", wrap=True)
         self.detail_subtitle = label("", "muted", wrap=True)
-        content.append(self.detail_kind)
         content.append(self.detail_title)
         content.append(self.detail_subtitle)
         self.detail_actions = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
@@ -427,17 +474,22 @@ class Drawer(Adw.ApplicationWindow):
         if self.updating:
             return
         self.page = page
+        self.header_title.set_text({"hotspot": "Hotspot", "hotspot-edit": "Edit hotspot", "details": "Details"}.get(page, "Connections"))
         self.updating = True
         self.tabs["wifi"].set_active(page != "bluetooth" and not (page == "details" and self.detail_target and self.detail_target[0] == "bluetooth"))
         self.tabs["bluetooth"].set_active(not self.tabs["wifi"].get_active())
         self.updating = False
         self.stack.set_visible_child_name(page)
+        if self.input_mode == "pointer":
+            idle_once(self.reset_open_focus)
         if page == "hotspot":
             self.request_read()
 
     def go_back(self):
         if self.page == "details":
-            self.navigate(self.detail_target[0])
+            self.navigate("hotspot" if self.detail_target[0] == "client" else self.detail_target[0])
+        elif self.page == "hotspot-edit":
+            self.navigate("hotspot")
         elif self.page == "hotspot":
             self.navigate("wifi")
         else:
@@ -454,17 +506,56 @@ class Drawer(Adw.ApplicationWindow):
                 return True
             self.go_back()
             return True
+        search = keyval in [Gdk.KEY_f, Gdk.KEY_F] and _state & Gdk.ModifierType.CONTROL_MASK
+        navigation = keyval in [Gdk.KEY_Tab, Gdk.KEY_ISO_Left_Tab, Gdk.KEY_Up, Gdk.KEY_Down, Gdk.KEY_Left, Gdk.KEY_Right, Gdk.KEY_Home, Gdk.KEY_End, Gdk.KEY_Page_Up, Gdk.KEY_Page_Down, Gdk.KEY_Return, Gdk.KEY_KP_Enter, Gdk.KEY_space]
+        if navigation or search:
+            self.input_mode = "keyboard"
+            self.add_css_class("keyboard-nav")
+            self.set_focus_visible(True)
+        if search:
+            if self.page in ["wifi", "bluetooth"]:
+                self.reveal_search(self.page)
+                return True
         return False
+
+    def pointer_input(self):
+        self.input_mode = "pointer"
+        self.remove_css_class("keyboard-nav")
+        self.set_focus_visible(False)
+
+    def reset_open_focus(self):
+        if self.input_mode == "pointer" and not self.closed and not self.get_visible_dialog():
+            self.set_focus_visible(False)
+            self.set_focus(None)
+
+    def reveal_search(self, radio):
+        entry = self.network_search if radio == "wifi" else self.device_search
+        if entry.get_sensitive():
+            entry.set_visible(True)
+            entry.grab_focus()
 
     def mark_dirty(self, *_args):
         if not self.updating:
             self.dirty = True
-            self.form_note.set_text("Unsaved changes · applying to a running hotspot requires a restart confirmation.")
+            self.form_note.set_text("Unsaved changes")
+            self.form_note.set_visible(True)
+            self.edit_hotspot.set_label("Edit •")
+            self.update_save_action()
+            self.set_controls()
 
     def reset_form(self):
         self.dirty = False
         self.form_revision = None
         self.render_hotspot(self.data.get("hotspot"))
+        self.set_controls()
+
+    def cancel_edit(self):
+        self.reset_form()
+        self.navigate("hotspot")
+
+    def update_save_action(self):
+        state = self.data.get("hotspot") or {}
+        self.save_button.set_label("Apply & restart…" if state.get("active") and self.dirty else "Save")
 
     def radio_request(self, switch, requested, action):
         if self.updating:
@@ -513,7 +604,7 @@ class Drawer(Adw.ApplicationWindow):
                     if not self.closed:
                         self.progress.set_reveal_child(False)
                         if isinstance(error, Cancelled):
-                            self.show_error("Request cancelled. Saved connections were kept.")
+                            self.error.set_reveal_child(False)
                         elif error:
                             self.show_error(str(error))
                         elif success:
@@ -559,6 +650,7 @@ class Drawer(Adw.ApplicationWindow):
                     if not self.watched:
                         self.service.watch(self.schedule_read)
                         self.watched = True
+                        idle_once(self.reset_open_focus)
                 return False
             GLib.idle_add(ready, priority=GLib.PRIORITY_DEFAULT)
         threading.Thread(target=worker, daemon=True).start()
@@ -575,7 +667,7 @@ class Drawer(Adw.ApplicationWindow):
     def poll_clients(self):
         if self.closed:
             return False
-        if self.page == "hotspot" and not self.busy:
+        if (self.page == "hotspot" or (self.page == "details" and self.detail_target and self.detail_target[0] == "client")) and not self.busy:
             self.request_read()
         return True
 
@@ -585,7 +677,7 @@ class Drawer(Adw.ApplicationWindow):
 
     def set_controls(self):
         hotspot = self.data.get("hotspot") or {}
-        for widget in [self.wifi_switch, self.bt_switch, self.hotspot_switch, self.ssid_entry, self.password_entry, self.band_row, self.save_button, self.reload_button, self.share_button, self.scan_wifi, self.scan_bt, self.detail_actions, self.advanced_wifi]:
+        for widget in [self.wifi_switch, self.bt_switch, self.hotspot_switch, self.ssid_entry, self.password_entry, self.band_row, self.save_button, self.reload_button, self.share_button, self.edit_hotspot, self.scan_wifi, self.scan_bt, self.detail_actions, self.advanced_wifi]:
             widget.set_sensitive(not self.busy)
         self.scan_wifi.set_sensitive(not self.busy and self.data.get("wifi_on", False) and not engaged(hotspot))
         self.scan_bt.set_sensitive(not self.busy and self.data.get("bluetooth_on", False))
@@ -595,7 +687,8 @@ class Drawer(Adw.ApplicationWindow):
         self.bt_switch.set_sensitive(not self.busy and bool(self.data) and not self.data.get("bluetooth_error"))
         for widget in [self.ssid_entry, self.password_entry, self.band_row]:
             widget.set_sensitive(not self.busy and hotspot.get("supported", False))
-        self.save_button.set_sensitive(not self.busy and hotspot.get("supported", False) and not transitioning)
+        self.save_button.set_sensitive(self.dirty and not self.busy and hotspot.get("supported", False) and not transitioning)
+        self.edit_hotspot.set_sensitive(not self.busy and hotspot.get("supported", False))
         self.share_button.set_sensitive(not self.busy and bool(hotspot.get("profile")))
         self.network_search.set_sensitive(self.data.get("wifi_on", False) and not engaged(hotspot))
         self.device_search.set_sensitive(self.data.get("bluetooth_on", False))
@@ -608,26 +701,40 @@ class Drawer(Adw.ApplicationWindow):
         self.bt_switch.set_active(self.data["bluetooth_on"])
         hotspot = self.data.get("hotspot")
         sharing = bool(hotspot and engaged(hotspot))
-        self.wifi_row.set_subtitle("Hotspot mode · radio on" if sharing else "Radio on" if self.data["wifi_on"] else self.data["wifi_error"] or "Radio off")
-        self.bt_row.set_subtitle("Radio on" if self.data["bluetooth_on"] else self.data["bluetooth_error"] or "Radio off")
+        self.wifi_row.set_subtitle("")
+        self.bt_row.set_subtitle("")
         connected = next((item for item in self.data["networks"] if item["connected"]), None)
         phase = (hotspot or {}).get("phase", "")
-        self.wifi_headline.set_text("Starting your hotspot…" if phase == "starting" else "Stopping sharing…" if phase == "stopping" else "You're sharing a connection" if sharing else connected["name"] if connected else "Ready to connect" if self.data["wifi_on"] else "A little offline time")
-        self.wifi_description.set_text(f"{hotspot['ssid']} · {hotspot['upstream']}" if sharing else f"{connected['strength']}% signal · saved profile" if connected else "Choose a saved or nearby network. Scanning only starts when you request it.")
-        self.wifi_note.set_text("The hotspot is using this adapter. Stop sharing in Hotspot settings before joining another network." if sharing else self.data["wifi_error"] or ("Turn Wi-Fi on to browse nearby networks." if not self.data["wifi_on"] else "No cached networks. Use Refresh to scan." if not self.data["networks"] else "Connected and saved networks are shown first."))
-        self.network_search.set_visible(not sharing)
+        self.wifi_headline.set_text("Starting hotspot…" if phase == "starting" else "Stopping hotspot…" if phase == "stopping" else hotspot["ssid"] if sharing else connected["name"] if connected else "Not connected" if self.data["wifi_on"] else "Wi-Fi off")
+        clients = self.data.get("clients")
+        description = "Hotspot · " + connected_text(len(clients) if clients is not None else None) if sharing else f"Connected · {connected['strength']}%" if connected else ""
+        self.wifi_description.set_text(description)
+        self.wifi_description.set_visible(bool(description))
+        note = self.data["wifi_error"] or ("No networks" if self.data["wifi_on"] and not sharing and not self.data["networks"] else "")
+        self.wifi_note.set_text(note)
+        self.wifi_note.set_visible(bool(note))
+        self.network_tools.set_visible(self.data["wifi_on"] and not sharing)
+        self.network_search.set_visible(not sharing and self.show_search(self.network_search, len(self.data["networks"])))
         self.networks.set_visible(not sharing)
-        self.update_rows("networks", self.networks, self.data["networks"], lambda entry: (entry["name"], f"{entry['strength']}% signal · " + ("Connected" if entry["connected"] else "Saved" if entry["profile"] else entry["security"]), "network-wireless-symbolic"), "wifi")
+        self.update_rows("networks", self.networks, self.data["networks"], lambda entry: (entry["name"], "Connected" if entry["connected"] else "Saved" if entry["profile"] else security_text(entry["security"]), "network-wireless-symbolic"), "wifi")
         self.filter_rows("networks", self.network_search.get_text())
         count = sum(bool(item.get("Connected")) for item in self.data["devices"])
-        self.bt_headline.set_text(f"{count} device(s) connected" if count else "Make a connection")
-        self.bt_note.set_text(self.data["bluetooth_error"] or ("Turn Bluetooth on to browse devices." if not self.data["bluetooth_on"] else "No cached devices. Find a device starts a bounded discovery session." if not self.data["devices"] else "Pairing and trust always require your explicit choice."))
-        self.update_rows("devices", self.devices, self.data["devices"], lambda entry: (entry["name"], ("Connected" if entry.get("Connected") else "Paired" if entry.get("Paired") else "Not paired") + (f" · {entry['battery']}% battery" if entry["battery"] is not None else ""), entry.get("Icon") or "bluetooth-symbolic"), "bluetooth")
+        self.bt_headline.set_text(connected_text(count) if self.data["bluetooth_on"] else "Bluetooth off")
+        self.bt_description.set_visible(False)
+        note = self.data["bluetooth_error"] or ("No devices" if self.data["bluetooth_on"] and not self.data["devices"] else "")
+        self.bt_note.set_text(note)
+        self.bt_note.set_visible(bool(note))
+        self.device_search.set_visible(self.show_search(self.device_search, len(self.data["devices"])))
+        self.update_rows("devices", self.devices, self.data["devices"], lambda entry: (entry["name"], "Connected" if entry.get("Connected") else "Paired" if entry.get("Paired") else "Available", entry.get("Icon") or "bluetooth-symbolic"), "bluetooth")
         self.filter_rows("devices", self.device_search.get_text())
         self.render_hotspot(hotspot)
         self.render_details()
         self.updating = False
         self.set_controls()
+
+    def show_search(self, entry, count):
+        focus = self.get_focus()
+        return bool(count > 5 or entry.get_text() or (focus and (focus == entry or focus.is_ancestor(entry))))
 
     def update_rows(self, key, box, entries, describe, radio=None):
         rows = self.row_maps.setdefault(key, {})
@@ -649,6 +756,14 @@ class Drawer(Adw.ApplicationWindow):
                 row = self.action_row(title, subtitle, icon)
                 if radio:
                     row.set_activatable(True)
+                    if key == "clients":
+                        row._status_image = Gtk.Image(pixel_size=16)
+                        row._status_image.add_css_class("status-icon")
+                        row.add_suffix(row._status_image)
+                    else:
+                        row._status_label = label("", "row-status")
+                        row._status_label.set_hexpand(False)
+                        row.add_suffix(row._status_label)
                     row.add_suffix(Gtk.Image(icon_name="go-next-symbolic"))
                     row.connect("activated", lambda _row, value=identity, kind=radio: self.open_details(kind, value))
                 rows[identity] = row
@@ -657,7 +772,7 @@ class Drawer(Adw.ApplicationWindow):
             row = rows[identity]
             if box.get_row_at_index(index) != row:
                 focused = self.get_focus()
-                restore = bool(focused and focused.is_ancestor(row))
+                restore = bool(self.input_mode == "keyboard" and focused and focused.is_ancestor(row))
                 box.remove(row)
                 box.insert(row, index)
                 if restore:
@@ -665,6 +780,13 @@ class Drawer(Adw.ApplicationWindow):
             row.set_title(text(title))
             row.set_subtitle(text(subtitle))
             row._search = title.casefold()
+            if key == "clients":
+                row._status_image.set_from_icon_name(signal_icon(entry["signal"]))
+                row._status_image.set_tooltip_text(f"{entry['signal']} dBm" if entry["signal"] is not None else "Signal unavailable")
+            elif radio:
+                value = entry.get("battery") if key == "devices" else entry.get("strength")
+                row._status_label.set_text(f"{value}%" if value is not None else "")
+                row._status_label.set_tooltip_text("Battery" if key == "devices" else "Signal")
 
     def filter_rows(self, key, search):
         for row in self.row_maps.get(key, {}).values():
@@ -672,22 +794,19 @@ class Drawer(Adw.ApplicationWindow):
 
     def render_hotspot(self, state):
         if not state:
-            self.hotspot_description.set_text(self.data.get("wifi_error") or "No compatible Wi-Fi adapter is available.")
+            self.hotspot_description.set_text(self.data.get("wifi_error") or "Unavailable")
             return
         previous_updating = self.updating
         self.updating = True
         self.hotspot_switch.set_active(state["active"])
         phase = state.get("phase", "active" if state["active"] else "inactive")
-        self.hotspot_row.set_subtitle("Starting sharing…" if phase == "starting" else "Stopping sharing…" if phase == "stopping" else "Sharing is active" if state["active"] else "Saved profile ready" if state["profile"] else "Create a protected hotspot")
         self.hotspot_name.set_text(state["ssid"])
         self.hotspot_badge.set_text("LIVE" if state["active"] else phase.upper() if phase != "inactive" else "OFF")
+        self.hotspot_badge.set_visible(phase in ["starting", "stopping"])
         clients = self.data.get("clients")
-        count = "Client details unavailable" if clients is None else f"{len(clients)} connected device(s)"
-        self.hotspot_description.set_text(count if state["active"] else "A private connection, ready when you need it.")
-        note = ("Sharing via " if state["shared"] else "Upstream: ") + state["upstream"]
-        if state["metered"] or state["upstream"] == "Mobile broadband":
-            note += " · Mobile or metered data may be used."
-        self.upstream_note.set_text(note)
+        count = connected_text(len(clients) if clients is not None else None)
+        self.hotspot_description.set_text(f"{state['upstream']} · {count}" if state["active"] else "Off")
+        self.hotspot_description.set_tooltip_text("Uses mobile or metered data" if state["metered"] or state["upstream"] == "Mobile broadband" else None)
         revision = (state["profile"], state["ssid"], state["band"], tuple(state["bands"]))
         if not self.dirty and not self.busy and revision != self.form_revision:
             self.form_revision = revision
@@ -697,11 +816,15 @@ class Drawer(Adw.ApplicationWindow):
             self.band_ids = list(state["bands"])
             self.band_row.set_model(Gtk.StringList.new([{"": "Automatic", "bg": "2.4 GHz", "a": "5 GHz"}[value] for value in self.band_ids]))
             self.band_row.set_selected(self.band_ids.index(state["band"]) if state["band"] in self.band_ids else 0)
-            self.form_note.set_text("Changes are staged until you apply them. Closing this drawer does not stop an active hotspot.")
-        self.save_button.set_label("Apply & restart…" if state["active"] else "Save settings")
-        self.clients_heading.set_text("CONNECTED DEVICES" + (f"  /  {len(clients)}" if clients is not None else ""))
-        self.update_rows("clients", self.clients, clients or [], lambda entry: (entry["name"], " · ".join(filter(None, [entry.get("ip"), entry["mac"], f"{entry['signal']} dBm" if entry["signal"] is not None else "", size_text(entry["rx"] + entry["tx"])])), "network-workgroup-symbolic"))
-        self.clients_note.set_text("Traffic shown is per device since it connected—not a billing meter." if clients else "Client statistics are unavailable." if clients is None and state["active"] else "No devices are connected.")
+            self.form_note.set_text("")
+            self.form_note.set_visible(False)
+        self.edit_hotspot.set_label("Edit •" if self.dirty else "Edit")
+        self.update_save_action()
+        self.clients_heading.set_text("Devices" + (f" · {len(clients)}" if clients else ""))
+        self.update_rows("clients", self.clients, clients or [], lambda entry: (client_name(entry), "", None), "client")
+        note = "Details unavailable" if clients is None and state["active"] else "No devices" if not clients else ""
+        self.clients_note.set_text(note)
+        self.clients_note.set_visible(bool(note))
         self.updating = previous_updating
 
     def save_hotspot(self):
@@ -732,6 +855,9 @@ class Drawer(Adw.ApplicationWindow):
         self.dirty = False
         self.form_revision = None
         self._pending_form = None
+        self.form_note.set_visible(False)
+        if self.page == "hotspot-edit":
+            self.navigate("hotspot")
 
     def open_details(self, radio, identity):
         self.detail_target = (radio, identity)
@@ -742,26 +868,58 @@ class Drawer(Adw.ApplicationWindow):
         if not self.detail_target or self.page != "details":
             return
         radio, identity = self.detail_target
-        entries = self.data.get("networks" if radio == "wifi" else "devices", [])
-        entry = next((item for item in entries if item["path"] == identity), None)
+        entries = (self.data.get("clients") or []) if radio == "client" else self.data.get("networks" if radio == "wifi" else "devices", [])
+        entry = next((item for item in entries if item.get("mac") == identity), None) if radio == "client" else next((item for item in entries if item["path"] == identity), None)
         if entry is None:
             while child := self.detail_actions.get_first_child():
                 self.detail_actions.remove(child)
             self.detail_signature = None
+            self.client_value_labels.clear()
             self.detail_title.set_text("No longer available")
-            self.detail_subtitle.set_text("Go back and refresh the list.")
+            self.detail_subtitle.set_text("")
+            return
+        if radio == "client":
+            self.detail_title.set_text(client_name(entry))
+            self.detail_subtitle.set_text("")
+            self.detail_subtitle.set_visible(False)
+            fields = [("IP address", entry.get("ip") or "—"), ("MAC address", entry["mac"]), ("Signal", f"{entry['signal']} dBm" if entry["signal"] is not None else "—"), ("Received", size_text(entry["tx"])), ("Sent", size_text(entry["rx"])), ("Connected", elapsed_text(entry["seconds"]))]
+            signature = (radio, identity)
+            if signature != self.detail_signature:
+                self.detail_signature = signature
+                self.client_value_labels.clear()
+                while child := self.detail_actions.get_first_child():
+                    self.detail_actions.remove(child)
+                values = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE)
+                values.add_css_class("boxed-list")
+                values.add_css_class("settings-list")
+                for title, value in fields:
+                    row = self.action_row(title)
+                    result = label(value, "row-status")
+                    result.set_hexpand(False)
+                    result.set_selectable(True)
+                    self.client_value_labels[title] = result
+                    row.add_suffix(result)
+                    if title in ["Received", "Sent"]:
+                        row.set_tooltip_text("Since this device connected")
+                    values.append(row)
+                self.detail_actions.append(values)
+            for title, value in fields:
+                target = self.client_value_labels[title]
+                if target.get_text() != value:
+                    target.set_text(value)
             return
         self.detail_title.set_text(entry["name"])
-        self.detail_kind.set_text("WI-FI NETWORK" if radio == "wifi" else "BLUETOOTH DEVICE")
+        self.detail_subtitle.set_visible(True)
         if radio == "wifi":
-            self.detail_subtitle.set_text(f"{entry['strength']}% signal · {entry['security']} · " + ("Saved profile" if entry["profile"] else "Not saved"))
+            self.detail_subtitle.set_text(f"{entry['strength']}% · {security_text(entry['security'])}")
             actions = [("Disconnect" if entry["connected"] else "Connect", "wifi_disconnect" if entry["connected"] else "wifi_connect", "suggested-action")]
             if entry["profile"]:
                 if entry["security"] in ["wpa-psk", "sae"]:
-                    actions.append(("Update saved password", "wifi_password", "quiet-button"))
+                    actions.append(("Update password", "wifi_password", "quiet-button"))
                 actions.append(("Forget network…", "wifi_forget", "destructive-action"))
         else:
-            self.detail_subtitle.set_text(("Connected" if entry.get("Connected") else "Paired" if entry.get("Paired") else "Not paired") + " · " + entry["Address"])
+            self.detail_subtitle.set_text("Connected" if entry.get("Connected") else "Paired" if entry.get("Paired") else "Available")
+            self.detail_subtitle.set_tooltip_text(entry["Address"])
             actions = [("Disconnect" if entry.get("Connected") else "Connect", "bt_disconnect" if entry.get("Connected") else "bt_connect", "suggested-action")] if entry.get("Paired") else [("Pair device…", "bt_pair", "suggested-action")]
             if entry.get("Paired"):
                 actions.extend([("Remove trust" if entry.get("Trusted") else "Trust device…", "bt_trust", "quiet-button"), ("Forget device…", "bt_forget", "destructive-action")])
@@ -770,7 +928,7 @@ class Drawer(Adw.ApplicationWindow):
             return
         self.detail_signature = signature
         focused = self.get_focus()
-        restore_focus = bool(focused and focused.is_ancestor(self.detail_actions))
+        restore_focus = bool(self.input_mode == "keyboard" and focused and focused.is_ancestor(self.detail_actions))
         while child := self.detail_actions.get_first_child():
             self.detail_actions.remove(child)
         for title, action, css in actions:
@@ -800,7 +958,7 @@ class Drawer(Adw.ApplicationWindow):
 
     def show_share(self, credentials):
         ssid, password = credentials
-        dialog = Adw.AlertDialog(heading="Share your hotspot", body="Only show this code to people you trust. Clipboard history may retain copied passwords.")
+        dialog = Adw.AlertDialog(heading="Share hotspot")
         dialog.add_response("close", "Done")
         dialog.set_close_response("close")
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
@@ -812,7 +970,9 @@ class Drawer(Adw.ApplicationWindow):
             value.init(GObject.TYPE_STRING)
             value.set_string(password)
             self.get_clipboard().set(value)
-        box.append(button("Copy password", callback=copy_password, css="quiet-button"))
+        copy = button("Copy password", callback=copy_password, css="quiet-button")
+        copy.set_tooltip_text("Clipboard history may retain copied passwords")
+        box.append(copy)
         try:
             texture = Gdk.Texture.new_from_bytes(GLib.Bytes.new(qr_png(ssid, password)))
             picture = Gtk.Picture.new_for_paintable(texture)
@@ -845,6 +1005,7 @@ class Drawer(Adw.ApplicationWindow):
         self.password_entry.set_text("")
         self.updating = False
         self.dirty = False
+        self.form_revision = None
         if self.busy:
             self.backdrop.set_visible(False)
             self.set_visible(False)
@@ -854,11 +1015,13 @@ class Drawer(Adw.ApplicationWindow):
 
     def resume(self):
         self.closed = False
+        self.pointer_input()
         self.visibility_generation += 1
         self.poll_source = GLib.timeout_add_seconds(3, self.poll_clients)
         if not self.busy:
             self.backdrop.present()
         self.present()
+        idle_once(self.reset_open_focus)
         self.request_read()
 
 
@@ -927,8 +1090,10 @@ class Application(Adw.Application):
             self.window.navigate(self.options.page)
             return
         if self.window and not self.window.closed:
+            self.window.pointer_input()
             self.window.navigate(self.options.page)
             self.window.present()
+            idle_once(self.window.reset_open_focus)
             return
         if not Layer.is_supported():
             raise RuntimeError("The native drawer requires a Wayland layer-shell compositor.")
