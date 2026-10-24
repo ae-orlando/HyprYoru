@@ -4,4 +4,4 @@
 # GitHub: https://github.com/ae-orlando
 set -euo pipefail
 dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-exec python -B "$dir/connectivity/menu.py" bluetooth "$@"
+exec python -B "$dir/connectivity/launch.py" bluetooth "$@"

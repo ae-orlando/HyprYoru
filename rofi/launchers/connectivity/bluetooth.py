@@ -7,7 +7,7 @@ GitHub: https://github.com/ae-orlando
 from pathlib import Path
 import subprocess
 
-from common import Cancelled, ConnectionError, Gio, GLib, call, close_notice, notify, props, set_prop, wait_for
+from common import Cancelled, ConnectionError, Gio, GLib, authorization_flags, call, close_notice, notify, private_context, props, set_prop, wait_for
 
 SERVICE = "org.bluez"
 ADAPTER = SERVICE + ".Adapter1"
@@ -95,7 +95,11 @@ class Bluetooth:
                 call(self.bus, SERVICE, path, ADAPTER, "StopDiscovery")
 
     def _await(self, path, method, cancel=None):
-        loop = GLib.MainLoop()
+        if GLib.MainContext.get_thread_default() is None:
+            with private_context():
+                return self._await(path, method, cancel)
+        context = GLib.MainContext.get_thread_default()
+        loop = GLib.MainLoop.new(context, False)
         outcome = []
 
         def complete(connection, result, *_user_data):
@@ -106,18 +110,20 @@ class Bluetooth:
                 outcome.append(ConnectionError(error.message))
             loop.quit()
 
-        self.bus.call(SERVICE, path, DEVICE, method, None, None, Gio.DBusCallFlags.NONE, 35000, None, complete)
-        watcher = 0
+        self.bus.call(SERVICE, path, DEVICE, method, None, None, authorization_flags(), 35000, None, complete)
+        watcher = None
         if cancel is not None:
             def check_cancel():
                 if not cancel.is_set():
                     return True
                 try:
-                    call(self.bus, SERVICE, path, DEVICE, "Disconnect")
+                    call(self.bus, SERVICE, path, DEVICE, "CancelPairing" if method == "Pair" else "Disconnect")
                 except ConnectionError:
                     pass
                 return False
-            watcher = GLib.timeout_add(100, check_cancel)
+            watcher = GLib.timeout_source_new(100)
+            watcher.set_callback(lambda *_args: check_cancel())
+            watcher.attach(context)
         try:
             loop.run()
             if self._pair_cancelled or (cancel is not None and cancel.is_set()):
@@ -125,9 +131,8 @@ class Bluetooth:
             if outcome[0]:
                 raise outcome[0]
         finally:
-            source = GLib.MainContext.default().find_source_by_id(watcher) if watcher else None
-            if source:
-                source.destroy()
+            if watcher:
+                watcher.destroy()
 
     def connect(self, device, cancel):
         self._pair_cancelled = False
@@ -151,7 +156,11 @@ class Bluetooth:
             set_prop(self.bus, SERVICE, path, ADAPTER, option + "Timeout", "u", 120)
         set_prop(self.bus, SERVICE, path, ADAPTER, option, "b", enabled)
 
-    def pair(self, device, menu):
+    def pair(self, device, menu, cancel=None):
+        with private_context():
+            return self._pair(device, menu, cancel)
+
+    def _pair(self, device, menu, cancel=None):
         self._pair_cancelled = False
         owner = call(self.bus, "org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus", "GetNameOwner", "(s)", (SERVICE,)).unpack()[0]
         notice = notify("Pairing with " + device["name"] + "…", timeout=35000)
@@ -193,7 +202,7 @@ class Bluetooth:
             call(self.bus, SERVICE, "/org/bluez", SERVICE + ".AgentManager1", "RegisterAgent", "(os)", (AGENT, "KeyboardDisplay"))
             registered = True
             # Register only for this process; never replace the user's default agent.
-            self._await(device["path"], "Pair")
+            self._await(device["path"], "Pair", cancel)
         finally:
             if registered:
                 try:

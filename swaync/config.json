@@ -89,7 +89,7 @@
                     },
                     {
                         "label": "  Suspend",
-                        "command": "swaync-client -cp; hyprshutdown suspend 2>/dev/null || systemctl suspend"
+                        "command": "swaync-client -cp; systemctl suspend"
                     },
                     {
                         "label": "  Power menu",

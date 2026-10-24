@@ -176,7 +176,9 @@ class BluetoothTests(unittest.TestCase):
         class Bus:
             def call(self, *args):
                 self.arguments = args
-                GLib.idle_add(lambda: (args[-1](self, object(), None), False)[1])
+                source = GLib.idle_source_new()
+                source.set_callback(lambda *_args: (args[-1](self, object(), None), False)[1])
+                source.attach(GLib.MainContext.get_thread_default())
             def call_finish(self, result):
                 return GLib.Variant("()", ())
         bus = Bus()
@@ -233,7 +235,9 @@ class BluetoothTests(unittest.TestCase):
 
 class ControllerTests(unittest.TestCase):
     def app(self, radio="wifi"):
-        return menu.Connections(radio, backend=Mock(), ui=Mock())
+        hotspot = Mock()
+        hotspot.snapshot.return_value = {"active": False, "ssid": "Demo"}
+        return menu.Connections(radio, backend=Mock(), ui=Mock(), hotspot=hotspot)
 
     def test_forget_requires_explicit_confirmation(self):
         app = self.app()

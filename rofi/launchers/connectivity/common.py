@@ -5,6 +5,7 @@ GitHub: https://github.com/ae-orlando
 """
 
 from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass
 import fcntl
 import os
@@ -16,6 +17,22 @@ import gi
 
 gi.require_version("Gio", "2.0")
 from gi.repository import Gio, GLib
+
+_interactive = ContextVar("yoru_interactive_authorization", default=False)
+
+
+@contextmanager
+def interactive_authorization():
+    """Allow PolicyKit dialogs only inside an explicit user-requested action."""
+    token = _interactive.set(True)
+    try:
+        yield
+    finally:
+        _interactive.reset(token)
+
+
+def authorization_flags():
+    return Gio.DBusCallFlags.ALLOW_INTERACTIVE_AUTHORIZATION if _interactive.get() else Gio.DBusCallFlags.NONE
 
 
 class ConnectionError(Exception):
@@ -43,10 +60,12 @@ def text(value):
 
 def call(bus, service, path, interface, method, signature=None, args=(), timeout=5000):
     try:
+        protected = method in ["GetSecrets", "Set", "Update", "AddConnection", "AddAndActivateConnection", "ActivateConnection", "DeactivateConnection", "Delete", "CheckpointCreate", "CheckpointAdjustRollbackTimeout", "CheckpointRollback", "CheckpointDestroy"]
+        deadline = max(timeout, 120000) if _interactive.get() and protected else timeout
         result = bus.call_sync(
             service, path, interface, method,
             GLib.Variant(signature, args) if signature else None,
-            None, Gio.DBusCallFlags.NONE, timeout, None,
+            None, authorization_flags(), deadline, None,
         )
         return result
     except GLib.Error as error:
@@ -93,6 +112,17 @@ def close_notice(notification_id):
         call(bus, "org.freedesktop.Notifications", "/org/freedesktop/Notifications", "org.freedesktop.Notifications", "CloseNotification", "(u)", (notification_id,))
     except (GLib.Error, ConnectionError):
         pass
+
+
+@contextmanager
+def private_context():
+    """Keep backend async callbacks off the native GTK main context."""
+    context = GLib.MainContext.new()
+    context.push_thread_default()
+    try:
+        yield context
+    finally:
+        context.pop_thread_default()
 
 
 @contextmanager

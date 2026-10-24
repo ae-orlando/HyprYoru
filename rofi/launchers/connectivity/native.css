@@ -1,0 +1,62 @@
+/* Native Yoru Connections — quiet Material surfaces, precise hierarchy.
+ * Author: ae Orland
+ * GitHub: https://github.com/ae-orlando
+ */
+@define-color window_bg_color @surface_container_low;
+@define-color window_fg_color @on_surface;
+@define-color view_bg_color @surface_container;
+@define-color view_fg_color @on_surface;
+@define-color card_bg_color @surface_container;
+@define-color card_fg_color @on_surface;
+@define-color dialog_bg_color @surface_container_high;
+@define-color dialog_fg_color @on_surface;
+@define-color accent_bg_color @primary;
+@define-color accent_fg_color @on_primary;
+@define-color accent_color @primary;
+@define-color destructive_bg_color @error_container;
+@define-color destructive_fg_color @on_error_container;
+@define-color destructive_color @error;
+
+* { font-family: "Adwaita Sans", "GoMono Nerd Font Propo", sans-serif; font-size: 13px; text-shadow: none; }
+.connections-window, .connections-backdrop { background: transparent; }
+.drawer-shell { background: @surface_container_low; border: 1px solid alpha(@outline, 0.3); border-radius: 24px; color: @on_surface; }
+.drawer-header { padding: 18px 16px 14px; }
+.eyebrow { font-size: 9px; font-weight: 700; letter-spacing: 1.6px; color: @on_surface_variant; }
+.drawer-title { font-size: 21px; font-weight: 800; letter-spacing: -0.5px; }
+.header-button { background: transparent; border: 1px solid transparent; border-radius: 45px; min-width: 28px; min-height: 28px; padding: 4px; box-shadow: none; }
+.header-button:hover { background: alpha(@primary, 0.12); color: @primary; }
+.page-tabs { margin: 0 16px 4px; padding: 4px; border: 1px solid alpha(@outline_variant, 0.5); border-radius: 45px; background: @surface_container; }
+.page-tabs button { border: none; border-radius: 45px; padding: 7px 14px; background: transparent; color: @on_surface_variant; font-weight: 600; box-shadow: none; }
+.page-tabs button:checked { background: @primary_container; color: @on_primary_container; }
+.page-content { padding: 12px 16px 18px; }
+.boxed-list { background: @surface_container; border: 1px solid alpha(@outline_variant, 0.5); border-radius: 16px; box-shadow: none; }
+.boxed-list row { background: transparent; padding: 4px 2px; border-radius: 12px; box-shadow: none; }
+.boxed-list row:hover { background: alpha(@on_surface, 0.035); }
+.boxed-list row .title { font-size: 13px; font-weight: 600; }
+.boxed-list row .subtitle { font-size: 11px; color: @on_surface_variant; }
+.row-icon { color: @primary; }
+.hero { padding: 18px; border: 1px solid alpha(@primary, 0.24); border-radius: 18px; background: linear-gradient(135deg, @primary_container, @surface_container_high); color: @on_primary_container; }
+.hero-eyebrow { font-size: 9px; font-weight: 700; letter-spacing: 1.3px; color: alpha(@on_primary_container, 0.8); }
+.hero-title { font-size: 23px; font-weight: 800; letter-spacing: -0.7px; }
+.hero-subtitle { font-size: 12px; color: alpha(@on_primary_container, 0.85); line-height: 1.4; }
+.hero-button { padding: 8px 12px; margin-top: 4px; background: alpha(@on_primary_container, 0.09); border: 1px solid alpha(@on_primary_container, 0.16); border-radius: 45px; color: @on_primary_container; box-shadow: none; font-size: 12px; font-weight: 600; }
+.hero-button:hover { background: alpha(@on_primary_container, 0.16); }
+.badge { min-width: 32px; padding: 4px 8px; border-radius: 45px; background: alpha(@on_primary_container, 0.12); color: @on_primary_container; font-size: 9px; font-weight: 800; letter-spacing: 0.8px; }
+.section-label { color: @on_surface_variant; font-size: 10px; font-weight: 700; letter-spacing: 1.1px; margin: 4px 2px 0; }
+.muted { color: @on_surface_variant; font-size: 11px; line-height: 1.5; }
+.info-note { background: alpha(@tertiary, 0.08); color: @on_surface_variant; border-radius: 12px; padding: 10px 12px; font-size: 11px; line-height: 1.4; }
+.operation { margin: 8px 16px 0; padding: 10px; border-radius: 12px; background: alpha(@primary, 0.1); color: @primary; }
+.error-banner { margin: 8px 16px 0; padding: 10px; border-radius: 12px; background: @error_container; color: @on_error_container; }
+.error-banner button { background: transparent; border: none; box-shadow: none; }
+.quiet-button { background: @surface_container_high; color: @on_surface; border: 1px solid alpha(@outline, 0.2); border-radius: 45px; padding: 7px 12px; box-shadow: none; }
+.suggested-action { background: @primary; color: @on_primary; border-radius: 45px; padding: 9px 14px; box-shadow: none; }
+.destructive-action { background: @error_container; color: @on_error_container; border-radius: 45px; padding: 9px 14px; box-shadow: none; }
+.detail-title { font-size: 24px; font-weight: 800; }
+.share-name { font-size: 16px; font-weight: 700; }
+.secret-entry { border-radius: 12px; padding: 8px; }
+.qr-code { background: white; border-radius: 12px; padding: 8px; }
+switch { border-radius: 45px; }
+switch:checked { background: @primary; color: @on_primary; }
+button:focus-visible, switch:focus-visible, entry:focus-within { outline: 2px solid @primary; outline-offset: 2px; }
+scrollbar { background: transparent; }
+scrollbar slider { background: alpha(@on_surface, 0.18); border-radius: 45px; min-width: 4px; }

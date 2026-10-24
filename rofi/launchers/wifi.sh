@@ -3,7 +3,7 @@
 # GitHub: https://github.com/ae-orlando
 # _______________________________________________________________________
 
-# Compatibility entry point: all presentation and actions live in one controller.
+# Compatibility entry point: native drawer by default, --legacy for Rofi.
 set -euo pipefail
 dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-exec python -B "$dir/connectivity/menu.py" wifi "$@"
+exec python -B "$dir/connectivity/launch.py" wifi "$@"

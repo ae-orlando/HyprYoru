@@ -14,10 +14,11 @@ from bluetooth import Bluetooth, input_device
 from common import Cancelled, ConnectionError, GLib, Row, notify, operation_lock, panel, panel_visible, text
 from ui import Menu
 from wifi import Wifi
+from hotspot import Hotspot, engaged
 
 
 class Connections:
-    def __init__(self, radio, origin=False, backend=None, ui=None):
+    def __init__(self, radio, origin=False, backend=None, ui=None, hotspot=None):
         self.radio = radio
         self.origin = origin
         self.backend = backend if backend is not None else (Wifi() if radio == "wifi" else Bluetooth())
@@ -26,8 +27,12 @@ class Connections:
         self.target = ""
         self.message = ""
         self.entries = {}
+        self.hotspot = hotspot if hotspot is not None else Hotspot(self.backend) if radio == "wifi" else None
 
     def power(self, enabled):
+        if self.radio == "wifi" and not enabled and engaged(self.hotspot.snapshot()):
+            if not self.ui.confirm("Stop hotspot and Wi-Fi?", "Turning Wi-Fi off stops your hotspot and disconnects its clients. Saved credentials will be kept."):
+                raise Cancelled()
         if self.radio == "bluetooth" and not enabled:
             devices = self.backend.connected_inputs()
             if devices and not self.ui.confirm("Turn Bluetooth off?", "This disconnects input devices: " + ", ".join(map(text, devices))):
@@ -40,14 +45,17 @@ class Connections:
         self.entries = {}
         title = "Wi-Fi" if self.radio == "wifi" else "Bluetooth"
         if powered and self.radio == "wifi":
-            entries = self.backend.networks()
+            hotspot = self.hotspot.snapshot()
+            entries = [] if engaged(hotspot) else self.backend.networks()
             for entry in entries:
                 status = "Connected" if entry["connected"] else "Saved" if entry["profile"] else "Open" if entry["security"] == "open" else "Secured"
                 rows.append(Row(f"{entry['name']}  ·  {status}  ·  {entry['strength']}%", "details", entry["path"], active=entry["connected"], icon="network-wireless"))
                 self.entries[entry["path"]] = entry
             connected = next((entry["name"] for entry in entries if entry["connected"]), None)
-            status = "Connected to " + connected if connected else "On · choose a network · Refresh scans for changes"
-            rows.append(Row("Refresh networks", "scan", icon="view-refresh"))
+            status = "Hotspot mode · " + hotspot["ssid"] if engaged(hotspot) else "Connected to " + connected if connected else "On · choose a network · Refresh scans for changes"
+            rows.append(Row("Hotspot settings", "hotspot", icon="network-transmit-receive"))
+            if not engaged(hotspot):
+                rows.append(Row("Refresh networks", "scan", icon="view-refresh"))
         elif powered:
             entries = self.backend.devices()
             for entry in entries:
@@ -118,6 +126,9 @@ class Connections:
         if row.action == "advanced":
             self.view = "advanced"
             return True
+        if row.action == "hotspot":
+            subprocess.Popen([sys.executable, "-B", str(__import__("pathlib").Path(__file__).with_name("launch.py")), "wifi", "--page", "hotspot", *(["--from-swaync"] if self.origin else [])], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+            return False
         if row.action == "editor":
             executable = shutil.which("nm-connection-editor")
             if not executable:
@@ -129,6 +140,8 @@ class Connections:
         return True
 
     def perform(self, row):
+        if self.radio == "wifi" and row.action in ["scan", "connect", "disconnect", "forget", "password"] and engaged(self.hotspot.snapshot()):
+            raise ConnectionError("Hotspot mode is active. Stop sharing explicitly before changing Wi-Fi connections.")
         if row.action.startswith("power_"):
             self.power(row.action == "power_on")
             self.view = "root"
@@ -219,7 +232,8 @@ def main(argv=None):
             # The requested state is explicit: rapid clicks cannot blindly invert it.
             with operation_lock(args.radio):
                 enabled = not backend.powered() if args.power == "toggle" else args.power in ["on", "true"]
-                if args.radio == "bluetooth" and not enabled and backend.connected_inputs():
+                needs_guard = not enabled and (backend.connected_inputs() if args.radio == "bluetooth" else engaged(Hotspot(backend).snapshot()))
+                if needs_guard:
                     if was_visible:
                         panel(False)
                     try:
