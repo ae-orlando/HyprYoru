@@ -26,7 +26,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Gdk", "4.0")
 gi.require_version("Adw", "1")
 gi.require_version("Gtk4LayerShell", "1.0")
-from gi.repository import Adw, Gdk, Gio, GLib, GObject, Gtk, Gtk4LayerShell as Layer, Pango
+from gi.repository import Adw, Gdk, Gio, GLib, Gtk, Gtk4LayerShell as Layer, Pango
 
 from common import Cancelled, ConnectionError, panel, text
 from hotspot import engaged, generate_password, qr_png
@@ -966,12 +966,15 @@ class Drawer(Adw.ApplicationWindow):
         secret = Gtk.PasswordEntry(text=password, editable=False, show_peek_icon=True)
         box.append(secret)
         def copy_password():
-            value = GObject.Value()
-            value.init(GObject.TYPE_STRING)
-            value.set_string(password)
-            self.get_clipboard().set(value)
+            # wl-paste marks this MIME offer as sensitive; Yoru's history
+            # watcher will never persist the hotspot password.
+            provider = Gdk.ContentProvider.new_union([
+                Gdk.ContentProvider.new_for_bytes("text/plain;charset=utf-8", GLib.Bytes.new(password.encode("utf-8"))),
+                Gdk.ContentProvider.new_for_bytes("x-kde-passwordManagerHint", GLib.Bytes.new(b"secret")),
+            ])
+            self.get_clipboard().set_content(provider)
         copy = button("Copy password", callback=copy_password, css="quiet-button")
-        copy.set_tooltip_text("Clipboard history may retain copied passwords")
+        copy.set_tooltip_text("Excluded from Yoru clipboard history")
         box.append(copy)
         try:
             texture = Gdk.Texture.new_from_bytes(GLib.Bytes.new(qr_png(ssid, password)))

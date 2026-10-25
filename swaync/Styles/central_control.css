@@ -23,11 +23,11 @@
 .control-center .control-center-list-placeholder {
   color: @ink-faint;
   opacity: 1;
-  padding: 24px 12px;
+  padding: 20px 12px;
 }
 
 .control-center-list-placeholder image {
-  opacity: 0.3;
+  opacity: 0.22;
 }
 
 .control-center-list-placeholder label {
@@ -40,7 +40,7 @@
 .widget-menubar {
   background: transparent;
   margin: 0;
-  padding: 18px 16px 12px;
+  padding: 18px 16px 14px;
 }
 
 .widget-menubar > .menu-button-bar > .start,
@@ -53,14 +53,14 @@
 }
 
 .widget-menubar > .menu-button-bar > .widget-menubar-container button {
-  background: @chip;
+  background: transparent;
   border: 1px solid transparent;
   border-radius: var(--radius-pill);
-  padding: 4px 12px;
+  padding: 4px 10px;
   margin: 0;
-  min-height: 30px;
+  min-height: 28px;
   min-width: 20px;
-  color: @ink;
+  color: @ink-dim;
 }
 
 .widget-menubar > .menu-button-bar > .widget-menubar-container button:hover,
@@ -78,9 +78,10 @@
 }
 
 .widget-menubar .user > button > label {
-  font-size: 19px;
-  font-weight: 700;
-  letter-spacing: -0.4px;
+  font-size: 21px;
+  font-weight: 750;
+  letter-spacing: -0.5px;
+  color: @ink;
 }
 
 .widget-menubar .end > button > label {
@@ -97,7 +98,7 @@
 .widget-menubar > revealer > .power,
 .widget-menubar > revealer > .tools {
   background: @card;
-  border: 1px solid @line-soft;
+  border: 1px solid transparent;
   border-radius: var(--radius-card);
   margin: 12px 0 0;
   padding: 6px;
@@ -115,23 +116,8 @@
 
 .widget-menubar > revealer button:hover {
   background: @accent-soft;
-  border-color: @accent-line;
+  border-color: transparent;
   color: @accent;
-}
-
-/* ==================== SECTION LABELS ==================== */
-
-.widget-label {
-  background: transparent;
-  margin: 0;
-  padding: 4px 20px 6px;
-}
-
-.widget-label > label {
-  color: @ink-faint;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1.4px;
 }
 
 /* ==================== TITLE + NOTIFICATIONS ==================== */
@@ -139,19 +125,19 @@
 .widget-title {
   border-top: 1px solid @line-soft;
   border-radius: 0;
-  margin: 14px 0 0;
-  padding: 12px 20px 8px;
+  margin: 8px 16px 0;
+  padding: 14px 4px 8px;
 }
 
 .widget-title > label {
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 650;
   color: @ink;
 }
 
 .widget-title button {
-  background: @chip;
-  border: 1px solid @chip-line;
+  background: transparent;
+  border: 1px solid transparent;
   border-radius: var(--radius-pill);
   padding: 4px 12px;
   min-height: 24px;
@@ -165,7 +151,7 @@
 
 .widget-title button:hover {
   background: @accent-soft;
-  border-color: @accent-line;
+  border-color: transparent;
   color: @accent;
 }
 
@@ -180,7 +166,7 @@
 }
 
 .widget-notifications > stack {
-  min-height: 112px;
+  min-height: 96px;
 }
 
 .control-center .notification-row {
@@ -190,7 +176,7 @@
 
 .control-center .notification-row .notification-background .notification {
   background: @card;
-  border: 1px solid @line-soft;
+  border: 1px solid transparent;
   border-radius: var(--radius-card);
   padding: 0;
   box-shadow: none;
@@ -198,7 +184,7 @@
 
 .control-center .notification-row .notification-background .notification:hover {
   background: @card-hover;
-  border-color: @line-soft;
+  border-color: transparent;
 }
 
 .control-center .notification-row .notification-background .notification.critical {
@@ -213,7 +199,7 @@
 }
 
 .control-center .notification-row .notification .notification-default-action {
-  padding: 12px 14px;
+  padding: 12px;
 }
 
 /* Grouped notifications */
@@ -237,8 +223,8 @@
 
 .notification-group-collapse-button,
 .notification-group-close-all-button {
-  background: @chip;
-  border: 1px solid @chip-line;
+  background: transparent;
+  border: 1px solid transparent;
   border-radius: 10px;
   min-width: 26px;
   min-height: 26px;
@@ -250,7 +236,7 @@
 .notification-group-collapse-button:hover,
 .notification-group-close-all-button:hover {
   background: @accent-soft;
-  border-color: @accent-line;
+  border-color: transparent;
   color: @accent;
 }
 
@@ -273,7 +259,7 @@
 }
 
 .widget-mpris .widget-mpris-player .mpris-background {
-  opacity: 0.1;
+  opacity: 0.06;
   border-radius: var(--radius-card);
 }
 
@@ -286,13 +272,13 @@
 
 .widget-mpris .widget-mpris-album-art {
   border-radius: 12px;
-  border: 1px solid @line-soft;
+  border: 1px solid transparent;
   margin: 0;
 }
 
 .widget-mpris .widget-mpris-title {
-  font-weight: 700;
-  font-size: 15px;
+  font-weight: 650;
+  font-size: 14px;
   color: @ink;
 }
 
@@ -303,7 +289,7 @@
 }
 
 .widget-mpris .mpris-overlay button {
-  background: @chip;
+  background: transparent;
   border: 1px solid transparent;
   border-radius: var(--radius-pill);
   color: @ink;
@@ -316,23 +302,27 @@
 .widget-mpris .mpris-overlay button:hover,
 .widget-mpris .mpris-overlay button:not(.flat) {
   background: @accent-soft;
-  border-color: @accent-line;
+  border-color: transparent;
   color: @accent;
 }
 
 .widget-mpris .mpris-overlay button:active,
-.widget-mpris .mpris-overlay > box:last-child > button:nth-child(3) {
+.widget-mpris .mpris-overlay > box:last-child > button:nth-child(2):nth-last-child(2),
+.widget-mpris .mpris-overlay > box:last-child > button:nth-child(3):nth-last-child(3) {
   background: @accent;
   color: @on-accent;
 }
 
-.widget-mpris .mpris-overlay > box:last-child > button:nth-child(3) {
+/* GTK omits hidden shuffle/repeat nodes from positional selectors. */
+.widget-mpris .mpris-overlay > box:last-child > button:nth-child(2):nth-last-child(2),
+.widget-mpris .mpris-overlay > box:last-child > button:nth-child(3):nth-last-child(3) {
   min-width: 36px;
   min-height: 36px;
   margin-top: 7px;
 }
 
-.widget-mpris .mpris-overlay > box:last-child > button:nth-child(3):hover {
+.widget-mpris .mpris-overlay > box:last-child > button:nth-child(2):nth-last-child(2):hover,
+.widget-mpris .mpris-overlay > box:last-child > button:nth-child(3):nth-last-child(3):hover {
   background: mix(@accent, @ink, 0.1);
 }
 
@@ -386,7 +376,7 @@
   border: 1px solid transparent;
   border-radius: var(--radius-card);
   margin: 0;
-  min-height: 44px;
+  min-height: 32px;
   min-width: 62px;
   padding: 6px;
   box-shadow: none;
@@ -399,13 +389,13 @@
 }
 
 .widget-buttons-grid > flowbox > flowboxchild > button:checked {
-  background: @accent-container;
+  background: @accent-soft;
   border-color: transparent;
-  color: @on-accent-container;
+  color: @accent;
 }
 
 .widget-buttons-grid > flowbox > flowboxchild > button:checked:hover {
-  background: mix(@accent-container, @accent, 0.12);
+  background: alpha(@accent, 0.18);
 }
 
 .widget-buttons-grid > flowbox > flowboxchild > button label {
@@ -418,7 +408,7 @@
 }
 
 .widget-buttons-grid > flowbox > flowboxchild > button:checked label {
-  color: @on-accent-container;
+  color: @accent;
 }
 
 .widget-buttons-grid.connections {
@@ -428,8 +418,8 @@
 .widget-buttons-grid.connections > flowbox > flowboxchild > button {
   background: @card;
   border-color: transparent;
-  min-height: 30px;
-  border-radius: var(--radius-chip);
+  min-height: 32px;
+  border-radius: var(--radius-card);
 }
 
 .widget-buttons-grid.connections > flowbox > flowboxchild > button:hover {
@@ -437,26 +427,12 @@
   border-color: transparent;
 }
 
-.widget-buttons-grid.connections > flowbox > flowboxchild > button:checked {
-  background: @accent-container;
-  border-color: transparent;
-  color: @on-accent-container;
-}
-
-.widget-buttons-grid.connections > flowbox > flowboxchild:nth-child(odd) > button {
-  border-radius: 12px 6px 6px 12px;
-}
-
-.widget-buttons-grid.connections > flowbox > flowboxchild:nth-child(even) > button {
-  border-radius: 6px 12px 12px 6px;
-}
-
 /* ==================== SLIDERS + APP MIXER ==================== */
 
 .widget-volume,
 .widget-backlight {
   background: @card;
-  border: 1px solid transparent;
+  border: none;
   border-radius: var(--radius-card);
   margin: 0 16px;
   padding: 8px 12px;
@@ -465,12 +441,14 @@
 .widget-volume {
   margin-top: 12px;
   margin-bottom: 0;
-  border-radius: 16px 16px 6px 6px;
+  border-radius: 16px 16px 0 0;
+  padding-bottom: 6px;
 }
 
 .widget-backlight {
-  margin-top: 4px;
-  border-radius: 6px 6px 16px 16px;
+  margin-top: 0;
+  border-radius: 0 0 16px 16px;
+  padding-top: 6px;
 }
 
 .widget-volume scale,
@@ -529,8 +507,8 @@
 }
 
 .widget-volume .per-app-volume {
-  background: @surface-low;
-  border: 1px solid @line-soft;
+  background: alpha(@ink, 0.025);
+  border: 1px solid transparent;
   border-radius: var(--radius-chip);
   margin: 10px 0 0;
   padding: 4px 6px;
@@ -605,27 +583,27 @@
 }
 
 .widget-dnd {
-  background: @card;
-  border: 1px solid transparent;
-  border-radius: var(--radius-card);
-  margin: 12px 16px 0;
-  padding: 10px 12px;
-  color: @ink;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  margin: 10px 20px 0;
+  padding: 6px 0;
+  color: @ink-dim;
 }
 
 .widget-dnd label {
   font-size: 12px;
-  font-weight: 600;
-  color: @ink;
+  font-weight: 550;
+  color: @ink-dim;
 }
 
 .widget-dnd > switch {
   background: alpha(@ink, 0.14);
-  border: 1px solid @chip-line;
+  border: 1px solid transparent;
   border-radius: var(--radius-pill);
-  padding: 3px;
-  min-width: 40px;
-  min-height: 20px;
+  padding: 2px;
+  min-width: 34px;
+  min-height: 18px;
 }
 
 .widget-dnd > switch:hover {

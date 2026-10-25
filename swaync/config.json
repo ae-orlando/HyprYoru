@@ -12,7 +12,7 @@
     "control-center-margin-right": 14,
     "control-center-margin-left": 0,
     "notification-window-width": 380,
-    "notification-window-height": -1,
+    "notification-window-height": 300,
     "notification-body-image-height": 100,
     "notification-body-image-width": 200,
     "timeout": 6,
@@ -39,7 +39,6 @@
     },
     "widgets": [
         "menubar#top",
-        "label#controls",
         "buttons-grid#toggles",
         "buttons-grid#connections",
         "volume",
@@ -56,7 +55,7 @@
                 "position": "left",
                 "actions": [
                     {
-                        "label": "  Yoru Deck",
+                        "label": "󰕮  Yoru Deck",
                         "command": "swaync-client -cp; nwg-look"
                     }
                 ]
@@ -74,6 +73,22 @@
                     {
                         "label": "󰏘  Pick a color",
                         "command": "swaync-client -cp; hyprpicker -a"
+                    },
+                    {
+                        "label": "󰸉  Wallpaper",
+                        "command": "~/.config/swaync/scripts/open-rofi.sh wallpaper"
+                    },
+                    {
+                        "label": "󰓃  Audio devices",
+                        "command": "~/.config/swaync/scripts/open-rofi.sh audio"
+                    },
+                    {
+                        "label": "󰏫  Annotate image",
+                        "command": "~/.config/swaync/scripts/open-rofi.sh annotate"
+                    },
+                    {
+                        "label": "󰅌  Clipboard history",
+                        "command": "~/.config/swaync/scripts/open-rofi.sh clipboard"
                     }
                 ]
             },
@@ -101,14 +116,10 @@
         "title": {
             "text": "Notifications",
             "clear-all-button": true,
-            "button-text": "Clear all"
+            "button-text": "Clear"
         },
         "notifications": {
             "vexpand": true
-        },
-        "label#controls": {
-            "max-lines": 1,
-            "text": "QUICK SETTINGS"
         },
         "mpris": {
             "show-album-art": "when-available",
@@ -129,7 +140,7 @@
             "animation-duration": 180
         },
         "backlight": {
-            "label": "☀︎  Brightness",
+            "label": "󰃠  Brightness",
             "subsystem": "backlight",
             "min": 1
         },
@@ -171,25 +182,11 @@
             "buttons-per-row": 2,
             "actions": [
                 {
-                    "label": "  Wi-Fi",
-                    "command": "~/.config/swaync/scripts/radio-control.sh wifi",
-                    "type": "toggle",
-                    "active": false,
-                    "update-command": "~/.config/swaync/scripts/wifi-state.sh"
-                },
-                {
-                    "label": "Networks  ›",
+                    "label": "  Wi-Fi  ›",
                     "command": "~/.config/swaync/scripts/open-rofi.sh wifi"
                 },
                 {
-                    "label": "󰂯  Bluetooth",
-                    "command": "~/.config/swaync/scripts/radio-control.sh bluetooth",
-                    "type": "toggle",
-                    "active": false,
-                    "update-command": "~/.config/swaync/scripts/bluetooth-state.sh"
-                },
-                {
-                    "label": "Devices  ›",
+                    "label": "󰂯  Bluetooth  ›",
                     "command": "~/.config/swaync/scripts/open-rofi.sh bluetooth"
                 }
             ]

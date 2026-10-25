@@ -1,0 +1,376 @@
+SwayNC v0.12.6: live brightness and bounded display-only previews.
+Monitor recreation follows the upstream main fix; writes are serialized and
+readback cannot re-enter the slider writer. Authentication copies are sensitive.
+Author: ae Orland
+GitHub: https://github.com/ae-orlando
+
+--- a/src/constants.vala.in
++++ b/src/constants.vala.in
+@@ -1,5 +1,5 @@
+ public class Constants {
+-    public const string VERSION = @VERSION@;
++    public const string VERSION = @VERSION@ + " (Yoru backports 1)";
+     public const string VERSIONNUM = @VERSION_NUM@;
+     public const uint ANIMATION_DURATION = 400;
+ }
+--- a/src/controlCenter/widgets/backlight/backlightUtil.vala
++++ b/src/controlCenter/widgets/backlight/backlightUtil.vala
+@@ -1,3 +1,5 @@
++// Yoru live-sync backport. Author: ae Orland
++// GitHub: https://github.com/ae-orlando
+ namespace SwayNotificationCenter.Widgets {
+     class BacklightUtil {
+         [DBus (name = "org.freedesktop.login1.Session")]
+@@ -11,6 +13,8 @@
+         string path_max;
+         File fd;
+         FileMonitor monitor = null;
++        bool setting = false;
++        float? pending_percent = null;
+ 
+         int max;
+ 
+@@ -31,11 +35,6 @@
+             fd = File.new_for_path (path_current);
+             if (fd.query_exists ()) {
+                 set_max_value ();
+-                try {
+-                    monitor = fd.monitor (FileMonitorFlags.NONE, null);
+-                } catch (Error e) {
+-                    critical ("Error %s\n", e.message);
+-                }
+             } else {
+                 this.brightness_change (-1);
+                 warning ("Could not find device %s\n", path_current);
+@@ -54,10 +53,9 @@
+ 
+         public void start () {
+             if (fd.query_exists ()) {
+-                // get changes made while controlCenter not shown
++                connect_monitor ();
++                // Connect first so an external write cannot be missed.
+                 get_brightness ();
+-
+-                connect_monitor ();
+             } else {
+                 this.brightness_change (-1);
+                 critical ("Could not find device %s\n", path_current);
+@@ -66,10 +64,19 @@
+         }
+ 
+         private void connect_monitor () {
+-            if (monitor != null) {
++            if (monitor == null) {
++                try {
++                    monitor = fd.monitor (FileMonitorFlags.NONE, null);
++                    monitor.set_rate_limit (20);
++                } catch (Error e) {
++                    warning ("Could not monitor backlight: %s", e.message);
++                    return;
++                }
+                 // connect monitor to monitor changes
+                 monitor.changed.connect ((src, dest, event) => {
+-                    get_brightness ();
++                    if (!setting) {
++                        get_brightness ();
++                    }
+                 });
+             }
+         }
+@@ -77,18 +84,33 @@
+         public void close () {
+             if (monitor != null) {
+                 monitor.cancel ();
++                monitor = null;
+             }
+         }
+ 
+         public async void set_brightness (float percent) {
+-            this.close ();
+-            if (subsystem == "backlight") {
+-                int actual = calc_actual (percent);
+-                login1.set_brightness.begin (subsystem, device, actual);
+-            } else {
+-                login1.set_brightness.begin (subsystem, device, (uint32) percent);
++            pending_percent = percent;
++            if (setting || login1 == null) {
++                return;
+             }
+-            connect_monitor ();
++            setting = true;
++            // Serialize drag updates, retaining the newest requested value.
++            // Keep the monitor alive; cancelling it loses external key updates.
++            while (pending_percent != null) {
++                float target = pending_percent;
++                pending_percent = null;
++                uint32 actual = subsystem == "backlight"
++                    ? (uint32) calc_actual (target) : (uint32) target;
++                try {
++                    yield login1.set_brightness (subsystem, device, actual);
++                } catch (Error e) {
++                    warning ("Could not set backlight: %s", e.message);
++                }
++            }
++            setting = false;
++            if (monitor != null) {
++                get_brightness ();
++            }
+         }
+ 
+         // get current brightness and emit signal
+--- a/src/controlCenter/widgets/backlight/backlight.vala
++++ b/src/controlCenter/widgets/backlight/backlight.vala
+@@ -1,3 +1,5 @@
++// Yoru live-sync backport. Author: ae Orland
++// GitHub: https://github.com/ae-orlando
+ using GLib;
+ 
+ namespace SwayNotificationCenter.Widgets {
+@@ -9,6 +11,7 @@
+         }
+ 
+         BacklightUtil client;
++        bool syncing_value = false;
+ 
+         Gtk.Label label_widget = new Gtk.Label (null);
+         Gtk.Scale slider = new Gtk.Scale.with_range (Gtk.Orientation.HORIZONTAL, 0, 100, 1);
+@@ -46,7 +49,10 @@
+                 if (percent < 0) { // invalid device path
+                     hide ();
+                 } else {
++                    syncing_value = true;
+                     slider.set_value (percent);
++                    syncing_value = false;
++                    slider.tooltip_text = percent.to_string ();
+                 }
+             });
+ 
+@@ -54,7 +60,9 @@
+             slider.set_round_digits (0);
+             slider.set_hexpand (true);
+             slider.value_changed.connect (() => {
+-                this.client.set_brightness.begin ((float) slider.get_value ());
++                if (!syncing_value) {
++                    this.client.set_brightness.begin ((float) slider.get_value ());
++                }
+                 slider.tooltip_text = ((int) slider.get_value ()).to_string ();
+             });
+ 
+--- a/src/notification/notification.vala
++++ b/src/notification/notification.vala
+@@ -1,3 +1,5 @@
++// Yoru bounded previews. Author: ae Orland
++// GitHub: https://github.com/ae-orlando
+ namespace SwayNotificationCenter {
+     public enum NotificationType { CONTROL_CENTER, FLOATING }
+ 
+@@ -91,6 +93,7 @@
+         private static Regex tag_regex;
+         private static Regex tag_unescape_regex;
+         private static Regex img_tag_regex;
++        private static Regex preview_breaks;
+         private const string[] TAGS = { "b", "u", "i" };
+         private const string[] UNESCAPE_CHARS = {
+             "lt;", "#60;", "#x3C;", "#x3c;", // <
+@@ -139,6 +142,7 @@
+                 string unescaped = string.joinv ("|", UNESCAPE_CHARS);
+                 tag_unescape_regex = new Regex ("&amp;(?=%s)".printf (unescaped));
+                 img_tag_regex = new Regex ("<img[^>]* src=((\"([^\"]*)\")|(\'([^\']*)\'))[^>]*>");
++                preview_breaks = new Regex ("\\R+");
+             } catch (Error e) {
+                 stderr.printf ("Invalid regex: %s", e.message);
+             }
+@@ -262,7 +266,8 @@
+             this.body.set_wrap (true);
+             this.body.set_wrap_mode (Pango.WrapMode.WORD_CHAR);
+             this.body.set_natural_wrap_mode (Gtk.NaturalWrapMode.WORD);
+-            this.body.set_ellipsize (Pango.EllipsizeMode.END);
++            this.body.set_ellipsize (notification_type == NotificationType.FLOATING
++                ? Pango.EllipsizeMode.END : Pango.EllipsizeMode.NONE);
+ 
+             this.summary.set_wrap (false);
+             this.summary.set_text (param.summary ?? param.app_name);
+@@ -307,7 +312,8 @@
+         private void set_body () {
+             string text = param.body ?? "";
+ 
+-            this.body.set_lines (this.number_of_body_lines);
++            this.body.set_lines (notification_type == NotificationType.FLOATING
++                ? this.number_of_body_lines : -1);
+ 
+             // Reset state
+             body_image.hide ();
+@@ -388,18 +394,32 @@
+                     Pango.parse_markup (escaped, -1, 0, out attr, out buf, null);
+                 }
+ 
+-                this.body.set_text (buf);
+-                if (attr != null) {
+-                    this.body.set_attributes (attr);
+-                }
++                set_display_body (buf ?? "", attr);
+             } catch (Error e) {
+                 stderr.printf ("Could not parse Pango markup %s: %s\n",
+                                text, e.message);
+                 // Sets the original text
+-                this.body.set_text (text);
++                set_display_body (text);
+             }
+ 
+             this.body.set_visible (this.body.get_text ().length > 0);
++        }
++
++        private void set_display_body (string text, Pango.AttrList? attributes = null) {
++            string display_text = text;
++            if (notification_type == NotificationType.FLOATING) {
++                // Pango's negative line limit is per paragraph. Make a single
++                // plain-text preview AFTER markup parsing (including &#10;).
++                // Do not mutate param.body: the center keeps the full message.
++                try {
++                    display_text = preview_breaks.replace_literal (text, -1, 0, " ");
++                } catch (RegexError e) {
++                    warning ("Could not normalize preview: %s", e.message);
++                }
++                attributes = null;
++            }
++            body.set_text (display_text);
++            body.set_attributes (attributes);
+         }
+ 
+         /** Returns the first code found, else null */
+@@ -567,7 +587,12 @@
+                         "COPY \"%s\"".printf (code));
+                     action_button.clicked.connect (() => {
+                         // Copy to clipboard
+-                        get_clipboard ().set_text (code);
++                        // Keep authentication codes out of clipboard history.
++                        Gdk.ContentProvider[] providers = {
++                            new Gdk.ContentProvider.for_bytes ("text/plain;charset=utf-8", new Bytes (code.data)),
++                            new Gdk.ContentProvider.for_bytes ("x-kde-passwordManagerHint", new Bytes ("secret".data))
++                        };
++                        get_clipboard ().set_content (new Gdk.ContentProvider.union (providers));
+                         // Dismiss notification
+                         action_clicked (null);
+                     });
+@@ -584,6 +609,13 @@
+                     alt_actions_box.append (flowbox_child);
+ 
+                     Gtk.Button action_button = new Gtk.Button.with_label (action.text);
++                    if (notification_type == NotificationType.FLOATING) {
++                        unowned Gtk.Label? action_label = action_button.get_child () as Gtk.Label;
++                        if (action_label != null) {
++                            action_label.set_ellipsize (Pango.EllipsizeMode.END);
++                            action_label.set_max_width_chars (24);
++                        }
++                    }
+                     action_button.clicked.connect (() => action_clicked (action));
+                     action_button.set_can_focus (false);
+                     flowbox_child.set_child (action_button);
+--- a/src/notificationWindow/notificationWindow.vala
++++ b/src/notificationWindow/notificationWindow.vala
+@@ -1,3 +1,5 @@
++// Yoru screen-aware popup bounds. Author: ae Orland
++// GitHub: https://github.com/ae-orlando
+ namespace SwayNotificationCenter {
+     [GtkTemplate (ui = "/org/erikreider/swaync/ui/notification_window.ui")]
+     public class NotificationWindow : Gtk.ApplicationWindow {
+@@ -12,7 +14,7 @@
+ 
+         private static string ?monitor_name = null;
+ 
+-        private const int MAX_HEIGHT = 600;
++        private const int MAX_HEIGHT = 300;
+ 
+         public NotificationWindow () {
+             Object (css_name: "notificationwindow");
+@@ -42,6 +44,7 @@
+                     surface.disconnect (id);
+                     debug ("NotificationWindow mapped on monitor: %s",
+                            Functions.monitor_to_string (monitor));
++                    update_height_limit (monitor.geometry.height);
+ 
+                     // Only set ON_DEMAND after the surface has been mapped
+                     Idle.add_once (() => set_keyboard_mode ());
+@@ -65,12 +68,13 @@
+                     || old.notification_window_preferred_output != monitor_name
+                     || NotificationWindow.monitor_name != monitor_name) {
+                     NotificationWindow.monitor_name = null;
+-                    set_anchor ();
+                 }
++                set_anchor ();
+             });
+         }
+ 
+         protected override void size_allocate (int w, int h, int baseline) {
++            update_height_limit (h);
+             base.size_allocate (w, h, baseline);
+ 
+             // Set the input region to only be the size of the ScrolledWindow
+@@ -181,13 +185,36 @@
+                     break;
+             }
+ 
+-            // -1 should set it to the content size unless it exceeds max_height
++            // Content-sized until the preview stack reaches its screen-aware cap.
+             scrolled_window.set_min_content_height (-1);
+-            scrolled_window.set_max_content_height (
+-                int.max (ConfigModel.instance.notification_window_height, -1));
++            update_height_limit ();
+             scrolled_window.set_propagate_natural_height (true);
+ 
+             set_input_region ();
++        }
++
++        private void update_height_limit (int available_height = 0) {
++            int requested = ConfigModel.instance.notification_window_height;
++            int limit = requested > 0 ? requested : MAX_HEIGHT;
++            if (available_height <= 0) {
++                Gdk.Monitor? monitor = null;
++                unowned Gdk.Surface? surface = get_surface ();
++                if (surface != null) {
++                    monitor = get_display ().get_monitor_at_surface (surface);
++                }
++                if (monitor == null && app.use_layer_shell) {
++                    monitor = GtkLayerShell.get_monitor (this);
++                }
++                if (monitor != null) {
++                    available_height = monitor.geometry.height;
++                }
++            }
++            if (available_height > 0) {
++                limit = int.min (limit, int.max (1, available_height - 28));
++            }
++            if (scrolled_window.get_max_content_height () != limit) {
++                scrolled_window.set_max_content_height (limit);
++            }
+         }
+ 
+         private void set_input_region () {
+@@ -233,6 +260,18 @@
+                 region.union_rectangle (rect);
+             }
+ 
++            // Tall images/actions can scroll, but clipped cards must not
++            // intercept clicks outside the visible preview area.
++            Graphene.Rect visible_bounds;
++            if (scrolled_window.compute_bounds (this, out visible_bounds)) {
++                Cairo.RectangleInt viewport = Cairo.RectangleInt () {
++                    x = (int) visible_bounds.get_x (),
++                    y = (int) visible_bounds.get_y (),
++                    width = (int) visible_bounds.get_width (),
++                    height = (int) visible_bounds.get_height (),
++                };
++                region.intersect_rectangle (viewport);
++            }
+             surface.set_input_region (region);
+         }
+ 
+@@ -377,7 +416,7 @@
+                    Functions.monitor_to_string (monitor) ?? "Monitor Picked by Compositor");
+             NotificationWindow.monitor_name = monitor == null ? null : monitor.connector;
+             GtkLayerShell.set_monitor (this, monitor);
+-
++            update_height_limit (monitor != null ? monitor.geometry.height : 0);
+             set_input_region ();
+         }
+     }

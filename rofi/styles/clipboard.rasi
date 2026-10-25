@@ -1,0 +1,36 @@
+/* Yoru Clipboard — searchable history without persistent help text.
+ * Author: ae Orland
+ * GitHub: https://github.com/ae-orlando
+ */
+@theme "connectivity"
+
+configuration {
+    show-icons: false;
+}
+
+mainbox {
+    children: [ inputbar, listview ];
+}
+
+window {
+    width: 420px;
+}
+
+prompt {
+    font: "Adwaita Sans Bold 12";
+}
+
+listview {
+    lines: 9;
+}
+
+element {
+    background-color: transparent;
+    border: 0px;
+    padding: 10px 12px;
+}
+
+element selected.normal {
+    background-color: var(primary-container);
+    text-color: var(on-primary-container);
+}

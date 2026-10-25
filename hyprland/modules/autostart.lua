@@ -4,12 +4,15 @@
 --  /_/ |_\_,_/\__/\___/___/\__/\_,_/_/  \__/
 
 -- by ae. Orlando
+-- Author: ae Orland
+-- GitHub: https://github.com/ae-orlando
 -- _______________________________________________________________________
 
 hl.on("hyprland.start", function()
     -- Cursor theme/size come from env.lua (XCURSOR_* + HYPRCURSOR_*); do not
     hl.exec_cmd("waybar") -- status bar
-    hl.exec_cmd("swaync") -- notifications
+    hl.exec_cmd("~/.config/swaync/scripts/start-swaync.sh") -- notifications; local backport or distro fallback
+    hl.exec_cmd("~/.config/swaync/scripts/clipboard.py watch") -- private, singleton clipboard capture
     hl.exec_cmd("hypridle") -- idle / lock / dpms
     hl.exec_cmd("hyprsunset") -- blue-light filter daemon (toggle with SUPER+N)
     hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1") -- GUI privilege prompts

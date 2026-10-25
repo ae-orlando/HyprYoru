@@ -20,12 +20,12 @@
 }
 
 .floating-notifications .notification-row .notification-background {
-  margin: 8px 12px;
+  margin: 7px 12px;
 }
 
 .floating-notifications .notification-row .notification-background .notification {
-  border-color: @accent-line;
-  box-shadow: 0 4px 12px alpha(@shadow, 0.22);
+  border-color: @line;
+  box-shadow: 0 4px 12px alpha(@shadow, 0.18);
 }
 
 /* Urgency treatments */
@@ -84,7 +84,7 @@
 .notification-row .time {
   font-size: 10px;
   font-weight: 400;
-  color: @ink-faint;
+  color: alpha(@ink-dim, 0.75);
   margin: 2px 24px 0 8px;
 }
 
