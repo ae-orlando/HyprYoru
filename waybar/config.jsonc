@@ -4,23 +4,31 @@
 //  |__/|__/\_,_/\_, /_.__/\_,_/_/
 //              /___/
 // By ae. Orlando
+// Author: ae Orland
+// GitHub: https://github.com/ae-orlando
 // _______________________________________________________________________
 
 {
     "position": "top",
-    "margin-top": 5,
+    "layer": "top",
+    "height": 40,
+    "spacing": 0,
+    "margin-top": 8,
+    "margin-bottom": 4,
+    "margin-left": 14,
+    "margin-right": 14,
 
     "modules-left": ["custom/apps", "hyprland/workspaces"],
 
-    "modules-center": ["bluetooth", "clock", "custom/notification"],
+    "modules-center": ["clock"],
 
     "modules-right": [
         "group/system",
-        "network",
+        "group/connections",
         "group/audio",
-        "battery",
-        "power-profiles-daemon",
+        "group/power",
         "tray",
+        "custom/notification",
     ],
 
     "custom/apps": {
@@ -30,8 +38,8 @@
     },
 
     "tray": {
-        "spacing": 8,
-        "icon-size": 16,
+        "spacing": 10,
+        "icon-size": 15,
         "show-passive-items": true,
     },
 
@@ -45,8 +53,8 @@
         "show-special": true,
         "special-visible-only": true,
         "move-to-monitor": true,
-        "on-scroll-up": "hyprctl dispatch workspace e-1",
-        "on-scroll-down": "hyprctl dispatch workspace e+1",
+        "on-scroll-up": "hyprctl dispatch 'hl.dsp.focus({workspace=\"e-1\"})'",
+        "on-scroll-down": "hyprctl dispatch 'hl.dsp.focus({workspace=\"e+1\"})'",
         "format-icons": {
             "1": "",
             "2": "",
@@ -85,22 +93,33 @@
         },
         "scroll-step": 1,
         "on-click": "pavucontrol",
+        "tooltip-format": "{desc} · {volume}%",
+        "tooltip-format-muted": "{desc} · Muted",
     },
 
     "custom/mic": {
         "format": "{}",
         "return-type": "json",
         "interval": 2,
+        "hide-empty-text": true,
         "exec": "~/.config/waybar/scripts/mic.sh",
         "on-click": "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle",
         "tooltip": true,
     },
 
     "clock": {
-        "format": "{:%H:%M}",
+        "format": "<span alpha='75%'>{0:%a %d}</span>  <span alpha='35%'>·</span>  <span weight='700'>{0:%H:%M}</span>",
         "format-alt": "{:%A, %B %d, %Y · Week %V}",
         "tooltip": true,
-        "tooltip-format": "{:%A, %B %d, %Y · Week %V}",
+        "tooltip-format": "<b>{:%A, %d %B %Y}</b>\n<tt><small>{calendar}</small></tt>",
+        "calendar": {
+            "mode": "month",
+            "format": {
+                "months": "<b>{}</b>",
+                "weekdays": "<span alpha='70%'>{}</span>",
+                "today": "<b><u>{}</u></b>",
+            },
+        },
         "actions": {
             "on-click-forward": "tz_up",
             "on-click-backward": "tz_down",
@@ -118,10 +137,11 @@
             "on-discharging-critical": "notify-send -u critical 'Very Low Battery'",
             "on-charging-100": "notify-send -u normal 'Battery Full!'",
         },
-        "format": "{capacity}% {icon}",
-        "format-charging": "{capacity}% 󱐌",
-        "format-plugged": "{capacity}% 󱐌",
-        "format-full": "{capacity}% 󱐌",
+        "format": "{icon}  {capacity}%",
+        "format-charging": "󱐌 {capacity}%",
+        "format-plugged": "󱐌 {capacity}%",
+        "format-full": "󱐌 {capacity}%",
+        "cursor": false,
         "tooltip-format": "{timeTo} - {capacity}%",
         "format-icons": {
             "default": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
@@ -133,7 +153,7 @@
         "format": "{icon}",
         "format-icons": {
             "notification": "󱅫",
-            "none": "󰂜",
+            "none": "󰕮",
             "dnd-none": "󰪓",
             "dnd-notification": "󰂛",
             "inhibited-notification": "󰂛",
@@ -152,7 +172,7 @@
     "group/system": {
         "orientation": "horizontal",
         "drawer": {
-            "transition-duration": 500,
+            "transition-duration": 180,
             "children-class": "system",
         },
         "modules": ["cpu", "memory", "temperature"],
@@ -182,43 +202,39 @@
         "on-click": "kitty -e btop",
     },
 
-    "network": {
-        "format": "{ifname}",
-        "format-wifi": " {essid}",
-        "format-ethernet": "  {ifname}",
-        "format-disconnected": "",
-        "tooltip-format": "{ifname}",
-        "tooltip-format-wifi": "  {essid} ({signalStrength})",
-        "tooltip-format-ethernet": "{ifname} ",
-        "tooltip-format-disconnected": "Disconnected",
-        "menu": "on-click",
-        "menu-file": "~/.config/waybar/network_menu.xml",
-        "menu-actions": {
-            "wifi-on": "nmcli radio wifi on",
-            "wifi-off": "nmcli radio wifi off",
-            "wwan-on": "nmcli radio wwan on",
-            "wwan-off": "nmcli radio wwan off",
-            "hotspot-on": "nmcli device wifi hotspot on",
-            "hotspot-off": "nmcli device wifi hotspot off",
-            "rescan": "nmcli device wifi rescan",
-            "connection-editor": "nm-connection-editor",
-        },
+    "group/connections": {
+        "orientation": "horizontal",
+        "modules": ["custom/network", "bluetooth"],
+    },
+
+    "custom/network": {
+        "format": "{}",
+        "return-type": "json",
+        "exec": "python -B ~/.config/waybar/scripts/network.py",
+        "interval": 5,
+        "on-click": "~/.config/rofi/launchers/wifi.sh",
         "on-click-right": "nm-connection-editor",
-        "max-length": 50,
+        "tooltip": true,
     },
 
     "bluetooth": {
         "format": "󰂯",
         "format-on": "󰂯",
-        "format-connected": "󰂱 {num_connections}",
-        "format-connected-battery": "󰂱 {device_alias} {device_battery_percentage}%",
+        "format-connected": "󰂱",
+        "format-connected-battery": "󰂱",
         "format-disabled": "󰂲",
         "format-off": "󰂲",
-        "tooltip-format": "{controller_alias}\t{controller_address}\n\n{num_connections} connected",
-        "tooltip-format-connected": "{controller_alias}\t{controller_address}\n\n{num_connections} connected\n\n{device_enumerate}",
-        "tooltip-format-enumerate-connected": "{device_alias}\t{device_address}",
-        "tooltip-format-connected-battery": "{controller_alias}\t{controller_address}\n\n{num_connections} connected\n\n{device_enumerate}",
-        "on-click": "sh -c 'bluetoothctl show | grep -q \"Powered: yes\" && bluetoothctl power off || bluetoothctl power on'",
+        "format-no-controller": "󰂲",
+        "tooltip-format": "Bluetooth",
+        "tooltip-format-on": "Bluetooth on · No connected devices",
+        "tooltip-format-off": "Bluetooth off",
+        "tooltip-format-disabled": "Bluetooth disabled",
+        "tooltip-format-no-controller": "No Bluetooth adapter",
+        "tooltip-format-connected": "Bluetooth · {num_connections} connected\n{device_enumerate}",
+        "tooltip-format-enumerate-connected": "{device_alias}",
+        "tooltip-format-enumerate-connected-battery": "{device_alias} · {device_battery_percentage}%",
+        "tooltip-format-connected-battery": "Bluetooth · {num_connections} connected\n{device_enumerate}",
+        "on-click": "~/.config/rofi/launchers/rofi-bluetooth",
     },
 
     "power-profiles-daemon": {
@@ -237,10 +253,12 @@
 
     "group/audio": {
         "orientation": "horizontal",
-        "drawer": {
-            "transition-duration": 500,
-            "children-class": "audio",
-        },
+        // An active/muted mic must remain visible, not hidden in a drawer.
         "modules": ["pulseaudio", "custom/mic"],
+    },
+
+    "group/power": {
+        "orientation": "horizontal",
+        "modules": ["battery", "power-profiles-daemon"],
     },
 }

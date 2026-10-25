@@ -15,14 +15,18 @@ Notification daemon + control center. Daemon: `swaync`. Bar helper: `swaync-clie
 ## Commands
 
 ```bash
-swaync
+swaync --version
 swaync-client -swb
 swaync-client -rs
 swaync-client -t -sw
+yoru-desktop status
 ```
 
 ## Notes
 
-- Buttons-grid calls rofi helpers (`wifi.sh`, `rofi-bluetooth`, `screenshot.sh`, `powermenu.sh`), `hyprpicker -a`, and `waypaper`.
+- One navigation tile each opens the native Wi-Fi/Bluetooth drawers. Sound, microphone and dark mode remain direct toggles.
+- Tools provides capture, color picker, the canonical wallpaper chooser, audio devices, image annotation and Cliphist history. Clipboard capture skips sensitive offers; the picker provides pause/resume, delete and confirmed clear controls.
 - `scripts/toggle-theme.sh` flips dark/light on the current wallpaper, palette-only (no wallpaper re-animation); reloads via matugen `post_hook`s + `hyprctl reload`, no manual `SIGUSR2`/`-rs`.
-- `launch.sh` (Waybar) hard-restarts both `waybar` and `swaync`; prefer `swaync-client -rs` for theme-only reloads.
+- `launch.sh` (Waybar) reloads the bar and SwayNC CSS without killing the notification daemon. Use `swaync-client -R` for widget/configuration changes.
+- The local `0.12.6` backport fixes live brightness and bounded floating previews, while retaining full body text in the notification center. It also marks copied authentication codes as sensitive.
+- For executable changes use `yoru-desktop restart swaync`, which refuses to restart with saved notifications. The inbox is not persistent across daemon restarts. See [patched desktop maintenance](patched-desktop.md) for builds, updates and rollback.

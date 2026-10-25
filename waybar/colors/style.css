@@ -1,102 +1,109 @@
+/* Yoru Waybar — three floating islands, quiet surfaces, purposeful accents.
+ * Hand-edited styling; colors/matugen.css remains generated and read-only.
+ * Author: ae Orland
+ * GitHub: https://github.com/ae-orlando
+ */
+
 * {
     border: none;
-    border-radius: 0px;
-
-    font-family: "GoMono Nerd Font Propo", "Adwaita Sans", "sans-serif";
-    font-weight: bold;
-
+    border-radius: 0;
+    font-family: "Adwaita Sans", "GoMono Nerd Font Propo", sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    font-feature-settings: "tnum";
     min-height: 0;
     padding: 0;
     margin: 0;
+    text-shadow: none;
 }
 
-/* Bar window: transparent, pills float above wallpaper */
+/* Bar window: only the islands draw a surface. Insets leave shadow room. */
 window#waybar {
     background: transparent;
+    color: @fg;
 }
 
-/* Tooltips */
-tooltip {
-    background: @bg0;
+window#waybar > box {
+    padding: 2px 0 4px;
+}
+
+.modules-left,
+.modules-center,
+.modules-right {
+    background: mix(@bg0, @bg1, 0.55);
     border: 1px solid @bg3;
-    border-radius: 18px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+    border-radius: 45px;
+    padding: 3px 5px;
+    box-shadow: 0 2px 4px alpha(@bg0, 0.24);
+}
+
+.modules-center {
+    padding-left: 4px;
+    padding-right: 4px;
+}
+
+.modules-right {
+    padding-left: 6px;
+    padding-right: 4px;
+}
+
+/* Tooltips, including the clock's compact calendar. */
+tooltip {
+    background: @bg1;
+    border: 1px solid @bg3;
+    border-radius: 14px;
+    box-shadow: 0 3px 10px alpha(@bg0, 0.3);
 }
 
 tooltip label {
     color: @fg;
-    padding: 6px;
+    font-weight: 400;
+    padding: 8px 10px;
 }
 
-/* Workspaces */
+/* Workspaces: identity is preserved; fill replaces multiple competing edges. */
 #workspaces {
-    background-color: @bg0;
-    padding: 5px 8px;
-    margin: 0 0 0 12px;
-    border-radius: 45px;
-    border: 1px solid @bg3;
-    color: @fg;
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
 }
 
 #workspaces button {
-    padding: 0px 10px;
-    margin: 0px 2px;
-    border-radius: 45px;
-    color: @grey0;
     background: transparent;
+    background-image: none;
     border: 1px solid transparent;
-    box-shadow: inset 0 -2px transparent;
-    font-size: 14px;
-    min-width: 30px;
+    border-radius: 45px;
+    box-shadow: none;
+    outline-style: none;
+    color: @grey1;
+    min-width: 28px;
+    min-height: 24px;
+    padding: 0 5px;
+    margin: 0 1px;
     transition:
-        background-color 0.3s ease-in-out,
-        color 0.3s ease-in-out,
-        box-shadow 0.3s ease-in-out,
-        opacity 0.3s ease-in-out,
-        border-color 0.3s ease-in-out;
+        background-color 160ms ease,
+        color 160ms ease,
+        opacity 160ms ease;
 }
 
-#workspaces button.empty {
-    opacity: 0.5;
-    border-color: transparent;
+#workspaces button label {
+    font-family: "GoMono Nerd Font Propo", sans-serif;
+    font-size: 14px;
 }
 
 #workspaces button.persistent {
     opacity: 0.8;
-    border-color: transparent;
 }
 
-#workspaces button.visible {
-    color: @fg;
-    opacity: 1;
-    border-color: transparent;
+#workspaces button.empty {
+    color: @grey0;
+    opacity: 0.55;
 }
 
+#workspaces button.visible,
 #workspaces button.hosting-monitor {
-    border-color: transparent;
-}
-
-#workspaces button.active {
-    background-color: @bg2;
     color: @fg;
-    border: 1px solid @bg3;
-    box-shadow: inset 0 -2px @blue;
-    min-width: 30px;
-    opacity: 1;
-}
-
-#workspaces button:hover {
-    background-color: @bg1;
-    color: @fg;
-    border-color: transparent;
-    box-shadow: inset 0 -2px @purple;
-}
-
-#workspaces button.urgent {
-    background-color: @bg1;
-    color: @red;
-    border-color: transparent;
-    box-shadow: inset 0 -2px @red;
     opacity: 1;
 }
 
@@ -104,229 +111,253 @@ tooltip label {
     color: @orange;
 }
 
-/* Pills: shared shape, per-module colors below */
+#workspaces button:focus {
+    background: alpha(@blue, 0.08);
+    box-shadow: none;
+}
+
+#workspaces button:hover {
+    background: alpha(@fg, 0.065);
+    color: @fg;
+    opacity: 1;
+}
+
+#workspaces button.active {
+    background: alpha(@blue, 0.16);
+    border-color: transparent;
+    color: @blue;
+    opacity: 1;
+}
+
+#workspaces button.active:hover {
+    background: alpha(@blue, 0.22);
+}
+
+#workspaces button.urgent {
+    background: alpha(@red, 0.14);
+    color: @red;
+    opacity: 1;
+}
+
+/* Inline modules share hit areas, not an individual outlined pill each. */
+#custom-apps,
+#custom-network,
+#bluetooth,
 #pulseaudio,
 #custom-mic,
-#network,
-#clock,
-#custom-notification,
-#custom-apps,
-#tray,
-#bluetooth,
-#battery,
-#audio,
 #cpu,
 #memory,
 #temperature,
-#system,
-#power-profiles-daemon {
-    background-color: @bg0;
-    padding: 0 15px 0 15px;
-    margin: 0 0 0 12px;
+#battery,
+#power-profiles-daemon,
+#custom-notification {
+    background: transparent;
+    border: 1px solid transparent;
     border-radius: 45px;
-    border: 1px solid @bg3;
-    transition: all 0.3s ease-in-out;
+    color: @grey1;
+    min-height: 24px;
+    padding: 0 8px;
+    margin: 0 1px;
+    transition:
+        background-color 160ms ease,
+        color 160ms ease;
 }
 
+#custom-apps:hover,
+#custom-network:hover,
+#bluetooth:hover,
 #pulseaudio:hover,
 #custom-mic:hover,
-#network:hover,
-#clock:hover,
-#custom-notification:hover,
-#custom-apps:hover,
-#tray:hover,
-#bluetooth:hover,
-#battery:hover,
-#power-profiles-daemon:hover,
 #cpu:hover,
 #memory:hover,
 #temperature:hover,
-#system:hover,
-#audio:hover {
-    background-color: @bg1;
-    border-color: @blue;
+#power-profiles-daemon:hover {
+    background: alpha(@fg, 0.065);
+    color: @fg;
 }
 
-/* Per-module accent colors */
-#custom-notification {
+#custom-apps {
+    background: alpha(@blue, 0.08);
+    color: @blue;
+    font-size: 19px;
+    min-width: 26px;
+    padding: 0 5px;
+    margin-right: 5px;
+}
+
+#custom-apps:hover {
+    background: alpha(@blue, 0.17);
     color: @blue;
 }
 
-#pulseaudio {
+/* Related controls are separated by quiet, inset lines. */
+#connections,
+#audio,
+#power {
+    background: transparent;
+    border-left: 1px solid alpha(@bg3, 0.65);
+    padding-left: 5px;
+    margin-left: 5px;
+}
+
+/* Connection state: fixed-size glyphs; names live in literal tooltips. */
+#custom-network,
+#bluetooth,
+#power-profiles-daemon,
+#custom-notification {
+    font-family: "GoMono Nerd Font Propo", sans-serif;
+    font-size: 16px;
+    min-width: 18px;
+}
+
+#custom-network.connected,
+#bluetooth.connected {
+    color: @fg;
+}
+
+#custom-network.hotspot {
+    background: alpha(@blue, 0.08);
+    color: @blue;
+}
+
+#custom-network.connecting {
     color: @yellow;
+}
+
+#custom-network.off,
+#custom-network.idle,
+#custom-network.disconnected,
+#custom-network.unavailable,
+#bluetooth.off,
+#bluetooth.disabled,
+#bluetooth.no-controller {
+    color: @grey0;
+}
+
+/* Audio stays neutral; microphone privacy state never hides in a drawer. */
+#pulseaudio {
+    color: @fg;
+    min-width: 56px;
+    font-weight: 600;
+}
+
+#pulseaudio.muted {
+    color: @grey0;
 }
 
 #custom-mic {
-    color: @yellow;
-    font-size: 16px;
+    font-family: "GoMono Nerd Font Propo", sans-serif;
+    font-size: 15px;
+    min-width: 18px;
 }
 
 #custom-mic.active {
+    background: alpha(@blue, 0.12);
     color: @blue;
 }
 
 #custom-mic.muted {
+    background: alpha(@red, 0.075);
     color: @red;
 }
 
 #custom-mic.hidden {
-    opacity: 0;
+    min-width: 0;
+    min-height: 0;
     margin: 0;
     padding: 0;
-    min-width: 0;
-    background-color: transparent;
-    border-color: transparent;
+    border: none;
+    background: transparent;
     color: transparent;
 }
 
-#network {
-    color: @blue;
-}
-
-#battery {
-    color: @green;
-}
-
-#battery.warning {
-    color: @yellow;
-}
-
-#battery.critical {
-    color: @red;
-    animation-name: blink;
-    animation-duration: 1s;
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
-}
-
-@keyframes blink {
-    50% {
-        opacity: 0.4;
-    }
-}
-
-#battery.charging,
-#battery.plugged,
-#battery.full {
-    color: @green;
-}
-
-#custom-apps {
-    color: @blue;
-    font-size: 20px;
-}
-
-#bluetooth {
-    color: @blue;
-    font-size: 16px;
-}
-
-#bluetooth.off,
-#bluetooth.disabled {
-    color: @grey0;
-    opacity: 0.6;
-}
-
-#bluetooth.on {
-    color: @blue;
-}
-
-#bluetooth.connected {
-    color: @green;
-}
-
-#power-profiles-daemon {
-    color: @fg;
-    font-size: 16px;
-    font-weight: bold;
-}
-
-#power-profiles-daemon.performance {
-    color: @red;
-}
-
-#power-profiles-daemon.balanced {
-    color: @blue;
-}
-
-#power-profiles-daemon.power-saver {
-    color: @green;
-}
-
-/* System monitor */
+/* Stable numeric widths prevent routine updates from shuffling the island. */
 #cpu {
-    color: @fg;
+    min-width: 56px;
 }
 
 #memory {
-    color: @purple;
+    min-width: 56px;
 }
 
 #temperature {
-    color: @green;
+    min-width: 46px;
 }
 
+#battery {
+    min-width: 50px;
+    font-weight: 600;
+}
+
+#battery.warning,
 #temperature.warning {
     color: @yellow;
 }
 
+#battery.critical,
 #temperature.critical {
+    background: alpha(@red, 0.12);
     color: @red;
-    animation-name: blink;
-    animation-duration: 1s;
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
 }
 
-/* Grouped audio drawer */
-#audio {
-    color: @fg;
-    background-color: @bg0;
-    padding: 0 8px 0 8px;
-    margin: 0 0 0 12px;
-    border-radius: 45px;
-    border: 1px solid @bg3;
+#battery.charging,
+#battery.plugged,
+#battery.full,
+#power-profiles-daemon.power-saver {
+    color: @green;
 }
 
-#audio #pulseaudio,
-#audio #custom-mic {
-    background: transparent;
-    border: none;
-    padding: 0 4px;
-    margin: 0;
+#power-profiles-daemon.performance {
+    color: @yellow;
 }
 
-/* Grouped system drawer */
-#system {
-    color: @fg;
-    background-color: @bg0;
-    padding: 0 8px 0 8px;
-    margin: 0 0 0 12px;
-    border-radius: 45px;
-    border: 1px solid @bg3;
-}
-
-#system #cpu,
-#system #memory,
-#system #temperature {
-    background: transparent;
-    border: none;
-    padding: 0 4px;
-    margin: 0;
-}
-
-/* Clock */
+/* The center island is independent of workspace/status widths. */
 #clock {
-    color: @blue;
-    font-size: 15px;
-    letter-spacing: 1px;
+    background: transparent;
+    border-radius: 45px;
+    min-height: 26px;
+    min-width: 132px;
+    padding: 0 10px;
+    color: @fg;
+    transition: background-color 160ms ease;
 }
 
-/* Tray at bar end keeps edge spacing */
+#clock:hover {
+    background: alpha(@fg, 0.045);
+}
+
+/* Tray retains native icon colors; the Deck anchors the right edge. */
 #tray {
-    margin: 0 12px 0 12px;
+    background: transparent;
+    border-left: 1px solid alpha(@bg3, 0.65);
+    margin-left: 5px;
+    padding: 0 10px;
 }
 
 #tray > .passive {
-    opacity: 0.6;
+    opacity: 0.65;
+}
+
+#custom-notification {
+    background: alpha(@blue, 0.09);
+    color: @blue;
+    min-width: 22px;
+    margin-left: 4px;
+    padding: 0 7px;
+}
+
+#custom-notification:hover,
+#custom-notification.notification,
+#custom-notification.cc-open {
+    background: alpha(@blue, 0.18);
+    color: @blue;
+}
+
+#custom-notification.dnd-none,
+#custom-notification.dnd-notification,
+#custom-notification.inhibited-none,
+#custom-notification.inhibited-notification,
+#custom-notification.dnd-inhibited-none,
+#custom-notification.dnd-inhibited-notification {
+    color: @grey1;
 }

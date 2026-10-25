@@ -53,7 +53,8 @@ The installer links desktop and shell configs only. Developer-tool configs (tmux
 - Reload Hyprland after editing a module: `hyprctl reload`.
 - Set wallpaper + regenerate palette: `~/.config/hypr/scripts/set-wall.sh <wallpaper>`.
 - Toggle night light: `~/.config/hypr/scripts/nightlight.sh`.
-- Hard-restart bar + notifications: `~/.config/waybar/scripts/launch.sh`.
+- Reload the bar and notification CSS without killing either daemon: `~/.config/waybar/scripts/launch.sh`.
+- For locally installed patched builds, check the running binaries with `yoru-desktop status`. See [patched desktop maintenance](docs/patched-desktop.md) for setup and controlled restarts.
 - Re-check system state without changes: `./install.sh --check`.
 
 ## Project Structure

@@ -50,7 +50,10 @@ def main():
     parser.add_argument("--config", type=Path)
     parser.add_argument("--style", type=Path)
     parser.add_argument("--sysroot", type=Path)
+    parser.add_argument("--jobs", type=int, default=2)
     args = parser.parse_args()
+    if args.jobs < 1:
+        parser.error("--jobs must be at least 1")
     if args.inside:
         run_inside(args.source, args.config, args.style, args.sysroot)
         return
@@ -70,7 +73,7 @@ def main():
         options = ["--prefix=/usr", "--sysconfdir=/etc", "--buildtype=release", "-Dman-pages=false",
                    "-Dsystemd-service=false", "-Dzsh-completions=false", "-Dbash-completions=false", "-Dfish-completions=false"]
         subprocess.run(["meson", "setup", "build", *options], cwd=source, check=True)
-        subprocess.run(["meson", "compile", "-C", "build", "-j", "4", "yoru-regression"], cwd=source, check=True)
+        subprocess.run(["meson", "compile", "-C", "build", "-j", str(args.jobs), "yoru-regression"], cwd=source, check=True)
         device = root / "fake-sys/class/backlight/test"
         device.mkdir(parents=True)
         (device / "brightness").write_text("370")

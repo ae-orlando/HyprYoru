@@ -17,6 +17,10 @@ Thumbs.db
 *.zwc
 *.log
 
+# Generated Python bytecode; keep sources and patches, not interpreter caches.
+__pycache__/
+*.py[cod]
+
 # Maintenance plans
 .maintenance/*
 

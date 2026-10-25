@@ -5,8 +5,12 @@ Top bar. Config: `waybar/config.jsonc`. Style entry: `waybar/style.css` imports 
 ## Layout
 
 - Left: `custom/apps` (opens `yoru-main.sh`), `hyprland/workspaces`.
-- Center: `bluetooth`, `clock`, `custom/notification`.
-- Right: `group/system` (`cpu` + `memory` + `temperature` drawer), `network`, `group/audio` (`pulseaudio` + `custom/mic` drawer), `battery`, `power-profiles-daemon`, `tray`.
+- Center: the date/time clock, independently centered.
+- Right: `group/system` (`cpu` + `memory` + `temperature` drawer), `group/connections` (`custom/network` + `bluetooth`), `group/audio` (`pulseaudio` + `custom/mic`), `group/power` (`battery` + `power-profiles-daemon`), `tray`, `custom/notification`.
+
+These form three floating islands. An active/muted microphone stays visible;
+only the system statistics use a hover drawer. Radio clicks open the native
+connection drawers rather than toggling power.
 
 ## Files
 
@@ -16,27 +20,30 @@ Top bar. Config: `waybar/config.jsonc`. Style entry: `waybar/style.css` imports 
 | `style.css`           | Two `@import` lines for generated + static colors |
 | `colors/matugen.css`  | Generated palette                                 |
 | `colors/style.css`    | Static pill/workspaces styling                    |
-| `network_menu.xml`    | `network` click menu                              |
+| `network_menu.xml`    | Legacy menu, not wired into the current bar       |
 
 ## Scripts
 
-| Script              | Purpose                                              |
-| ------------------- | ---------------------------------------------------- |
-| `scripts/mic.sh`    | `custom/mic` source mute/active state                |
-| `scripts/updates.sh`  | Dormant: pending-count JSON, hidden unless >100 updates and unwired (no `custom/updates` module) |
-| `scripts/update-now.sh` | Dormant: paired `yay -Syu` runner for `updates.sh` |
-| `scripts/launch.sh` | Hard restart `waybar` + `swaync`                     |
+| Script                        | Purpose                                                                                          |
+| ----------------------------- | ------------------------------------------------------------------------------------------------ |
+| `scripts/mic.sh`              | `custom/mic` source mute/active state                                                            |
+| `scripts/updates.sh`          | Dormant: pending-count JSON, hidden unless >100 updates and unwired (no `custom/updates` module) |
+| `scripts/update-now.sh`       | Dormant: paired `yay -Syu` runner for `updates.sh`                                               |
+| `scripts/network.py`          | Read-only NetworkManager status, including hotspot mode                                          |
+| `scripts/start-waybar.sh`     | Local compatibility binary, or distro fallback                                                   |
+| `scripts/desktop-binaries.py` | Status and controlled daemon restarts (`yoru-desktop`)                                           |
+| `scripts/launch.sh`           | In-place Waybar reload + SwayNC CSS reload; no daemon kill                                       |
 
 ## Commands
 
 ```bash
-waybar
+yoru-desktop status
 ~/.config/waybar/scripts/launch.sh
-pkill -SIGUSR2 waybar
-swaync-client -rs
+yoru-desktop restart waybar
 ```
 
 ## Notes
 
-- System drawer: `group/system` (`waybar/config.jsonc:151`) expands on hover; `cpu`/`memory`/`temperature` open `kitty -e btop` on click. `temperature` reads `thermal-zone: 0`, critical at 80°C. Styling: `#system` drawer + `#cpu`/`#memory`/`#temperature` accents in `waybar/colors/style.css:251`.
-- Theme reloads: matugen `post_hook` (`matugen/config.toml:36`) owns `SIGUSR2`; scripts must not duplicate it or the bar reloads twice. `launch.sh` hard restart is manual-only (drops tray state).
+- System drawer: `group/system` (`waybar/config.jsonc:172`) expands on hover; `cpu`/`memory`/`temperature` open `kitty -e btop` on click. `temperature` reads `thermal-zone: 0`, critical at 80°C.
+- Theme reloads: matugen `post_hook` owns `SIGUSR2`; wallpaper/theme scripts must not duplicate it or the bar reloads twice. Super+R manually reloads configuration/style without replacing the executable.
+- The user-local `0.15.0-yoru1` build fixes workspace buttons for Hyprland Lua. Build, activation, updates and rollback are covered in [patched desktop maintenance](patched-desktop.md).

@@ -1,0 +1,96 @@
+Waybar 0.15.0: numeric, named and special workspace clicks for Hyprland Lua.
+Preserves move-to-monitor behavior; quotes untrusted workspace names as Lua data.
+Author: ae Orland
+GitHub: https://github.com/ae-orlando
+
+--- a/meson.build
++++ b/meson.build
+@@ -1,6 +1,6 @@
+ project(
+     'waybar', 'cpp', 'c',
+-    version: '0.15.0',
++    version: '0.15.0-yoru1',
+     license: 'MIT',
+     meson_version: '>= 0.59.0',
+     default_options : [
+--- a/src/modules/hyprland/workspace.cpp
++++ b/src/modules/hyprland/workspace.cpp
+@@ -7,6 +7,7 @@
+ 
+ #include "modules/hyprland/workspaces.hpp"
+ #include "util/command.hpp"
++#include "util/hyprland_workspace_command.hpp"
+ #include "util/icon_loader.hpp"
+ 
+ namespace waybar::modules::hyprland {
+@@ -69,22 +70,11 @@
+ bool Workspace::handleClicked(GdkEventButton* bt) const {
+   if (bt->type == GDK_BUTTON_PRESS) {
+     try {
+-      if (id() > 0) {  // normal
+-        if (m_workspaceManager.moveToMonitor()) {
+-          m_ipc.getSocket1Reply("dispatch focusworkspaceoncurrentmonitor " + std::to_string(id()));
+-        } else {
+-          m_ipc.getSocket1Reply("dispatch workspace " + std::to_string(id()));
+-        }
+-      } else if (!isSpecial()) {  // named (this includes persistent)
+-        if (m_workspaceManager.moveToMonitor()) {
+-          m_ipc.getSocket1Reply("dispatch focusworkspaceoncurrentmonitor name:" + name());
+-        } else {
+-          m_ipc.getSocket1Reply("dispatch workspace name:" + name());
+-        }
+-      } else if (id() != -99) {  // named special
+-        m_ipc.getSocket1Reply("dispatch togglespecialworkspace " + name());
+-      } else {  // special
+-        m_ipc.getSocket1Reply("dispatch togglespecialworkspace");
++      const auto reply = m_ipc.getSocket1Reply(util::hyprlandWorkspaceCommand(
++          id(), name(), isSpecial(), m_workspaceManager.moveToMonitor()));
++      if (reply.starts_with("error")) {
++        spdlog::error("Failed to dispatch workspace: {}", reply);
++        return false;
+       }
+       return true;
+     } catch (const std::exception& e) {
+--- /dev/null
++++ b/include/util/hyprland_workspace_command.hpp
+@@ -0,0 +1,40 @@
++#pragma once
++
++// Hyprland Lua workspace IPC compatibility.
++// Author: ae Orland
++// GitHub: https://github.com/ae-orlando
++#include <string>
++#include <string_view>
++
++namespace waybar::util {
++
++inline std::string quoteLua(std::string_view value) {
++  std::string quoted = "\"";
++  for (unsigned char character : value) {
++    if (character == '\\' || character == '"') {
++      quoted += '\\';
++      quoted += static_cast<char>(character);
++    } else if (character < 32 || character == 127) {
++      // Three decimal digits avoid consuming following digits in a Lua escape.
++      quoted += '\\';
++      quoted += static_cast<char>('0' + character / 100);
++      quoted += static_cast<char>('0' + character / 10 % 10);
++      quoted += static_cast<char>('0' + character % 10);
++    } else {
++      quoted += static_cast<char>(character);
++    }
++  }
++  return quoted + '"';
++}
++
++inline std::string hyprlandWorkspaceCommand(int id, std::string_view name, bool special,
++                                           bool moveToMonitor) {
++  if (special) {
++    return "dispatch hl.dsp.workspace.toggle_special(" + quoteLua(id == -99 ? "" : name) + ")";
++  }
++  const auto selector = id > 0 ? std::to_string(id) : "name:" + std::string(name);
++  return "dispatch hl.dsp.focus({workspace=" + quoteLua(selector) +
++         ",on_current_monitor=" + (moveToMonitor ? "true" : "false") + "})";
++}
++
++}  // namespace waybar::util

@@ -10,7 +10,7 @@
 
 hl.on("hyprland.start", function()
     -- Cursor theme/size come from env.lua (XCURSOR_* + HYPRCURSOR_*); do not
-    hl.exec_cmd("waybar") -- status bar
+    hl.exec_cmd("~/.config/waybar/scripts/start-waybar.sh") -- status bar; local compatibility build or distro fallback
     hl.exec_cmd("~/.config/swaync/scripts/start-swaync.sh") -- notifications; local backport or distro fallback
     hl.exec_cmd("~/.config/swaync/scripts/clipboard.py watch") -- private, singleton clipboard capture
     hl.exec_cmd("hypridle") -- idle / lock / dpms

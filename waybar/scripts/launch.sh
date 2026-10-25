@@ -1,11 +1,17 @@
 #!/bin/bash
 # by ae. Orlando
+# Author: ae Orland
+# GitHub: https://github.com/ae-orlando
 # _______________________________________________________________________
 
-# Hard restart waybar + swaync (SUPER+R). Drops tray and notification
-# state; prefer SIGUSR2 / swaync-client -rs for theme-only reloads.
-killall -9 waybar
-waybar &
+# SUPER+R reloads in place. Never kill the notification daemon or its inbox.
+set -euo pipefail
+if pgrep -u "$(id -u)" -x waybar >/dev/null; then
+    pkill -u "$(id -u)" -SIGUSR2 -x waybar
+else
+    "$(dirname -- "${BASH_SOURCE[0]}")/start-waybar.sh" >/dev/null 2>&1 &
+fi
 
-killall -9 swaync
-swaync &
+if pgrep -u "$(id -u)" -x swaync >/dev/null; then
+    swaync-client -rs >/dev/null
+fi
