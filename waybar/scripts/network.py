@@ -5,19 +5,30 @@ Author: ae Orland
 GitHub: https://github.com/ae-orlando
 """
 
-from html import escape
 import json
-from pathlib import Path
 import sys
+from html import escape
+from pathlib import Path
 
 # Reuse the drawer's passive D-Bus helpers; never scan or read saved secrets.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "rofi/launchers/connectivity"))
+sys.path.insert(
+    0, str(Path(__file__).resolve().parents[2] / "rofi/launchers/connectivity")
+)
 from common import ConnectionError, Gio, GLib, props
 from wifi import AP, DEVICE, ROOT, SERVICE, WIRELESS
 
 ACTIVE = SERVICE + ".Connection.Active"
-ICONS = {"hotspot": "󰀂", "wifi": "", "ethernet": "󰈀", "mobile": "󰢟", "network": "󰛳",
-         "off": "󰖪", "idle": "", "disconnected": "󰌙", "unavailable": "󰌙"}
+ICONS = {
+    "hotspot": "󰀂",
+    "wifi": "",
+    "ethernet": "󰈀",
+    "mobile": "󰢟",
+    "network": "󰛳",
+    "off": "󰖪",
+    "idle": "",
+    "disconnected": "󰌙",
+    "unavailable": "󰌙",
+}
 
 
 def literal(value):
@@ -57,21 +68,42 @@ def snapshot(read):
             if primary != "/" and primary != device.get("ActiveConnection", "/"):
                 try:
                     kind = read(primary, ACTIVE).get("Type", "")
-                    upstream = {"802-3-ethernet": "Ethernet uplink", "802-11-wireless": "Wi-Fi uplink",
-                                "gsm": "Mobile broadband uplink", "cdma": "Mobile broadband uplink"}.get(kind, "Network uplink")
+                    upstream = {
+                        "802-3-ethernet": "Ethernet uplink",
+                        "802-11-wireless": "Wi-Fi uplink",
+                        "gsm": "Mobile broadband uplink",
+                        "cdma": "Mobile broadband uplink",
+                    }.get(kind, "Network uplink")
                 except ConnectionError:
                     pass
-            return result("hotspot", "Hotspot active\nSharing on " + literal(device.get("Interface", "Wi-Fi")) + "\n" + upstream, connected=True)
+            return result(
+                "hotspot",
+                "Hotspot active\nSharing on "
+                + literal(device.get("Interface", "Wi-Fi"))
+                + "\n"
+                + upstream,
+                connected=True,
+            )
 
     # Prefer the default route's physical adapter; VPN/virtual adapters must not
     # hide a functioning Wi-Fi/Ethernet link when they own the primary route.
-    active = [entry for entry in devices if entry[1].get("State") == 100
-              and entry[1].get("DeviceType") != 32 and entry[1].get("Interface") != "lo"]
+    active = [
+        entry
+        for entry in devices
+        if entry[1].get("State") == 100
+        and entry[1].get("DeviceType") != 32
+        and entry[1].get("Interface") != "lo"
+    ]
     physical = [entry for entry in active if entry[1].get("DeviceType") in (1, 2, 8)]
-    candidates = physical or [entry for entry in active if primary != "/"
-                              and entry[1].get("ActiveConnection") == primary]
+    candidates = physical or [
+        entry
+        for entry in active
+        if primary != "/" and entry[1].get("ActiveConnection") == primary
+    ]
     if candidates:
-        _path, device, wireless = max(candidates, key=lambda entry: entry[1].get("ActiveConnection") == primary)
+        _path, device, wireless = max(
+            candidates, key=lambda entry: entry[1].get("ActiveConnection") == primary
+        )
         interface = literal(device.get("Interface", "Network"))
         kind = device.get("DeviceType")
         if kind == 2:
@@ -80,16 +112,27 @@ def snapshot(read):
             if point != "/":
                 try:
                     access_point = read(point, AP)
-                    ssid = bytes(access_point.get("Ssid", [])).decode("utf-8", errors="replace")
+                    ssid = bytes(access_point.get("Ssid", [])).decode(
+                        "utf-8", errors="replace"
+                    )
                     strength = max(0, min(100, int(access_point.get("Strength", 0))))
-                    details = "Wi-Fi · " + literal(ssid) + f"\nSignal {strength}% · " + interface
+                    details = (
+                        "Wi-Fi · "
+                        + literal(ssid)
+                        + f"\nSignal {strength}% · "
+                        + interface
+                    )
                 except (ConnectionError, TypeError, ValueError):
                     pass
             return result("wifi", details, connected=True)
         if kind == 1:
-            return result("ethernet", "Ethernet connected\n" + interface, connected=True)
+            return result(
+                "ethernet", "Ethernet connected\n" + interface, connected=True
+            )
         if kind == 8:
-            return result("mobile", "Mobile broadband connected\n" + interface, connected=True)
+            return result(
+                "mobile", "Mobile broadband connected\n" + interface, connected=True
+            )
         return result("network", "Network connected\n" + interface, connected=True)
 
     wifi = [entry for entry in devices if entry[1].get("DeviceType") == 2]
