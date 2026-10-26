@@ -79,6 +79,31 @@ class PalettePipelineTests(unittest.TestCase):
             XDG_CACHE_HOME=str(self.home / ".cache"),
             PATH=f"{bins}:{os.environ['PATH']}", PALETTE_TEST_LOG=str(self.log),
         )
+        # Backdrops intentionally outlive the foreground wallpaper command.
+        # Wait before TemporaryDirectory.cleanup, not for a guessed sleep.
+        self.addCleanup(self.wait_for_palette_workers)
+
+    def wait_for_palette_workers(self):
+        deadline = time.monotonic() + 10
+        expected_home = f"HOME={self.home}".encode()
+        while time.monotonic() < deadline:
+            active = False
+            for process in Path("/proc").iterdir():
+                if not process.name.isdecimal():
+                    continue
+                try:
+                    if str(SCRIPT).encode() not in (process / "cmdline").read_bytes():
+                        continue
+                    environment = (process / "environ").read_bytes().split(b"\0")
+                    if expected_home in environment:
+                        active = True
+                        break
+                except (OSError, PermissionError):
+                    continue  # A process exited or belongs to another user.
+            if not active:
+                return
+            time.sleep(0.02)
+        self.fail("Sandboxed palette workers did not finish before cleanup")
 
     def run_palette(self, *args, env=None):
         return subprocess.run(["python3", str(SCRIPT), *map(str, args)],

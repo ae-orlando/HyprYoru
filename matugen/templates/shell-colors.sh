@@ -14,8 +14,9 @@
 # eza intentionally uses terminal colors (built-in default theme, ANSI slots),
 # so existing output repaints instantly on palette reload. No EZA_COLORS here.
 
-# ==== zsh-autosuggestions ghost text (whisper: visible, never competes) ====
-export MATUGEN_AUTOSUGGEST="{{colors.outline_variant.default.hex}}"
+# ==== zsh-autosuggestions ghost text (muted ink, readable in both modes) ====
+# outline_variant is a border role, too faint for suggestion text.
+export MATUGEN_AUTOSUGGEST="{{colors.on_surface_variant.default.hex}}"
 
 # ==== fzf (hex palette, colors only; layout/keys untouched) ====
 export FZF_DEFAULT_OPTS="--color=fg:{{colors.on_surface.default.hex}},bg:{{colors.surface.default.hex}},hl:{{colors.primary.default.hex}},fg+:{{colors.on_primary_container.default.hex}},bg+:{{colors.surface_container_high.default.hex}},hl+:{{colors.primary.default.hex}},info:{{colors.on_surface_variant.default.hex}},prompt:{{colors.primary.default.hex}},pointer:{{colors.primary.default.hex}},marker:{{colors.secondary.default.hex}},spinner:{{colors.tertiary.default.hex}},header:{{colors.tertiary.default.hex}},border:{{colors.outline_variant.default.hex}},gutter:{{colors.surface.default.hex}},query:{{colors.on_surface.default.hex}}"

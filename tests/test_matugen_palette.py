@@ -103,6 +103,24 @@ class RenderTests(unittest.TestCase):
             self.assertIn("@define-color accent_bg_color #", output["gtk-colors.css"])
             self.assertIn("active_border", output["hypr-colors.lua"])
 
+    def test_autosuggestion_ink_is_readable_but_distinct_from_normal_text(self):
+        for key, output in self.samples.items():
+            with self.subTest(key=key):
+                ghost = re.search(r'MATUGEN_AUTOSUGGEST="(#[0-9a-fA-F]{6})"',
+                                  output["shell-colors.sh"]).group(1)
+                kitty = dict(re.findall(r"^(background|foreground)\s+(#[0-9a-fA-F]{6})$",
+                                        output["kitty-colors.conf"], re.M))
+                self.assertGreaterEqual(contrast(ghost, kitty["background"]), 4.5)
+                self.assertNotEqual(ghost, kitty["foreground"])
+
+    def test_zsh_warning_and_matching_bracket_foregrounds_are_readable(self):
+        for key, output in self.samples.items():
+            with self.subTest(key=key):
+                kitty = dict(re.findall(r"^(background|color[14])\s+(#[0-9a-fA-F]{6})$",
+                                        output["kitty-colors.conf"], re.M))
+                for slot in ("color1", "color4"):
+                    self.assertGreaterEqual(contrast(kitty[slot], kitty["background"]), 4.5)
+
     def test_waybar_status_tokens_remain_legible(self):
         for key, output in self.samples.items():
             with self.subTest(key=key):

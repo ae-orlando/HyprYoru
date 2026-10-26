@@ -9,11 +9,14 @@
 
 #=========================================
 # Highlighters + perf (must be set before sourcing)
-# main: tokens, brackets: ()[]{} nesting, pattern: dangerous
-# regexps, cursor: standout, root: sudo warning, line: whole buffer
+# main: tokens, brackets: ()[]{} nesting, regexp: URLs/annotations,
+# cursor: underline, root: whole-buffer warning for an actual root shell.
+# Empty pattern and no-op line passes are intentionally omitted.
 #=========================================
-ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets pattern cursor regexp root line)
-ZSH_HIGHLIGHT_MAXLENGTH=512
+ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets regexp cursor root)
+# Double the old 512-char limit; token-heavy 2K-character lines repaint slowly.
+# Queued input is still skipped by the plugin's own paste guard.
+ZSH_HIGHLIGHT_MAXLENGTH=1024
 
 #=========================================
 #Source
@@ -29,7 +32,6 @@ fi
 # Initialize Styling arrays
 # ========================================
 typeset -A ZSH_HIGHLIGHT_STYLES
-typeset -A ZSH_HIGHLIGHT_PATTERNS
 typeset -A ZSH_HIGHLIGHT_REGEXP
 
 # ==========================================
@@ -37,7 +39,7 @@ typeset -A ZSH_HIGHLIGHT_REGEXP
 # palette, so highlighting follows the wallpaper via matugen/Kitty)
 # ========================================
 
-# Executables (Magenta/bold via ANSI tertiary slot: follows wallpaper
+# Executables (Magenta/bold via ANSI secondary slot: follows wallpaper
 # through matugen/Kitty, keeps classic distinct command color, no hardcode)
 ZSH_HIGHLIGHT_STYLES[command]='fg=magenta,bold'
 ZSH_HIGHLIGHT_STYLES[builtin]='fg=magenta,bold'
@@ -50,8 +52,8 @@ ZSH_HIGHLIGHT_STYLES[alias]='fg=cyan,bold'
 ZSH_HIGHLIGHT_STYLES[suffix-alias]='fg=cyan,bold'
 ZSH_HIGHLIGHT_STYLES[global-alias]='fg=cyan,bold'
 
-# Elevated first words (Yellow bold underline: own visual, warning not error.
-# Red is reserved for errors only, so sudo no longer collides with failures)
+# Precommands, including sudo/env/command (not proof of elevated privileges).
+# Yellow bold underline is a warning/accent; red stays reserved for errors.
 ZSH_HIGHLIGHT_STYLES[precommand]='fg=yellow,bold,underline'
 
 # Options and flags like -h or --help (Blue)
@@ -117,21 +119,18 @@ ZSH_HIGHLIGHT_STYLES[bracket-level-4]='fg=magenta'
 ZSH_HIGHLIGHT_STYLES[bracket-level-5]='fg=yellow'
 
 # ==========================================
-# Cursor / line / root highlighters
+# Cursor / root highlighters (no fixed foreground/background pairs)
 # ========================================
-ZSH_HIGHLIGHT_STYLES[cursor]='standout'
-ZSH_HIGHLIGHT_STYLES[cursor-matchingbracket]='fg=white,bold,bg=blue'
-ZSH_HIGHLIGHT_STYLES[line]='none'
-ZSH_HIGHLIGHT_STYLES[root]='fg=white,bold,bg=red'
-
-# ==========================================
-# Pattern highlighter: kept loaded but empty (rm -rf shout removed per
-# feedback; precommand underline already flags elevation)
-# ========================================
+ZSH_HIGHLIGHT_STYLES[cursor]='underline'
+ZSH_HIGHLIGHT_STYLES[cursor-matchingbracket]='fg=blue,bold,underline'
+ZSH_HIGHLIGHT_STYLES[root]='fg=red,bold,underline'
 
 # ==========================================
 # Regexp highlighter: subtle, ANSI-only, no red (red is errors only)
-# URLs get the sole blue-underline; TODO pops from gray comments
+# URLs and annotations are cosmetic overlays, not shell validation. Match
+# whole annotation words, not NOTE inside NOTED or TODO inside TODO_LIST.
 # ========================================
-ZSH_HIGHLIGHT_REGEXP+=('https?://[^ ]+' 'fg=blue,underline')
-ZSH_HIGHLIGHT_REGEXP+=('\b(TODO|FIXME|NOTE):?' 'fg=yellow,bold')
+ZSH_HIGHLIGHT_REGEXP+=(
+  $'https?://[^[:space:]"\'<>]+' 'fg=blue,underline'
+  '\b(TODO|FIXME|NOTE)\b:?' 'fg=yellow,bold'
+)
