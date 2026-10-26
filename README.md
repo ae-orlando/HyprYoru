@@ -54,7 +54,7 @@ The installer links desktop and shell configs only. Developer-tool configs (tmux
 - Set wallpaper + regenerate palette: `~/.config/hypr/scripts/set-wall.sh <wallpaper>`.
 - Toggle night light: `~/.config/hypr/scripts/nightlight.sh`.
 - Reload the bar and notification CSS without killing either daemon: `~/.config/waybar/scripts/launch.sh`.
-- For locally installed patched builds, check the running binaries with `yoru-desktop status`. See [patched desktop maintenance](docs/patched-desktop.md) for setup and controlled restarts.
+- For locally installed patched builds, check the running binaries with `yoru-desktop status`. The binaries are **user-local files, not pacman/AUR packages**; pacman still owns separate `/usr/bin` copies. See [patched desktop maintenance](docs/patched-desktop.md) for setup, package ownership, updates and controlled restarts.
 - Re-check system state without changes: `./install.sh --check`.
 
 ## Project Structure
