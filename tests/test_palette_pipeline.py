@@ -7,6 +7,7 @@ from pathlib import Path
 import shutil
 import struct
 import subprocess
+import sys
 import tempfile
 import time
 import unittest
@@ -17,6 +18,7 @@ import zlib
 REPO = Path(__file__).resolve().parents[1]
 SCRIPT = REPO / "hyprland/scripts/palette.py"
 TEMP_ROOT = Path("/tmp/opencode")
+sys.path.insert(0, str(SCRIPT.parent))
 
 def tiny_png(rgb):
     """Construct a valid 2x2 RGB PNG without depending on host images."""
@@ -202,7 +204,8 @@ class PublishTests(unittest.TestCase):
                 path.write_text("last good\n")
             for path in new:
                 path.write_text("new palette\n")
-            replace = palette.os.replace
+            palette.STORE = palette.PaletteStore(root / "cache")
+            replace = os.replace
             failed = False
 
             def fail_second(source, target):
@@ -212,7 +215,7 @@ class PublishTests(unittest.TestCase):
                     raise OSError("simulated publication failure")
                 return replace(source, target)
 
-            with patch.object(palette.os, "replace", side_effect=fail_second):
+            with patch("palette_store.os.replace", side_effect=fail_second):
                 with self.assertRaisesRegex(OSError, "simulated publication failure"):
                     palette.publish(list(zip(new, old)))
             self.assertTrue(failed)

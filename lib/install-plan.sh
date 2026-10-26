@@ -86,7 +86,7 @@ build_plan() {
     fi
     PLAN_LINKS+=("$entry")
   done
-  PLAN_SOURCE_FILES=(hyprland/hyprland.lua hyprland/scripts/palette.py waybar/config.jsonc matugen/config.toml waypaper/config.ini.example)
+  PLAN_SOURCE_FILES=(hyprland/hyprland.lua hyprland/scripts/palette.py hyprland/scripts/palette_store.py hyprland/scripts/start-themed-desktop.sh waybar/config.jsonc matugen/config.toml waypaper/config.ini.example)
   [[ "$WITH_SHELL" -eq 0 ]] || PLAN_SOURCE_FILES+=(zsh/.zshrc)
   PLAN_COMMANDS=(Hyprland kitty nautilus chromium imv rofi hyprctl hyprlock hypridle hyprsunset
     waybar swaync swaync-client nm-applet awww awww-daemon grim slurp wl-copy playerctl wpctl

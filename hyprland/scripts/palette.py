@@ -7,18 +7,16 @@ the latest successful render is installed and its consumers reloaded.
 """
 
 import argparse
-import fcntl
 import json
-import os
-import shutil
 import subprocess
 import sys
-import tempfile
 import time
 import tomllib
 import uuid
 from contextlib import contextmanager
 from pathlib import Path
+
+from palette_store import PaletteStore, StoreError, atomic_text, sync_dir
 
 HOME = Path.home()
 CACHE = HOME / ".cache/matugen"
@@ -26,10 +24,13 @@ INTENT = CACHE / "intent.json"
 WALL_FILE = CACHE / "current-wallpaper"
 MODE_FILE = CACHE / "current-mode"
 APPLIED = CACHE / "current-request"
+COMMITTED = CACHE / "committed.json"
 CONFIG = HOME / ".config/matugen/config.toml"
 WALL_DIR = HOME / "Pictures/wallpapers"
 SEED_DIR = HOME / ".config/hypr/wallpapers"
 TRANSITION = 2
+STORE = PaletteStore(CACHE)
+ACTIVE_FD = None
 
 
 class PaletteError(Exception):
@@ -38,27 +39,68 @@ class PaletteError(Exception):
 
 @contextmanager
 def locked(name):
-    CACHE.mkdir(parents=True, exist_ok=True)
-    with (CACHE / name).open("a+") as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX)
+    with STORE.lock(name):
         yield
 
 
-def atomic_text(path, contents):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.NamedTemporaryFile(mode="w", dir=path.parent, delete=False) as out:
+def reconcile():
+    """Called only with no live operations, after journal recovery is complete."""
+    if COMMITTED.exists():
         try:
-            out.write(contents)
-            name = out.name
-        except BaseException:
-            Path(out.name).unlink(missing_ok=True)
-            raise
-    os.replace(name, path)
+            state = json.loads(COMMITTED.read_text())
+            if (
+                not isinstance(state, dict)
+                or state.get("mode") not in ("dark", "light")
+                or not isinstance(state.get("wall"), str)
+                or not isinstance(state.get("id"), str)
+            ):
+                raise ValueError("invalid committed palette state")
+        except (OSError, ValueError) as exc:
+            raise PaletteError(f"Cannot read last committed palette: {exc}") from exc
+        for path, value in (
+            (WALL_FILE, state["wall"]),
+            (MODE_FILE, state["mode"]),
+            (APPLIED, state["id"]),
+        ):
+            if not path.is_file() or path.read_text().strip() != value:
+                atomic_text(path, value + "\n")
+        atomic_text(INTENT, json.dumps(state) + "\n")
+    elif WALL_FILE.exists() or MODE_FILE.exists():
+        # Upgrade path for a palette saved before transactional state existed.
+        state = {
+            "id": (
+                APPLIED.read_text().strip() if APPLIED.is_file() else uuid.uuid4().hex
+            ),
+            "wall": WALL_FILE.read_text().strip() if WALL_FILE.is_file() else "",
+            "mode": current_mode(),
+            "gtk_update": False,
+        }
+        atomic_text(INTENT, json.dumps(state) + "\n")
+    elif INTENT.exists():
+        # An interrupted first render has no successful request to restore.
+        INTENT.unlink()
+        sync_dir(CACHE)
+
+
+@contextmanager
+def operation(exclusive=False):
+    global ACTIVE_FD
+    with STORE.operation(reconcile, exclusive=exclusive) as descriptor:
+        ACTIVE_FD = descriptor
+        try:
+            yield
+        finally:
+            ACTIVE_FD = None
+
+
+def child_fds():
+    return (ACTIVE_FD,) if ACTIVE_FD is not None else ()
 
 
 def intent():
     try:
-        return json.loads(INTENT.read_text())
+        state = json.loads(INTENT.read_text())
+        return state if isinstance(state, dict) else {}
     except (OSError, ValueError):
         return {}
 
@@ -227,41 +269,7 @@ def stage_config(root):
 
 
 def publish(targets):
-    """Stage renames on each target filesystem and restore originals on error."""
-    prepared = []
-    published = []
-    try:
-        for source, target in targets:
-            target.parent.mkdir(parents=True, exist_ok=True)
-            if target.is_symlink():
-                raise PaletteError(f"Refusing to replace a theme symlink: {target}")
-            with tempfile.NamedTemporaryFile(dir=target.parent, delete=False) as tmp:
-                incoming = Path(tmp.name)
-            old = None
-            if target.exists():
-                with tempfile.NamedTemporaryFile(
-                    dir=target.parent, delete=False
-                ) as tmp:
-                    old = Path(tmp.name)
-            prepared.append((incoming, target, old))
-            shutil.copy2(source, incoming)
-            if old:
-                shutil.copy2(target, old)
-        for incoming, target, old in prepared:
-            os.replace(incoming, target)
-            published.append((target, old))
-    except BaseException:
-        for target, old in reversed(published):
-            if old:
-                os.replace(old, target)
-            else:
-                target.unlink(missing_ok=True)
-        raise
-    finally:
-        for incoming, _, old in prepared:
-            incoming.unlink(missing_ok=True)
-            if old:
-                old.unlink(missing_ok=True)
+    STORE.publish(targets)
 
 
 def reload_consumers():
@@ -333,8 +341,8 @@ def render(desired):
     with locked("render.lock"):
         if desired["id"] != intent().get("id"):
             return False
-        with tempfile.TemporaryDirectory(prefix="render-", dir=CACHE) as directory:
-            config, targets = stage_config(Path(directory))
+        with STORE.workspace("render") as directory:
+            config, targets = stage_config(directory)
             result = subprocess.run(
                 [
                     "matugen",
@@ -350,6 +358,7 @@ def render(desired):
                 text=True,
                 capture_output=True,
                 check=False,
+                pass_fds=child_fds(),
             )
             if result.returncode:
                 raise PaletteError(f"Matugen failed: {result.stderr or result.stdout}")
@@ -361,22 +370,26 @@ def render(desired):
                     raise PaletteError(f"Unresolved expressions in {source.name}")
                 if source.suffix == ".json":
                     json.loads(content)
-            if desired["id"] != intent().get("id"):
-                return False
-            wall_state = Path(directory) / "current-wallpaper"
-            mode_state = Path(directory) / "current-mode"
-            request_state = Path(directory) / "current-request"
+            wall_state = directory / "current-wallpaper"
+            mode_state = directory / "current-mode"
+            request_state = directory / "current-request"
+            committed_state = directory / "committed.json"
             wall_state.write_text(desired["wall"] + "\n")
             mode_state.write_text(desired["mode"] + "\n")
             request_state.write_text(desired["id"] + "\n")
-            publish(
-                targets
-                + [
-                    (wall_state, WALL_FILE),
-                    (mode_state, MODE_FILE),
-                    (request_state, APPLIED),
-                ]
-            )
+            committed_state.write_text(json.dumps(desired) + "\n")
+            with locked("request.lock"):
+                if desired["id"] != intent().get("id"):
+                    return False
+                publish(
+                    targets
+                    + [
+                        (wall_state, WALL_FILE),
+                        (mode_state, MODE_FILE),
+                        (request_state, APPLIED),
+                        (committed_state, COMMITTED),
+                    ]
+                )
             # A wallpaper change must not override GTK preferences when the
             # installer was run without application defaults. Only an explicit
             # theme toggle changes the user's GTK theme and color scheme.
@@ -412,8 +425,7 @@ def rollback_request(desired):
 
 def backdrop(wall, request_id):
     """Build real PNGs during transition; publish only after palette commit."""
-    with tempfile.TemporaryDirectory(prefix="backdrop-", dir=CACHE) as directory:
-        root = Path(directory)
+    with STORE.workspace("backdrop") as root:
         if intent().get("id") != request_id:
             return
         lock_image = root / "lock.png"
@@ -423,6 +435,7 @@ def backdrop(wall, request_id):
             check=True,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
+            pass_fds=child_fds(),
         )
         if intent().get("id") != request_id:
             return
@@ -440,6 +453,7 @@ def backdrop(wall, request_id):
             check=True,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
+            pass_fds=child_fds(),
         )
         rofi = HOME / ".cache/rofi"
         hyprlock = HOME / ".cache/hyprlock"
@@ -472,9 +486,22 @@ def main():
     parser.add_argument(
         "--pick", action="store_true", help="Pick a wallpaper with Rofi"
     )
-    parser.add_argument("action", choices=("wallpaper", "toggle", "backdrop"))
+    parser.add_argument(
+        "action", choices=("wallpaper", "toggle", "backdrop", "recover")
+    )
     parser.add_argument("args", nargs="*")
     options = parser.parse_args()
+    if options.action == "recover":
+        if options.args or options.pick:
+            parser.error("recover takes no arguments")
+        with operation(exclusive=True):
+            print("Palette recovery complete.")
+        return
+    with operation():
+        apply(options, parser)
+
+
+def apply(options, parser):
     if options.action == "backdrop":
         if len(options.args) != 2:
             parser.error("backdrop expects a wallpaper and request ID")
@@ -504,6 +531,7 @@ def main():
         KeyError,
         subprocess.CalledProcessError,
         PaletteError,
+        StoreError,
     ) as exc:
         rollback_request(desired)
         raise PaletteError(str(exc)) from exc
@@ -520,8 +548,13 @@ if __name__ == "__main__":
         KeyError,
         subprocess.CalledProcessError,
         PaletteError,
+        StoreError,
     ) as exc:
         if len(sys.argv) > 1 and sys.argv[1] == "backdrop":
-            atomic_text(CACHE / "backdrop-error", str(exc) + "\n")
+            # Error reporting happens after the operation lock is released.
+            # Serialize with recovery's state-file cleanup as well.
+            with locked("publish.lock"):
+                if intent().get("id") == sys.argv[-1]:
+                    atomic_text(CACHE / "backdrop-error", str(exc) + "\n")
         print(f"Palette: {exc}", file=sys.stderr)
         sys.exit(1)

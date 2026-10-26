@@ -33,12 +33,14 @@ only while the generated `modules.colors` is absent (first boot).
 | `modules/input.lua`           | Keyboard, touchpad, gestures                                                                           |
 | `modules/rules.lua`           | Window/workspace/layer rules                                                                           |
 | `modules/binds.lua`           | All keybindings: app launchers, compositor controls, media/hardware keys and screenshots               |
-| `modules/autostart.lua`       | User-local Waybar/SwayNC launchers (distro fallback), clipboard watcher, `hypridle`, `awww-daemon`     |
+| `modules/autostart.lua`       | Recovery-gated themed desktop startup, clipboard watcher, `hypridle`, `awww-daemon`                     |
 | `hypridle.conf`               | Idle daemon (`lock_cmd = pidof hyprlock`)                                                              |
 | `hyprlock.conf`               | Lock screen, sources `hyprlock-colors.conf`                                                            |
 | `hyprlock-colors.conf`        | Generated palette                                                                                      |
 | `scripts/set-wall.sh`         | Stable wrapper for `scripts/palette.py`: immediate `awww`, staged Matugen palette and deferred backdrops |
 | `scripts/palette.py`          | Coordinates wallpaper/theme requests and graceful consumer reloads                                     |
+| `scripts/palette_store.py`    | Durable publication journals, crash recovery and owned workspace cleanup                               |
+| `scripts/start-themed-desktop.sh` | Recovers before starting Waybar/SwayNC, then restores the wallpaper                                 |
 | `scripts/nightlight.sh`       | `hyprsunset` 6500K/4000K toggle                                                                        |
 | `whatsong.sh`                 | Now-playing for hyprlock (`playerctl`)                                                                 |
 | `wallpapers/`                 | 10 seed wallpapers                                                                                     |

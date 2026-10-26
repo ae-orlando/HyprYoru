@@ -798,6 +798,8 @@ printf '%s\\n' "$BACKUP_DIR"
             "lib/gum-runtime.sh",
             "matugen/config.toml",
             "hyprland/scripts/palette.py",
+            "hyprland/scripts/palette_store.py",
+            "hyprland/scripts/start-themed-desktop.sh",
         ):
             target = fixture / name
             target.parent.mkdir(parents=True, exist_ok=True)
