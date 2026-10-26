@@ -31,6 +31,9 @@ if [ "${1:-}" = "--random" ]; then
     fi
     if "$HOME/.config/hypr/scripts/set-wall.sh" "$WALLPAPER_PATH"; then
         notify-send "Wallpaper Changed" "$(basename "$WALLPAPER_PATH") applied (random)."
+    else
+        notify-send "Wallpaper Failed" "Could not apply $(basename "$WALLPAPER_PATH")."
+        exit 1
     fi
     exit 0
 fi
@@ -87,11 +90,13 @@ if [ -z "$WALLPAPER_PATH" ] || [ ! -f "$WALLPAPER_PATH" ]; then
     exit 1
 fi
 
-# --- 4. Apply via the single canonical path (set-wall.sh -> matugen -> awww) ---
-# No direct awww/swww/hyprpaper calls here: matugen already sets the wallpaper
-# through [config.wallpaper], so one call = one transition, one palette.
+# --- 4. Apply via the single canonical path (set-wall.sh -> awww -> matugen) ---
+# The wallpaper wrapper owns the awww transition; matugen only generates themes.
 if "$HOME/.config/hypr/scripts/set-wall.sh" "$WALLPAPER_PATH"; then
     notify-send "Wallpaper Changed" "$(basename "$WALLPAPER_PATH") applied."
+else
+    notify-send "Wallpaper Failed" "Could not apply $(basename "$WALLPAPER_PATH")."
+    exit 1
 fi
 
 exit 0

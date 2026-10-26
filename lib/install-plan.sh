@@ -86,11 +86,11 @@ build_plan() {
     fi
     PLAN_LINKS+=("$entry")
   done
-  PLAN_SOURCE_FILES=(hyprland/hyprland.lua waybar/config.jsonc matugen/config.toml waypaper/config.ini.example)
+  PLAN_SOURCE_FILES=(hyprland/hyprland.lua hyprland/scripts/palette.py waybar/config.jsonc matugen/config.toml waypaper/config.ini.example)
   [[ "$WITH_SHELL" -eq 0 ]] || PLAN_SOURCE_FILES+=(zsh/.zshrc)
   PLAN_COMMANDS=(Hyprland kitty nautilus chromium imv rofi hyprctl hyprlock hypridle hyprsunset
     waybar swaync swaync-client nm-applet awww awww-daemon grim slurp wl-copy playerctl wpctl
-    brightnessctl matugen magick pavucontrol bluetoothctl nmcli checkupdates jq notify-send
+    brightnessctl matugen magick python3 pavucontrol bluetoothctl nmcli checkupdates jq notify-send
     xdg-open xdg-user-dirs-update git)
   [[ "$WITH_SHELL" -eq 0 ]] || PLAN_COMMANDS+=(zsh)
   [[ "$NO_AUR" -eq 1 ]] || PLAN_COMMANDS+=(waypaper)

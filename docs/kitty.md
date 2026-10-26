@@ -16,5 +16,5 @@ include themes/Matugen.conf
 
 ## Notes
 
-- Matugen `post_hook` sends `SIGUSR1` to kitty on palette change.
+- Wallpaper/theme changes signal Kitty with `SIGUSR1` once after the coordinated palette publish. Matugen's `post_hook` still handles direct Matugen runs.
 - `fastfetch/config.jsonc` logo type `kitty` requires kitty image protocol.

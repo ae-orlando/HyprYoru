@@ -37,7 +37,8 @@ only while the generated `modules.colors` is absent (first boot).
 | `hypridle.conf`               | Idle daemon (`lock_cmd = pidof hyprlock`)                                                              |
 | `hyprlock.conf`               | Lock screen, sources `hyprlock-colors.conf`                                                            |
 | `hyprlock-colors.conf`        | Generated palette                                                                                      |
-| `scripts/set-wall.sh`         | Wallpaper (`awww` immediate) + deferred rofi/hyprlock + `matugen` palette + `hyprctl` (bars via hooks) |
+| `scripts/set-wall.sh`         | Stable wrapper for `scripts/palette.py`: immediate `awww`, staged Matugen palette and deferred backdrops |
+| `scripts/palette.py`          | Coordinates wallpaper/theme requests and graceful consumer reloads                                     |
 | `scripts/nightlight.sh`       | `hyprsunset` 6500K/4000K toggle                                                                        |
 | `whatsong.sh`                 | Now-playing for hyprlock (`playerctl`)                                                                 |
 | `wallpapers/`                 | 10 seed wallpapers                                                                                     |

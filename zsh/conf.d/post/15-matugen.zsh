@@ -11,23 +11,16 @@
 # Re-sourced automatically before each prompt when matugen rewrites it
 # (e.g. after ~/.config/hypr/scripts/set-wall.sh runs).
 
-# Load only zstat, leaving the external stat command unchanged.
-zmodload -F zsh/stat b:zstat 2>/dev/null || true
-
 _matugen_colors_reload() {
   local file="$ZDOTDIR/generated/colors.sh" mtime
-  local -a file_mtime
   if [[ ! -f "$file" ]]; then
     unset _matugen_colors_mtime
     return 0
   fi
 
-  if (( $+builtins[zstat] )); then
-    zstat -A file_mtime +mtime -- "$file" 2>/dev/null || return 0
-    mtime=$file_mtime[1]
-  else
-    mtime=$(command stat -c %Y -- "$file" 2>/dev/null) || return 0
-  fi
+  # Sub-second changes matter when a wallpaper and mode change land within
+  # one second. zstat +mtime (and stat %Y) only report whole seconds.
+  mtime=$(command stat -c %y -- "$file" 2>/dev/null) || return 0
 
   if [[ -n "$mtime" && "$mtime" != "${_matugen_colors_mtime-}" ]]; then
     unset EZA_COLORS

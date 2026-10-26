@@ -722,6 +722,11 @@ set_gtk_preference() {
 
 apply_defaults() {
   [[ "$SET_DEFAULTS" -eq 1 ]] || { skip 'Application defaults and GTK preferences left unchanged'; return 0; }
+  local mode='dark' gtk_theme='adw-gtk3-dark' color_scheme='prefer-dark'
+  if [[ -r "$HOME/.cache/matugen/current-mode" ]]; then
+    IFS= read -r mode <"$HOME/.cache/matugen/current-mode" || true
+    if [[ "$mode" == light ]]; then gtk_theme='adw-gtk3'; color_scheme='prefer-light'; fi
+  fi
   set_mime_group chromium.desktop text/html x-scheme-handler/http x-scheme-handler/https
   set_mime_group org.gnome.Evince.desktop application/pdf application/postscript
   if [[ "$DRY_RUN" -eq 0 ]] && desktop_exists org.xfce.ristretto.desktop; then
@@ -730,7 +735,8 @@ apply_defaults() {
     set_mime_group imv.desktop image/png image/jpeg image/webp image/gif
   fi
   if [[ "$DRY_RUN" -eq 1 ]] || command -v gsettings >/dev/null 2>&1; then
-    set_gtk_preference gtk-theme adw-gtk3-dark
+    set_gtk_preference gtk-theme "$gtk_theme"
+    set_gtk_preference color-scheme "$color_scheme"
     set_gtk_preference font-name 'Adwaita Sans Medium 11'
     if [[ "$NO_AUR" -eq 0 ]]; then
       set_gtk_preference icon-theme kora-pgrey
@@ -755,7 +761,7 @@ phase_dotfiles() {
   run mkdir -p -- "$HOME/Pictures/wallpapers" "$HOME/Pictures/Screenshots" \
     "$HOME/.cache/matugen" "$HOME/.cache/hyprlock" "${XDG_CACHE_HOME:-$HOME/.cache}/wallpaper-thumbs" \
     "$HOME/.config/swaync/matugen" "$HOME/.config/matugen/themes" \
-    "$HOME/.config/btop/themes" "$HOME/.config/qt6ct/colors" "$HOME/.config/opencode/themes" \
+    "$HOME/.config/btop/themes" "$HOME/.config/qt6ct/colors" \
     "$HOME/.local/bin" "$HOME/.local/share/fonts"
   [[ "$WITH_SHELL" -eq 0 ]] || run mkdir -p -- "$HOME/.config/zsh/generated"
   normalize_qt_path
@@ -806,7 +812,7 @@ phase_shell() {
 
 phase_theming() {
   step 'Generate the palette'
-  local wall=''
+  local wall='' mode='dark'
   if [[ -r "$HOME/.cache/matugen/current-wallpaper" ]]; then
     IFS= read -r wall <"$HOME/.cache/matugen/current-wallpaper" || true
     [[ -f "$wall" ]] || wall=''
@@ -817,8 +823,12 @@ phase_theming() {
   fi
   [[ -f "$wall" ]] || wall="$DOTFILES_ROOT/hyprland/wallpapers/anime3.png"
   [[ -f "$wall" ]] || { fail 'No seed wallpaper available for palette generation'; return 1; }
+  if [[ -r "$HOME/.cache/matugen/current-mode" ]]; then
+    IFS= read -r mode <"$HOME/.cache/matugen/current-mode" || true
+    [[ "$mode" == light || "$mode" == dark ]] || mode='dark'
+  fi
   say 'Generate themes only; wallpaper is restored at login. Template hooks may refresh running apps.'
-  spin 'Generate matugen themes' matugen image "$wall" --mode dark --type scheme-tonal-spot --prefer closest-to-fallback
+  spin 'Generate matugen themes' matugen image "$wall" --mode "$mode" --type scheme-tonal-spot --prefer closest-to-fallback
 }
 
 check_bin() {

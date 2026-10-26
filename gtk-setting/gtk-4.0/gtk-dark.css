@@ -1,1 +1,15 @@
-/usr/share/themes/adw-gtk3-dark/gtk-4.0/gtk-dark.css
+/* Match gtk.css in dark mode; never import the light vendor stylesheet here. */
+@import url('file:///usr/share/themes/adw-gtk3-dark/gtk-4.0/libadwaita.css');
+@import url('file:///usr/share/themes/adw-gtk3-dark/gtk-4.0/libadwaita-tweaks.css');
+@import 'colors.css';
+
+:root {
+  --accent-bg-color: @accent_bg_color;
+  --accent-fg-color: @accent_fg_color;
+  --window-bg-color: @window_bg_color;
+  --headerbar-bg-color: @headerbar_bg_color;
+  --overview-bg-color: @overview_bg_color;
+  --overview-fg-color: @overview_fg_color;
+  --active-toggle-bg-color: @active_toggle_bg_color;
+  --active-toggle-fg-color: @active_toggle_fg_color;
+}

@@ -19,6 +19,7 @@ swaync
 rofi
 awww
 matugen
+python
 nwg-look
 adw-gtk-theme
 gnome-themes-extra

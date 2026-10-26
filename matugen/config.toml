@@ -77,11 +77,6 @@ post_hook = "pkill -USR2 btop 2>/dev/null || true"
 input_path = "~/.config/matugen/templates/nvim-colors.json"
 output_path = "~/.config/matugen/themes/nvim-colors.json"
 
-# --- OpenCode theme ---
-[templates.opencode]
-input_path = "~/.config/matugen/templates/opencode-colors.json"
-output_path = "~/.config/opencode/themes/matugen.json"
-
 # --- Shell (eza + fzf, sourced by zsh conf.d/post/15-matugen.zsh) ---
 [templates.shell]
 input_path = "~/.config/matugen/templates/shell-colors.sh"

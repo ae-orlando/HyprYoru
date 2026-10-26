@@ -45,5 +45,5 @@ yoru-desktop restart waybar
 ## Notes
 
 - System drawer: `group/system` (`waybar/config.jsonc:172`) expands on hover; `cpu`/`memory`/`temperature` open `kitty -e btop` on click. `temperature` reads `thermal-zone: 0`, critical at 80°C.
-- Theme reloads: matugen `post_hook` owns `SIGUSR2`; wallpaper/theme scripts must not duplicate it or the bar reloads twice. Super+R manually reloads configuration/style without replacing the executable.
+- Theme reloads: the palette coordinator sends `SIGUSR2` once after all outputs are published; direct Matugen runs use their configured `post_hook`. Super+R manually reloads configuration/style without replacing the executable.
 - Pacman owns `/usr/bin/waybar`. The user-local `0.15.0-yoru1` executable is not a pacman/AUR package; it fixes workspace buttons for Hyprland Lua. Build, activation, updates and rollback are covered in [patched desktop maintenance](patched-desktop.md).

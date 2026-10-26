@@ -1,62 +1,87 @@
 # Matugen
 
-Palette hub. One wallpaper run regenerates every app theme. Config: `matugen/config.toml` (88 lines).
+Matugen supplies the wallpaper-derived roles. `hyprland/scripts/palette.py`
+coordinates wallpaper, palette, and dark/light state; `matugen/config.toml` is
+the template source of truth. Generated output files are gitignored—edit their
+templates, never the outputs.
 
-## Wallpaper Flow
-
-```toml
-[config.wallpaper]
-set = false
-command = "awww img --transition-type center --transition-duration 2 {{ image }}"
-```
-
-`set = false` (`matugen/config.toml:19`): matugen is palette-only. Run the wrapper, not `matugen` directly (direct runs change no wallpaper):
+## Apply a wallpaper or change mode
 
 ```bash
 ~/.config/hypr/scripts/set-wall.sh <wallpaper>
+~/.config/hypr/scripts/set-wall.sh --pick
+~/.config/swaync/scripts/toggle-theme.sh
 ```
 
-Order in `hyprland/scripts/set-wall.sh:60-95`: cache write → `awww img` immediate (`:71`) → backgrounded hyprlock `cp` + rofi rasi (`:77-78`) → palette-phase `flock` (`:82-83`) → `sleep 2` (`:88`) → `matugen image` (`:90`) → `hyprctl reload` (`:95`). Bars reload once via `post_hook`s below.
+The two shell entry points call the same coordinator. `set-wall.sh` starts the
+`awww` center transition immediately, then waits two seconds before rendering
+the palette. The coordinator reads the **active** Matugen config, makes an
+isolated config with temporary output paths and no hooks, checks every output,
+and publishes them with rollback on publication failure. Only the latest
+request can publish. It saves `~/.cache/matugen/current-wallpaper` and
+`current-mode` with the palette, then reloads Hyprland, Waybar, SwayNC, Kitty,
+and btop once. An explicit theme toggle changes GTK preferences with
+`gsettings`; wallpaper changes do not override GTK preferences if application
+defaults were not selected at install time. The tracked `settings.ini` files
+are never edited. Lock-screen and Rofi backdrops are prepared during the
+transition but published only after that request's palette succeeds.
 
-## Generated-File Map
+The wallpaper will be restored to the last successful one if palette
+generation fails. A missing explicit path or cancelled picker makes no
+changes. If there is no previous successful wallpaper on first boot, the
+failed wallpaper cannot be rolled back; the error is printed to stderr.
 
-| Template (`templates/`) | Output                                      | Consumer              |
-| ----------------------- | ------------------------------------------- | --------------------- |
-| `hypr-colors.lua`       | `~/.config/hypr/modules/colors.lua`         | `general.lua` borders |
-| `hyprlock-colors.conf`  | `~/.config/hypr/hyprlock-colors.conf`       | `hyprlock.conf`       |
-| `waybar-matugen.css`    | `~/.config/waybar/colors/matugen.css`       | `style.css` import    |
-| `swaync-colors.css`     | `~/.config/swaync/matugen/colors.css`       | `style.css` import    |
-| `kitty-colors.conf`     | `~/.config/kitty/themes/Matugen.conf`       | `kitty.conf` include  |
-| `rofi-colors.rasi`      | `~/.config/rofi/shared/colors.rasi`         | Launcher styles       |
-| `gtk-colors.css`        | `~/.config/gtk-3.0/colors.css`              | `gtk.css` import      |
-| `gtk-colors.css`        | `~/.config/gtk-4.0/colors.css`              | GTK4 theme            |
-| `qtct-colors.conf`      | `~/.config/qt6ct/colors/matugen.conf`       | `qt6ct.conf`          |
-| `btop.theme`            | `~/.config/btop/themes/matugen.theme`       | `btop.conf` theme     |
-| `nvim-colors.json`      | `~/.config/matugen/themes/nvim-colors.json` | Opt-in neovim palette |
-| `opencode-colors.json`  | `~/.config/opencode/themes/matugen.json`    | OpenCode theme        |
-| `shell-colors.sh`       | `~/.config/zsh/generated/colors.sh`         | `15-matugen.zsh`      |
+`[config.wallpaper] set = false`: Matugen never calls `awww` itself. The
+`command` in `config.toml` is required by Matugen even though `set` is false.
+Running `matugen image` directly remains useful for manual template work, but
+bypasses concurrency/rollback protections.
 
-Post-hooks (`matugen/config.toml:36,42,48,73`): `pkill -SIGUSR2 waybar`, `swaync-client -rs`, `pkill -SIGUSR1 kitty`, `pkill -USR2 btop`. Single owner — do not duplicate in scripts.
+## Generated-file map
 
-## Regeneration (gitignored artifacts)
+| Template (`matugen/templates/`) | Output | Consumer |
+| --- | --- | --- |
+| `hypr-colors.lua` | `~/.config/hypr/modules/colors.lua` | Hyprland borders |
+| `hyprlock-colors.conf` | `~/.config/hypr/hyprlock-colors.conf` | Hyprlock |
+| `waybar-matugen.css` | `~/.config/waybar/colors/matugen.css` | Waybar |
+| `swaync-colors.css` | `~/.config/swaync/matugen/colors.css` | SwayNC |
+| `kitty-colors.conf` | `~/.config/kitty/themes/Matugen.conf` | Kitty and terminal colors |
+| `rofi-colors.rasi` | `~/.config/rofi/shared/colors.rasi` | Rofi |
+| `gtk-colors.css` | `~/.config/gtk-3.0/colors.css`, `~/.config/gtk-4.0/colors.css` | GTK 3/4 |
+| `qtct-colors.conf` | `~/.config/qt6ct/colors/matugen.conf` | Qt6CT |
+| `btop.theme` | `~/.config/btop/themes/matugen.theme` | btop |
+| `nvim-colors.json` | `~/.config/matugen/themes/nvim-colors.json` | Opt-in Neovim palette |
+| `shell-colors.sh` | `~/.config/zsh/generated/colors.sh` | Zsh/fzf |
 
-Outputs above are **not committed** (see root `.gitignore`). They are
-reproducible artifacts rebuilt in two places:
+OpenCode V2 uses its `system` theme to derive colors from Kitty's foreground,
+background, and ANSI slots. This repo no longer generates the old-format
+OpenCode theme in the separately managed tools directory. An existing custom
+file there is **not** deleted. If it was selected, choose `system` in OpenCode
+to follow Matugen. No OpenCode settings are changed by this repo.
 
-- `install.sh:phase_theming` — runs `matugen image $wall` on every install.
-- Hyprland autostart (`modules/autostart.lua`) — `set-wall.sh` restores the
-  last wallpaper (`~/.cache/matugen/current-wallpaper`) or `anime3.png` on
-  every login and regenerates all outputs.
+The original Matugen `post_hook`s remain available for **direct** Matugen
+invocations. Coordinated wallpaper/theme runs render without those hooks and
+send the same graceful signals once after publication. Never kill the bar or
+notification daemon for a palette refresh.
 
-So changing wallpaper never dirties `git`, and a fresh clone gets colors by
-running `./install.sh` (which also seeds `~/Pictures/wallpapers` from
-`hyprland/wallpapers/` and `waypaper/config.ini` from
-`waypaper/config.ini.example`).
+## Fresh installs and shell opt-out
 
-## Notes
+`install.sh` seeds wallpapers and runs Matugen palette-only (no wallpaper
+daemon required), honoring `~/.cache/matugen/current-mode` when present.
+Hyprland autostart restores the last successful wallpaper and regenerates the
+palette on login. With `--no-shell`, the installer supplies a private Matugen
+config without the shell template; the coordinator reads that active config
+and never writes the unselected shell's files.
 
-- `*.bak-*` files under `templates/` are local debris.
-- `version_check = false`, `prefer = "closest-to-fallback"`, `contrast = 0.0`.
-- Never hand-edit outputs; re-run `set-wall.sh`.
-- Transition duration (`set-wall.sh:71`) must equal `sleep` (`:88`), or colors land ahead of/behind the wallpaper.
-- Rofi/hyprlock backdrops render in the background during the transition; rofi reads them lazily.
+The default is a tonal-spot palette with a restrained contrast. Waybar status
+colors, Qt widget states, GTK surfaces, and Kitty ANSI slots use Material roles
+rather than fixed white/gray values; hues remain wallpaper-derived. For a
+different look, change `matugen/config.toml` or a template, then regenerate.
+
+## Tests (sandboxed; no desktop reload)
+
+```bash
+python3 -B tests/test_gtk_palette.py
+python3 -B tests/test_matugen_palette.py
+python3 -B tests/test_palette_pipeline.py
+python3 -B tests/test_install.py
+```

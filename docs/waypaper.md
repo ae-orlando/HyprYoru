@@ -7,7 +7,7 @@ Wallpaper picker GUI. Config: `waypaper/config.ini`.
 ```ini
 backend = none
 folder = ~/Pictures/wallpapers
-post_command = ~/.config/hypr/scripts/set-wall.sh $wallpaper
+post_command = ~/.config/hypr/scripts/set-wall.sh "$wallpaper"
 wallpaper = ~/Pictures/wallpapers/mystical-night-in-town.jpg
 ```
 

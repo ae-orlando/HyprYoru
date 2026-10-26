@@ -5,7 +5,7 @@ backend = none
 folder = ~/Pictures/wallpapers
 monitors = All
 fill = fill
-post_command = ~/.config/hypr/scripts/set-wall.sh $wallpaper
+post_command = ~/.config/hypr/scripts/set-wall.sh "$wallpaper"
 language = en
 wallpaper = ~/Pictures/wallpapers/mystical-night-in-town.jpg
 show_path_in_tooltip = True
@@ -38,4 +38,3 @@ linux_wallpaperengine_disable_particles = True
 linux_wallpaperengine_disable_mouse = False
 linux_wallpaperengine_disable_parallax = False
 linux_wallpaperengine_no_fullscreen_pause = False
-

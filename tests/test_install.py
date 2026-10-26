@@ -797,6 +797,7 @@ printf '%s\\n' "$BACKUP_DIR"
             "lib/install-wizard.sh",
             "lib/gum-runtime.sh",
             "matugen/config.toml",
+            "hyprland/scripts/palette.py",
         ):
             target = fixture / name
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -883,6 +884,7 @@ esac
         self.stub(
             "matugen",
             """
+printf '%s\n' "$*" >>"$CASE_ROOT/matugen-commands"
 python3 - <<'PY'
 import os
 from pathlib import Path
@@ -944,6 +946,15 @@ PY
                 'printf "verification must not execute desktop apps\\n" >&2; exit 97',
             )
         return fixture
+
+    def test_installer_respects_a_persisted_light_palette(self):
+        self.mock_installation()
+        state = self.home / ".cache/matugen"
+        state.mkdir(parents=True)
+        (state / "current-mode").write_text("light\n")
+        self.success(self.cli("--no-aur", "--yes"))
+        calls = (self.root / "matugen-commands").read_text()
+        self.assertIn("--mode light", calls)
 
     def test_mocked_install_and_rerun_in_an_independent_repository(self):
         fixture = self.mock_installation()
@@ -1550,7 +1561,7 @@ command() {
             "kitty",
             "gtk3",
             "qt6ct",
-            "opencode",
+            "nvim",
         ):
             self.assertIn(f"[templates.{section}]", result.stdout)
         self.assertEqual(original, (REPO / "matugen/config.toml").read_bytes())

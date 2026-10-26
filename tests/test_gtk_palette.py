@@ -2,6 +2,7 @@
 """Render GTK palettes in a sandbox; never reload apps or write live colors."""
 
 import json
+import importlib.util
 import os
 import re
 import shutil
@@ -60,16 +61,33 @@ class GtkImportsTests(unittest.TestCase):
                 self.assertIn("@import 'colors.css';", css)
 
     def test_gtk4_css_only_roles_map_to_generated_named_colors(self):
-        css = (REPO / "gtk-setting/gtk-4.0/gtk.css").read_text()
-        mappings = dict(re.findall(r"(--[\w-]+):\s*@(\w+);", css))
         defined = set(re.findall(r"@define-color\s+(\w+)", TEMPLATE.read_text()))
-        for role in ("overview", "active_toggle"):
-            for kind in ("bg", "fg"):
-                name = f"{role}_{kind}_color"
-                with self.subTest(name=name):
-                    variable = "--" + name.replace("_", "-")
-                    self.assertEqual(mappings[variable], name)
-                    self.assertIn(name, defined)
+        for name_css in ("gtk.css", "gtk-dark.css"):
+            css = (REPO / "gtk-setting/gtk-4.0" / name_css).read_text()
+            self.assertIn("@import 'colors.css';", css)
+            mappings = dict(re.findall(r"(--[\w-]+):\s*@(\w+);", css))
+            for role in ("overview", "active_toggle"):
+                for kind in ("bg", "fg"):
+                    name = f"{role}_{kind}_color"
+                    with self.subTest(css=name_css, name=name):
+                        variable = "--" + name.replace("_", "-")
+                        self.assertEqual(mappings[variable], name)
+                        self.assertIn(name, defined)
+
+    @unittest.skipUnless(importlib.util.find_spec("gi"), "GTK4 bindings unavailable")
+    def test_gtk4_stylesheets_parse_with_vendor_theme(self):
+        import gi
+
+        gi.require_version("Gtk", "4.0")
+        from gi.repository import Gtk
+
+        for name in ("gtk.css", "gtk-dark.css"):
+            with self.subTest(name=name):
+                provider = Gtk.CssProvider()
+                errors = []
+                provider.connect("parsing-error", lambda _provider, _section, error: errors.append(error.message))
+                provider.load_from_path(str(REPO / "gtk-setting/gtk-4.0" / name))
+                self.assertEqual(errors, [])
 
 
 @unittest.skipUnless(shutil.which("matugen"), "matugen is required for rendering")
