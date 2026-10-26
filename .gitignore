@@ -20,6 +20,7 @@ Thumbs.db
 # Generated Python bytecode; keep sources and patches, not interpreter caches.
 __pycache__/
 *.py[cod]
+.pytest_cache/
 
 # Maintenance plans
 .maintenance/*

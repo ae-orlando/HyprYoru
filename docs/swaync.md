@@ -28,5 +28,5 @@ yoru-desktop status
 - Tools provides capture, color picker, the canonical wallpaper chooser, audio devices, image annotation and Cliphist history. Clipboard capture skips sensitive offers; the picker provides pause/resume, delete and confirmed clear controls.
 - `scripts/toggle-theme.sh` flips dark/light on the current wallpaper, palette-only (no wallpaper re-animation); reloads via matugen `post_hook`s + `hyprctl reload`, no manual `SIGUSR2`/`-rs`.
 - `launch.sh` (Waybar) reloads the bar and SwayNC CSS without killing the notification daemon. Use `swaync-client -R` for widget/configuration changes.
-- The local `0.12.6` backport fixes live brightness and bounded floating previews, while retaining full body text in the notification center. It also marks copied authentication codes as sensitive.
+- Pacman owns `/usr/bin/swaync`. The user-local `0.12.6` backport is not a pacman/AUR package; it fixes live brightness and bounded floating previews, retains full body text in the notification center, and marks its own copied authentication codes as sensitive.
 - For executable changes use `yoru-desktop restart swaync`, which refuses to restart with saved notifications. The inbox is not persistent across daemon restarts. See [patched desktop maintenance](patched-desktop.md) for builds, updates and rollback.

@@ -1,7 +1,7 @@
 # Patched desktop binaries
 
 Waybar and SwayNC use small local source patches. Their normal Arch packages
-remain installed and untouched. No compiler runs at login or during normal use.
+remain installed and untouched.
 
 Git stores the patches, helpers and configuration, not the built executables or
 build caches. On a fresh machine the launchers use the distro binaries until
@@ -14,8 +14,51 @@ the build/install commands below are run; `install.sh` does not compile them.
 | Waybar  | `0.15.0-yoru1`              | Workspace buttons use Hyprland's Lua dispatchers, including named workspaces, scratchpads and move-to-monitor behavior.                             |
 | SwayNC  | `0.12.6 (Yoru backports 1)` | Live brightness synchronization without feedback writes; bounded popup previews; full messages in the center; sensitive authentication-code copies. |
 
-The bar's layout, colors, radio shortcuts and hotspot indicator are configuration
-and script changes. They are separate from the compiled Waybar patch.
+### What the patches change
+
+- **Waybar:** the packaged `0.15.0` workspace buttons send legacy Hyprland
+  dispatch strings, which this Lua-based Hyprland rejects. The local patch sends
+  Lua dispatchers for numbered and named workspaces and scratchpads, preserving
+  `move-to-monitor` behavior. Workspace names are escaped as Lua strings.
+  Source: `waybar/backports/hyprland-lua-0.15.0.patch:26`.
+- **SwayNC:** the packaged `0.12.6` backlight widget cancels and reuses its file
+  monitor, so it cannot reliably follow brightness-key changes after reopening.
+  The patch recreates the monitor, serializes drag writes and prevents readback
+  from writing a value back. It flattens paragraph breaks _only in floating
+  previews_, limits them to five lines, and caps/scrolls stacked popups to the
+  configured height or available screen space. Full body text remains in the
+  notification center. Its own “copy code” action also advertises a sensitive
+  clipboard offer. Sources: `swaync/backports/yoru-0.12.6.patch:58`,
+  `swaync/backports/yoru-0.12.6.patch:183`,
+  `swaync/backports/yoru-0.12.6.patch:269`.
+
+The three-island bar design, hotspot indicator, Tools shortcuts, native radio
+drawers and the 300px popup-height setting are **dotfile configuration, CSS and
+script changes**. They are not extra compiled packages. The SwayNC patch makes
+the preview-line limit and screen-aware bound work; the configured height alone
+cannot fix the paragraph issue. Hotspot-password copies are marked sensitive by
+the drawer's code, independently of SwayNC's “copy code” change.
+
+### Pacman package or local binary?
+
+The unmodified `/usr/bin/waybar` and `/usr/bin/swaync` are pacman-owned Arch
+packages. The binaries in `~/.local/share/yoru/` are manually built
+**user-local files**: neither pacman packages nor AUR packages, and not
+registered in pacman's database. They do not replace or conflict with the
+pacman-owned files. Installing build prerequisites through pacman does not turn
+the finished local binaries into pacman packages.
+
+```bash
+pacman -Q waybar swaync
+pacman -Qo /usr/bin/waybar /usr/bin/swaync
+yoru-desktop status
+```
+
+The first two commands describe the _packaged copies_; the last shows which
+binary each running process actually uses. Running `pacman -Qo` on a user-local
+binary instead reports “No package owns” (and exits nonzero). `pacman -Qm`
+will not list these files either. Pacman updates `/usr/bin` and system
+libraries, **not** your user-local executables or their pinned patches.
 
 ### The terms
 
@@ -63,6 +106,10 @@ Hyprland starts the launcher scripts directly, so its inherited `PATH` does not
 need `~/.local/bin`. The terminal commands `waybar` and `swaync` also point to
 those launchers through user-local links. SwayNC's user D-Bus activation files
 and both programs' systemd user overrides select the same launchers.
+
+The `yoru-desktop` command is linked into `~/.local/bin` by Waybar's
+`--install` step; on a fresh checkout before that step, invoke
+`python3 -B waybar/scripts/desktop-binaries.py status` from the repo instead.
 
 **Do not enable a second startup mechanism unnecessarily.** Hyprland already
 starts both applications. The systemd overrides only keep binary selection
@@ -168,9 +215,9 @@ Do not use `killall swaync` or a direct service restart as a shortcut around thi
 guard. A new notification can arrive near any restart; the guard is a safety
 check, not persistent history storage. Restarting Waybar does not restart SwayNC.
 
-Sources: `waybar/scripts/desktop-binaries.py:84` (status),
-`waybar/scripts/desktop-binaries.py:113` (inbox guard),
-`waybar/scripts/desktop-binaries.py:138` (restart).
+Sources: `waybar/scripts/desktop-binaries.py:94` (status),
+`waybar/scripts/desktop-binaries.py:148` (inbox guard),
+`waybar/scripts/desktop-binaries.py:189` (restart).
 
 ## Arch updates and future releases
 
@@ -206,10 +253,11 @@ moving `waybar.disabled` back to `waybar` and restarting again. `mv -i` asks
 before overwriting an existing backup.
 
 For SwayNC, the same approach uses the `swaync` executable in its own directory,
-but **review and empty the inbox before restarting it**. A fallback may lose
-the local brightness/popup/workspace fixes; it is a recovery route, not proof
-that the distro version contains those fixes. Moving a file aside alone does
-not replace a process already running from it.
+but **review and empty the inbox before restarting it**. A fallback loses the
+local brightness, bounded-preview and sensitive-copy fixes; it is a recovery
+route, not proof that the distro version contains those fixes. Waybar's
+workspace-button fix belongs to its own binary, not SwayNC. Moving a file
+aside alone does not replace a process already running from it.
 
 Read user logs when the maintenance helper started the application:
 

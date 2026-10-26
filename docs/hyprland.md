@@ -33,7 +33,7 @@ only while the generated `modules.colors` is absent (first boot).
 | `modules/input.lua`           | Keyboard, touchpad, gestures                                                                           |
 | `modules/rules.lua`           | Window/workspace/layer rules                                                                           |
 | `modules/binds.lua`           | All keybindings: app launchers, compositor controls, media/hardware keys and screenshots               |
-| `modules/autostart.lua`       | `waybar`, `swaync`, `hypridle`, `awww-daemon`                                                          |
+| `modules/autostart.lua`       | User-local Waybar/SwayNC launchers (distro fallback), clipboard watcher, `hypridle`, `awww-daemon`     |
 | `hypridle.conf`               | Idle daemon (`lock_cmd = pidof hyprlock`)                                                              |
 | `hyprlock.conf`               | Lock screen, sources `hyprlock-colors.conf`                                                            |
 | `hyprlock-colors.conf`        | Generated palette                                                                                      |
