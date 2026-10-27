@@ -131,7 +131,7 @@
             "label": "󰕾  Volume",
             "show-per-app": true,
             "show-per-app-icon": true,
-            "show-per-app-label": false,
+            "show-per-app-label": true,
             "expand-per-app": false,
             "expand-button-label": "Apps  ",
             "collapse-button-label": "Apps  ",
