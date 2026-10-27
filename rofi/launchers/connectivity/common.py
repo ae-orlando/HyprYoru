@@ -1,17 +1,17 @@
 """Shared connections models, D-Bus calls, and operation guards.
 
-Author: ae Orland
+Author: ae. Orland
 GitHub: https://github.com/ae-orlando
 """
 
+import fcntl
+import os
+import stat
+import time
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
-import fcntl
-import os
 from pathlib import Path
-import stat
-import time
 
 import gi
 
@@ -32,7 +32,11 @@ def interactive_authorization():
 
 
 def authorization_flags():
-    return Gio.DBusCallFlags.ALLOW_INTERACTIVE_AUTHORIZATION if _interactive.get() else Gio.DBusCallFlags.NONE
+    return (
+        Gio.DBusCallFlags.ALLOW_INTERACTIVE_AUTHORIZATION
+        if _interactive.get()
+        else Gio.DBusCallFlags.NONE
+    )
 
 
 class ConnectionError(Exception):
@@ -60,12 +64,31 @@ def text(value):
 
 def call(bus, service, path, interface, method, signature=None, args=(), timeout=5000):
     try:
-        protected = method in ["GetSecrets", "Set", "Update", "AddConnection", "AddAndActivateConnection", "ActivateConnection", "DeactivateConnection", "Delete", "CheckpointCreate", "CheckpointAdjustRollbackTimeout", "CheckpointRollback", "CheckpointDestroy"]
+        protected = method in [
+            "GetSecrets",
+            "Set",
+            "Update",
+            "AddConnection",
+            "AddAndActivateConnection",
+            "ActivateConnection",
+            "DeactivateConnection",
+            "Delete",
+            "CheckpointCreate",
+            "CheckpointAdjustRollbackTimeout",
+            "CheckpointRollback",
+            "CheckpointDestroy",
+        ]
         deadline = max(timeout, 120000) if _interactive.get() and protected else timeout
         result = bus.call_sync(
-            service, path, interface, method,
+            service,
+            path,
+            interface,
+            method,
             GLib.Variant(signature, args) if signature else None,
-            None, authorization_flags(), deadline, None,
+            None,
+            authorization_flags(),
+            deadline,
+            None,
         )
         return result
     except GLib.Error as error:
@@ -73,17 +96,41 @@ def call(bus, service, path, interface, method, signature=None, args=(), timeout
 
 
 def props(bus, service, path, interface):
-    return call(bus, service, path, "org.freedesktop.DBus.Properties", "GetAll", "(s)", (interface,)).unpack()[0]
+    return call(
+        bus,
+        service,
+        path,
+        "org.freedesktop.DBus.Properties",
+        "GetAll",
+        "(s)",
+        (interface,),
+    ).unpack()[0]
 
 
 def set_prop(bus, service, path, interface, name, kind, value):
-    call(bus, service, path, "org.freedesktop.DBus.Properties", "Set", "(ssv)", (interface, name, GLib.Variant(kind, value)))
+    call(
+        bus,
+        service,
+        path,
+        "org.freedesktop.DBus.Properties",
+        "Set",
+        "(ssv)",
+        (interface, name, GLib.Variant(kind, value)),
+    )
 
 
 def panel(visible):
     try:
         bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
-        call(bus, "org.erikreider.swaync.cc", "/org/erikreider/swaync/cc", "org.erikreider.swaync.cc", "SetVisibility", "(b)", (visible,))
+        call(
+            bus,
+            "org.erikreider.swaync.cc",
+            "/org/erikreider/swaync/cc",
+            "org.erikreider.swaync.cc",
+            "SetVisibility",
+            "(b)",
+            (visible,),
+        )
     except (GLib.Error, ConnectionError):
         pass
 
@@ -91,7 +138,13 @@ def panel(visible):
 def panel_visible():
     try:
         bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
-        return call(bus, "org.erikreider.swaync.cc", "/org/erikreider/swaync/cc", "org.erikreider.swaync.cc", "GetVisibility").unpack()[0]
+        return call(
+            bus,
+            "org.erikreider.swaync.cc",
+            "/org/erikreider/swaync/cc",
+            "org.erikreider.swaync.cc",
+            "GetVisibility",
+        ).unpack()[0]
     except (GLib.Error, ConnectionError):
         return False
 
@@ -99,7 +152,24 @@ def panel_visible():
 def notify(message, notification_id=0, timeout=5000):
     try:
         bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
-        return call(bus, "org.freedesktop.Notifications", "/org/freedesktop/Notifications", "org.freedesktop.Notifications", "Notify", "(susssasa{sv}i)", ("Yoru Connections", notification_id, "network-wireless", "Yoru Connections", text(message), [], {}, timeout)).unpack()[0]
+        return call(
+            bus,
+            "org.freedesktop.Notifications",
+            "/org/freedesktop/Notifications",
+            "org.freedesktop.Notifications",
+            "Notify",
+            "(susssasa{sv}i)",
+            (
+                "Yoru Connections",
+                notification_id,
+                "network-wireless",
+                "Yoru Connections",
+                text(message),
+                [],
+                {},
+                timeout,
+            ),
+        ).unpack()[0]
     except (GLib.Error, ConnectionError):
         return 0
 
@@ -109,7 +179,15 @@ def close_notice(notification_id):
         return
     try:
         bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
-        call(bus, "org.freedesktop.Notifications", "/org/freedesktop/Notifications", "org.freedesktop.Notifications", "CloseNotification", "(u)", (notification_id,))
+        call(
+            bus,
+            "org.freedesktop.Notifications",
+            "/org/freedesktop/Notifications",
+            "org.freedesktop.Notifications",
+            "CloseNotification",
+            "(u)",
+            (notification_id,),
+        )
     except (GLib.Error, ConnectionError):
         pass
 
@@ -131,14 +209,26 @@ def operation_lock(radio):
     root = Path(os.environ.get("XDG_RUNTIME_DIR", f"/tmp/yoru-{os.getuid()}"))
     root.mkdir(mode=0o700, parents=True, exist_ok=True)
     root_info = root.lstat()
-    if not stat.S_ISDIR(root_info.st_mode) or root_info.st_uid != os.getuid() or root_info.st_mode & 0o077:
+    if (
+        not stat.S_ISDIR(root_info.st_mode)
+        or root_info.st_uid != os.getuid()
+        or root_info.st_mode & 0o077
+    ):
         raise ConnectionError("Unsafe user runtime directory.")
     directory = root / "yoru-connections"
     directory.mkdir(mode=0o700, exist_ok=True)
     info = directory.lstat()
-    if not stat.S_ISDIR(info.st_mode) or info.st_uid != os.getuid() or info.st_mode & 0o077:
+    if (
+        not stat.S_ISDIR(info.st_mode)
+        or info.st_uid != os.getuid()
+        or info.st_mode & 0o077
+    ):
         raise ConnectionError("Unsafe connections runtime directory.")
-    descriptor = os.open(directory / f"{radio}.lock", os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW | os.O_CLOEXEC, 0o600)
+    descriptor = os.open(
+        directory / f"{radio}.lock",
+        os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW | os.O_CLOEXEC,
+        0o600,
+    )
     try:
         deadline = time.monotonic() + 30
         while True:
@@ -147,7 +237,9 @@ def operation_lock(radio):
                 break
             except BlockingIOError:
                 if time.monotonic() >= deadline:
-                    raise ConnectionError("Another radio operation is still running. Try again shortly.")
+                    raise ConnectionError(
+                        "Another radio operation is still running. Try again shortly."
+                    )
                 time.sleep(0.05)
         yield
     finally:
@@ -162,4 +254,6 @@ def wait_for(predicate, cancel=None, seconds=25):
         if predicate():
             return
         time.sleep(0.1)
-    raise ConnectionError("The operation timed out. Your saved connections have been preserved.")
+    raise ConnectionError(
+        "The operation timed out. Your saved connections have been preserved."
+    )
