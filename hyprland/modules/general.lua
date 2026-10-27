@@ -4,7 +4,8 @@
 --  \___/\__/_//_/\__/_/  \_,_/_/
 
 -- Look and feel, animations, misc.
--- by ae. Orlando
+-- Author: ae. Orlando
+-- Github: https://github.com/ae-orlando/HyprYoru
 -- _______________________________________________________________________
 
 -- https://wiki.hypr.land/Configuring/Basics/Variables/
