@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Author: ae Orland
+# Author: ae. Orland
 # GitHub: https://github.com/ae-orlando
 # _______________________________________________________________________
 
