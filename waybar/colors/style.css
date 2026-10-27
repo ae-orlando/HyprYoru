@@ -212,7 +212,7 @@ tooltip label {
 
 #custom-network.connected,
 #bluetooth.connected {
-    color: @fg;
+    color: @blue;
 }
 
 #custom-network.hotspot {

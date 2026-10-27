@@ -4,89 +4,92 @@
  */
 
 * {
-  font-family: "Adwaita Sans", "GoMono Nerd Font Propo", sans-serif;
-  font-size: 13px;
-  text-shadow: none;
-  outline-style: none;
-  outline-width: 0;
+    font-family: "Adwaita Sans", "GoMono Nerd Font Propo", sans-serif;
+    font-size: 13px;
+    text-shadow: none;
+    outline-style: none;
+    outline-width: 0;
 }
 
 notificationwindow,
 blankwindow,
 .blank-window,
 .floating-notifications {
-  background: transparent;
+    background: transparent;
 }
 
 .widget {
-  background: transparent;
-  margin: 0;
-  padding: 0;
-  box-shadow: none;
+    background: transparent;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
 }
 
 button {
-  background-image: none;
-  box-shadow: none;
-  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+    background-image: none;
+    box-shadow: none;
+    transition:
+        background-color 160ms ease,
+        border-color 160ms ease,
+        color 160ms ease;
 }
 
 .control-center button:focus-visible:not(:checked) {
-  background: alpha(@accent, 0.1);
+    background: alpha(@accent, 0.1);
 }
 
 button:focus,
 switch:focus,
 scale:focus,
 entry:focus-within {
-  outline: none;
-  box-shadow: none;
+    outline: none;
+    box-shadow: none;
 }
 
 button:disabled {
-  opacity: 0.45;
+    opacity: 0.45;
 }
 
 scrollbar {
-  background: transparent;
-  min-width: 6px;
-  padding: 0 2px;
+    background: transparent;
+    min-width: 6px;
+    padding: 0 2px;
 }
 
 scrollbar slider {
-  background: alpha(@ink, 0.18);
-  border-radius: var(--radius-pill);
-  min-width: 4px;
-  min-height: 40px;
+    background: alpha(@ink, 0.18);
+    border-radius: var(--radius-pill);
+    min-width: 4px;
+    min-height: 40px;
 }
 
 scrollbar slider:hover {
-  background: alpha(@accent, 0.45);
+    background: alpha(@accent, 0.45);
 }
 
 tooltip {
-  background: @surface-high;
-  border: 1px solid @line;
-  border-radius: var(--radius-chip);
-  box-shadow: 0 4px 12px alpha(@shadow, 0.18);
+    background: @surface-high;
+    border: 1px solid @line;
+    border-radius: var(--radius-chip);
+    box-shadow: 0 4px 12px alpha(@shadow, 0.18);
 }
 
 tooltip label {
-  color: @ink;
-  padding: 6px 10px;
+    color: @ink;
+    padding: 6px 10px;
 }
 
 .notification-row {
-  margin: 0;
-  padding: 0;
+    margin: 0;
+    padding: 0;
 }
 
 .notification-row:focus,
 .notification-group:focus {
-  background: transparent;
+    background: transparent;
 }
 
 .notification-row:focus-visible .notification-default-action,
 .notification-group:focus-visible .notification-default-action {
-  background: alpha(@ink, 0.04);
+    background: alpha(@ink, 0.04);
 }

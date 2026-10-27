@@ -6,203 +6,206 @@
 
 /* Card + popup frame */
 .notification-row .notification-background {
-  background: transparent;
-  margin: 0;
-  padding: 0;
+    background: transparent;
+    margin: 0;
+    padding: 0;
 }
 
 .notification-row .notification-background .notification {
-  background: @popup;
-  border: 1px solid @line;
-  border-radius: var(--radius-card);
-  padding: 0;
-  box-shadow: none;
+    background: @popup;
+    border: 1px solid @line;
+    border-radius: var(--radius-card);
+    padding: 0;
+    box-shadow: none;
 }
 
 .floating-notifications .notification-row .notification-background {
-  margin: 7px 12px;
+    margin: 7px 12px;
 }
 
-.floating-notifications .notification-row .notification-background .notification {
-  border-color: @line;
-  box-shadow: 0 4px 12px alpha(@shadow, 0.18);
+.floating-notifications
+    .notification-row
+    .notification-background
+    .notification {
+    border-color: @line;
+    box-shadow: 0 4px 12px alpha(@shadow, 0.18);
 }
 
 /* Urgency treatments */
 .notification-row .notification-background .notification.low {
-  border-color: @line-soft;
+    border-color: @line-soft;
 }
 
 .notification-row .notification-background .notification.critical {
-  background: mix(@popup, @danger, 0.08);
-  border-color: alpha(@danger, 0.55);
-  border-left: 3px solid @danger;
+    background: mix(@popup, @danger, 0.08);
+    border-color: alpha(@danger, 0.55);
+    border-left: 3px solid @danger;
 }
 
 .notification-row .notification.critical .summary {
-  color: @danger;
+    color: @danger;
 }
 
 /* Content */
 .notification-row .notification .notification-default-action {
-  background: transparent;
-  border: none;
-  border-radius: var(--radius-card);
-  margin: 0;
-  padding: 14px;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-card);
+    margin: 0;
+    padding: 14px;
 }
 
 .notification-row .notification .notification-default-action:hover {
-  background: alpha(@ink, 0.035);
+    background: alpha(@ink, 0.035);
 }
 
 .notification-row .notification .notification-content {
-  background: transparent;
-  margin: 0;
-  padding: 0;
-  min-height: 0;
+    background: transparent;
+    margin: 0;
+    padding: 0;
+    min-height: 0;
 }
 
 .notification-row .image {
-  margin: 0 12px 0 0;
-  border-radius: 10px;
+    margin: 0 12px 0 0;
+    border-radius: 10px;
 }
 
 .notification-row .summary {
-  font-weight: 700;
-  font-size: var(--font-size-summary);
-  color: @ink;
+    font-weight: 700;
+    font-size: var(--font-size-summary);
+    color: @ink;
 }
 
 .notification-row .body {
-  font-size: var(--font-size-body);
-  color: @ink-dim;
-  line-height: 1.4;
-  padding-top: 4px;
+    font-size: var(--font-size-body);
+    color: @ink-dim;
+    line-height: 1.4;
+    padding-top: 4px;
 }
 
 .notification-row .time {
-  font-size: 10px;
-  font-weight: 400;
-  color: alpha(@ink-dim, 0.75);
-  margin: 2px 24px 0 8px;
+    font-size: 10px;
+    font-weight: 400;
+    color: alpha(@ink-dim, 0.75);
+    margin: 2px 24px 0 8px;
 }
 
 /* GTK4 actions are FlowBox children containing the actual buttons. */
 .notification-row .notification-alt-actions {
-  background: transparent;
-  padding: 0 8px 8px;
+    background: transparent;
+    padding: 0 8px 8px;
 }
 
 .notification-row .notification-action {
-  margin: 0;
-  padding: 3px;
+    margin: 0;
+    padding: 3px;
 }
 
 .notification-row .notification-action > button {
-  background: @chip;
-  border: 1px solid @chip-line;
-  border-radius: 10px;
-  min-height: 28px;
-  padding: 4px 10px;
-  color: @ink;
-  font-weight: 600;
+    background: @chip;
+    border: 1px solid @chip-line;
+    border-radius: 10px;
+    min-height: 28px;
+    padding: 4px 10px;
+    color: @ink;
+    font-weight: 600;
 }
 
 .notification-row .notification-action > button:hover {
-  background: @accent-soft;
-  border-color: @accent-line;
-  color: @accent;
+    background: @accent-soft;
+    border-color: @accent-line;
+    color: @accent;
 }
 
 .notification-row .notification-action > button:active {
-  background: @accent;
-  border-color: @accent;
-  color: @on-accent;
+    background: @accent;
+    border-color: @accent;
+    color: @on-accent;
 }
 
 /* Inline replies + 2FA copy button */
 .notification-row .inline-reply {
-  margin-top: 4px;
+    margin-top: 4px;
 }
 
 .notification-row .inline-reply-entry {
-  background: alpha(@ink, 0.06);
-  border: 1px solid @chip-line;
-  border-radius: 10px;
-  min-height: 22px;
-  padding: 8px 10px;
-  color: @ink;
-  caret-color: @accent;
+    background: alpha(@ink, 0.06);
+    border: 1px solid @chip-line;
+    border-radius: 10px;
+    min-height: 22px;
+    padding: 8px 10px;
+    color: @ink;
+    caret-color: @accent;
 }
 
 .notification-row .inline-reply-entry:focus-within {
-  background: alpha(@accent, 0.08);
-  border-color: @chip-line;
+    background: alpha(@accent, 0.08);
+    border-color: @chip-line;
 }
 
 .notification-row .inline-reply-button {
-  background: @accent-soft;
-  border: 1px solid @accent-line;
-  border-radius: 10px;
-  margin-left: 6px;
-  padding: 8px 12px;
-  color: @accent;
+    background: @accent-soft;
+    border: 1px solid @accent-line;
+    border-radius: 10px;
+    margin-left: 6px;
+    padding: 8px 12px;
+    color: @accent;
 }
 
 .notification-row .inline-reply-button:hover {
-  background: @accent;
-  color: @on-accent;
+    background: @accent;
+    color: @on-accent;
 }
 
 /* Close */
 .notification-row .close-button {
-  background: alpha(@ink, 0.05);
-  border: 1px solid transparent;
-  border-radius: var(--radius-pill);
-  margin: 8px;
-  padding: 0;
-  min-width: 22px;
-  min-height: 22px;
-  color: @ink-faint;
-  font-size: 12px;
+    background: alpha(@ink, 0.05);
+    border: 1px solid transparent;
+    border-radius: var(--radius-pill);
+    margin: 8px;
+    padding: 0;
+    min-width: 22px;
+    min-height: 22px;
+    color: @ink-faint;
+    font-size: 12px;
 }
 
 .notification-row .close-button:hover {
-  background: @danger;
-  color: @on-danger;
+    background: @danger;
+    color: @on-danger;
 }
 
 .notification-row .close-button:active {
-  background: @danger-dim;
-  color: @on-danger-dim;
+    background: @danger-dim;
+    color: @on-danger-dim;
 }
 
 /* Progress (downloads, copy) */
 .notification-row progressbar {
-  margin-top: 4px;
+    margin-top: 4px;
 }
 
 .notification-row progressbar trough,
 .notification-row progressbar progress {
-  border: none;
-  border-radius: var(--radius-pill);
-  min-height: 4px;
-  margin: 0;
+    border: none;
+    border-radius: var(--radius-pill);
+    min-height: 4px;
+    margin: 0;
 }
 
 .notification-row progressbar trough {
-  background: alpha(@ink, 0.1);
+    background: alpha(@ink, 0.1);
 }
 
 .notification-row progressbar progress {
-  background: @accent;
+    background: @accent;
 }
 
 .notification-row .notification.critical progress {
-  background: @danger;
+    background: @danger;
 }
 
 .notification-row .notification-content picture {
-  border-radius: 10px;
+    border-radius: 10px;
 }
