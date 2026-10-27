@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Bluetooth menu and --status compatibility entry point.
-# Author: ae Orland
+# Author: ae. Orland
 # GitHub: https://github.com/ae-orlando
 set -euo pipefail
 dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
