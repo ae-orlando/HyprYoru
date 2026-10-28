@@ -64,8 +64,8 @@ tooltip label {
 /* Workspaces: identity is preserved; fill replaces multiple competing edges. */
 #workspaces {
     background: transparent;
-    border: none;
-    padding: 0;
+    border-left: 1px solid alpha(@bg3, 0.65);
+    padding: 0 10px;
     margin: 0;
 }
 
@@ -148,6 +148,7 @@ tooltip label {
 #cpu,
 #memory,
 #temperature,
+#custom-updates,
 #battery,
 #power-profiles-daemon,
 #custom-notification {
@@ -163,7 +164,6 @@ tooltip label {
         color 160ms ease;
 }
 
-#custom-apps:hover,
 #custom-network:hover,
 #bluetooth:hover,
 #pulseaudio:hover,
@@ -171,16 +171,17 @@ tooltip label {
 #cpu:hover,
 #memory:hover,
 #temperature:hover,
+#custom-updates:hover,
 #power-profiles-daemon:hover {
     background: alpha(@fg, 0.065);
     color: @fg;
 }
 
 #custom-apps {
-    background: alpha(@blue, 0.08);
+    background: transparent;
     color: @blue;
     font-size: 19px;
-    min-width: 26px;
+    min-width: 20px;
     padding: 0 5px;
     margin-right: 5px;
 }
@@ -282,6 +283,31 @@ tooltip label {
 
 #temperature {
     min-width: 46px;
+}
+
+#custom-updates {
+    min-width: 40px;
+    font-weight: 600;
+}
+
+#custom-updates.pending {
+    background: alpha(@yellow, 0.10);
+    color: @yellow;
+}
+
+#custom-updates.error {
+    background: alpha(@red, 0.12);
+    color: @red;
+}
+
+#custom-updates.hidden {
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: transparent;
 }
 
 #battery {

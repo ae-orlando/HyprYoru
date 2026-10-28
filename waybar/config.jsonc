@@ -24,23 +24,24 @@
 
     "modules-right": [
         "group/system",
+        "custom/updates",
         "group/connections",
         "group/audio",
         "group/power",
         "tray",
-        "custom/notification",
+        "custom/notification"
     ],
 
     "custom/apps": {
         "format": "",
         "tooltip": false,
-        "on-click": "~/.config/rofi/launchers/yoru-main.sh",
+        "on-click": "~/.config/rofi/launchers/yoru-main.sh"
     },
 
     "tray": {
         "spacing": 10,
         "icon-size": 15,
-        "show-passive-items": true,
+        "show-passive-items": true
     },
 
     "hyprland/workspaces": {
@@ -67,12 +68,12 @@
             "9": "",
             "10": "",
 
-            "default": "",
+            "default": ""
         },
         "persistent-workspaces": {
             "*": 4,
-            "HDMI-A-1": 3,
-        },
+            "HDMI-A-1": 3
+        }
     },
 
     "pulseaudio": {
@@ -89,12 +90,12 @@
             "phone-muted": "󰖁",
             "portable": "",
             "car": "",
-            "default": ["󰕿", "󰖀", "󰕾"],
+            "default": ["󰕿", "󰖀", "󰕾"]
         },
         "scroll-step": 1,
         "on-click": "pavucontrol",
         "tooltip-format": "{desc} · {volume}%",
-        "tooltip-format-muted": "{desc} · Muted",
+        "tooltip-format-muted": "{desc} · Muted"
     },
 
     "custom/mic": {
@@ -104,7 +105,7 @@
         "hide-empty-text": true,
         "exec": "~/.config/waybar/scripts/mic.sh",
         "on-click": "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle",
-        "tooltip": true,
+        "tooltip": true
     },
 
     "clock": {
@@ -117,25 +118,25 @@
             "format": {
                 "months": "<b>{}</b>",
                 "weekdays": "<span alpha='70%'>{}</span>",
-                "today": "<b><u>{}</u></b>",
-            },
+                "today": "<b><u>{}</u></b>"
+            }
         },
         "actions": {
             "on-click-forward": "tz_up",
-            "on-click-backward": "tz_down",
-        },
+            "on-click-backward": "tz_down"
+        }
     },
 
     "battery": {
         "interval": 5,
         "states": {
             "warning": 30,
-            "critical": 15,
+            "critical": 15
         },
         "events": {
             "on-discharging-warning": "notify-send -u normal 'Low Battery'",
             "on-discharging-critical": "notify-send -u critical 'Very Low Battery'",
-            "on-charging-100": "notify-send -u normal 'Battery Full!'",
+            "on-charging-100": "notify-send -u normal 'Battery Full!'"
         },
         "format": "{icon}  {capacity}%",
         "format-charging": "󱐌 {capacity}%",
@@ -144,9 +145,9 @@
         "cursor": false,
         "tooltip-format": "{timeTo} - {capacity}%",
         "format-icons": {
-            "default": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
+            "default": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
         },
-        "max-length": 25,
+        "max-length": 25
     },
     "custom/notification": {
         "tooltip": true,
@@ -159,37 +160,37 @@
             "inhibited-notification": "󰂛",
             "inhibited-none": "󰪑",
             "dnd-inhibited-notification": "󰂛",
-            "dnd-inhibited-none": "󰪑",
+            "dnd-inhibited-none": "󰪑"
         },
         "return-type": "json",
         "exec-if": "which swaync-client",
         "exec": "swaync-client -swb",
         "on-click": "swaync-client -t -sw",
         "on-click-right": "swaync-client -d -sw",
-        "escape": true,
+        "escape": true
     },
 
     "group/system": {
         "orientation": "horizontal",
         "drawer": {
             "transition-duration": 180,
-            "children-class": "system",
+            "children-class": "system"
         },
-        "modules": ["cpu", "memory", "temperature"],
+        "modules": ["cpu", "memory", "temperature"]
     },
 
     "cpu": {
         "format": " {usage}%",
         "interval": 2,
         "tooltip-format": "CPU: {usage}% ({load})",
-        "on-click": "kitty -e btop",
+        "on-click": "kitty -e btop"
     },
 
     "memory": {
         "format": " {percentage}%",
         "interval": 5,
         "tooltip-format": "{used:0.1f}G / {total:0.1f}G · {percentage}%",
-        "on-click": "kitty -e btop",
+        "on-click": "kitty -e btop"
     },
 
     "temperature": {
@@ -199,12 +200,22 @@
         "format-icons": ["", "", "", "", ""],
         "interval": 5,
         "tooltip-format": "{temperatureC}°C",
-        "on-click": "kitty -e btop",
+        "on-click": "kitty -e btop"
+    },
+
+    "custom/updates": {
+        "format": "{}",
+        "return-type": "json",
+        "exec": "~/.config/waybar/scripts/updates.sh",
+        "interval": 1800,
+        "signal": 8,
+        "on-click": "~/.config/waybar/scripts/update-now.sh",
+        "tooltip": true
     },
 
     "group/connections": {
         "orientation": "horizontal",
-        "modules": ["custom/network", "bluetooth"],
+        "modules": ["custom/network", "bluetooth"]
     },
 
     "custom/network": {
@@ -214,7 +225,7 @@
         "interval": 5,
         "on-click": "~/.config/rofi/launchers/wifi.sh",
         "on-click-right": "nm-connection-editor",
-        "tooltip": true,
+        "tooltip": true
     },
 
     "bluetooth": {
@@ -234,7 +245,7 @@
         "tooltip-format-enumerate-connected": "{device_alias}",
         "tooltip-format-enumerate-connected-battery": "{device_alias} · {device_battery_percentage}%",
         "tooltip-format-connected-battery": "Bluetooth · {num_connections} connected\n{device_enumerate}",
-        "on-click": "~/.config/rofi/launchers/rofi-bluetooth",
+        "on-click": "~/.config/rofi/launchers/rofi-bluetooth"
     },
 
     "power-profiles-daemon": {
@@ -245,20 +256,20 @@
             "default": "󰾅",
             "performance": "󰓅",
             "balanced": "󰾅",
-            "power-saver": "󰾆",
+            "power-saver": "󰾆"
         },
         "on-click": "sh -c 'p=$(powerprofilesctl get); case $p in performance) powerprofilesctl set balanced;; balanced) powerprofilesctl set power-saver;; *) powerprofilesctl set performance;; esac'",
-        "on-click-right": "powerprofilesctl set balanced",
+        "on-click-right": "powerprofilesctl set balanced"
     },
 
     "group/audio": {
         "orientation": "horizontal",
         // An active/muted mic must remain visible, not hidden in a drawer.
-        "modules": ["pulseaudio", "custom/mic"],
+        "modules": ["pulseaudio", "custom/mic"]
     },
 
     "group/power": {
         "orientation": "horizontal",
-        "modules": ["battery", "power-profiles-daemon"],
-    },
+        "modules": ["battery", "power-profiles-daemon"]
+    }
 }

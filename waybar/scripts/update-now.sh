@@ -3,8 +3,16 @@
 # _______________________________________________________________________
 
 # Full system update for waybar custom/updates on-click.
-# Refreshes the module immediately afterwards instead of waiting for the next poll.
-kitty -e yay -Syu
-rm -f /tmp/waybar-aur-count
-pkill -RTMIN+8 waybar 2>/dev/null
-notify-send "System update" "Finished — update count refreshing."
+# Refresh + notification fire the moment the update finishes; the window
+# closes itself right after.
+
+kitty -e bash -c '
+    yay -Syu
+    rc=$?
+    pkill -RTMIN+8 waybar
+    if [ $rc -eq 0 ]; then
+        notify-send "System update" "Finished — update count refreshed."
+    else
+        notify-send -u critical "System update" "Failed (exit $rc)"
+    fi
+'
