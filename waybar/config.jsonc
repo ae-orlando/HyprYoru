@@ -76,16 +76,17 @@
         }
     },
 
-    "hyprland/window": {
-        "format": "<span weight='bold'>{}</span>",
-        "max-length": 20,
-        "rewrite": {
-            "(.*) - [Cc]hromium": "🌐 · $1",
-            "(.*) — Mozilla Firefox": "🌎 · $1",
-            "(.*) - Brave": "🌐 · $1",
-            "^$": "🏠 Desktop"
-        }
-    },
+
+"hyprland/window": {
+    "format": "{}",
+    "max-length": 20,
+    "rewrite": {
+        "(.*) - [Cc]hromium": "🌐 · $1",
+        "(.*) — Mozilla Firefox": "🌎 · $1",
+        "(.*) - Brave": "🌐 · $1",
+        "^$": "🏠 Desktop"
+    }
+},
 
     "pulseaudio": {
         "format": "{icon} {volume}%",

@@ -74,12 +74,12 @@ tooltip label {
     background: transparent;
     background-image: none;
     border: 1px solid transparent;
-    border-radius: 45px;
+    border-radius: 40px;
     box-shadow: none;
     outline-style: none;
     color: @grey1;
     min-width: 28px;
-    min-height: 24px;
+    min-height: 20px;
     padding: 0 5px;
     margin: 0 1px;
     transition:
