@@ -1,7 +1,8 @@
 /* Yoru Deck — control center dashboard
  * Header tools, true toggles, connection menus, and an app mixer.
  * Content-sized panel, adaptive media, and a scrollable notification inbox.
- * Author: ae. Orland
+
+ * Author: ae. Orlando
  * GitHub: https://github.com/ae-orlando
  */
 
@@ -166,7 +167,7 @@
 }
 
 .widget-notifications > stack {
-    min-height: 96px;
+    min-height: 200px;
 }
 
 .control-center .notification-row {
