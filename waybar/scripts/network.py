@@ -22,7 +22,7 @@ ICONS = {
     "hotspot": "󰀂",
     "wifi": "",
     "ethernet": "󰈀",
-    "mobile": "󰢟",
+    "mobile": "",
     "network": "󰛳",
     "off": "󰖪",
     "idle": "",

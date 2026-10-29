@@ -18,7 +18,7 @@
     "margin-left": 14,
     "margin-right": 14,
 
-    "modules-left": ["custom/apps", "hyprland/workspaces"],
+    "modules-left": ["custom/apps", "hyprland/workspaces", "hyprland/window"],
 
     "modules-center": ["clock"],
 
@@ -76,6 +76,17 @@
         }
     },
 
+    "hyprland/window": {
+        "format": "<span weight='bold'>{}</span>",
+        "max-length": 20,
+        "rewrite": {
+            "(.*) - [Cc]hromium": "🌐 · $1",
+            "(.*) — Mozilla Firefox": "🌎 · $1",
+            "(.*) - Brave": "🌐 · $1",
+            "^$": "🏠 Desktop"
+        }
+    },
+
     "pulseaudio": {
         "format": "{icon} {volume}%",
         "format-bluetooth": "{icon} {volume}%",
@@ -130,18 +141,20 @@
     "battery": {
         "interval": 5,
         "states": {
-            "warning": 30,
-            "critical": 15
+            "warning": 20,
+            "low": 15,
+            "critical": 5
         },
         "events": {
-            "on-discharging-warning": "notify-send -u normal 'Low Battery'",
-            "on-discharging-critical": "notify-send -u critical 'Very Low Battery'",
+            "on-discharging-warning": "notify-send -u normal 'Low battery' 'You might want to connect your charger'",
+            "on-discharging-low": "notify-send -u normal 'Low battery' 'Connect your charger! Didn't you see the last message?!",
+            "on-discharging-critical": "notify-send -u critical 'Critically low battery' 'CONNECT YOUR CHARGER NOW!!'",
             "on-charging-100": "notify-send -u normal 'Battery Full!'"
         },
         "format": "{icon}  {capacity}%",
-        "format-charging": "󱐌 {capacity}%",
-        "format-plugged": "󱐌 {capacity}%",
-        "format-full": "󱐌 {capacity}%",
+        "format-charging": "󰠠 {capacity}%",
+        "format-plugged": "󰠠 {capacity}%",
+        "format-full": "󰠠 {capacity}%",
         "cursor": false,
         "tooltip-format": "{timeTo} - {capacity}%",
         "format-icons": {
@@ -149,6 +162,7 @@
         },
         "max-length": 25
     },
+
     "custom/notification": {
         "tooltip": true,
         "format": "{icon}",

@@ -65,6 +65,7 @@ tooltip label {
 #workspaces {
     background: transparent;
     border-left: 1px solid alpha(@bg3, 0.65);
+    border-right: 1px solid alpha(@bg3, 0.65);
     padding: 0 10px;
     margin: 0;
 }
@@ -137,6 +138,14 @@ tooltip label {
     background: alpha(@red, 0.14);
     color: @red;
     opacity: 1;
+}
+
+
+/* Hyprland Window  Indicator*/
+#window {
+    padding: 0 5px;
+    margin: 0 5px;
+    color: @fg;
 }
 
 /* Inline modules share hit areas, not an individual outlined pill each. */
