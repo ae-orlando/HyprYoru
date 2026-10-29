@@ -60,3 +60,6 @@ alias venv="uv venv .venv && source .venv/bin/activate"
 # Networking
 alias ports="sudo ss -tulanp"
 alias renet="sudo systemctl restart NetworkManager"
+
+# System Information
+alias cspeed='watch -cn1 "grep '\''cpu MHz'\'' /proc/cpuinfo | head -4"'
