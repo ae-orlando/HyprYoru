@@ -21,6 +21,7 @@ local runner = "~/.config/rofi/launchers/yoru-run.sh"
 local codeCamp = browser .. " --app=https://www.freecodecamp.org/lear"
 local whatsapp = browser .. " --app=https://web.whatsapp.com/"
 local waybarReload = "~/.config/waybar/scripts/launch.sh"
+local updater = "$HOME/.config/waybar/scripts/update-now.sh"
 
 local mainMod = "SUPER"
 local shiftMod = "SUPER + SHIFT"
@@ -35,9 +36,14 @@ hl.bind(mainMod .. " + M", hl.dsp.exec_cmd(music), { description = "Open music" 
 hl.bind(mainMod .. " + O", hl.dsp.exec_cmd(odel), { description = "Open ODeL" })
 hl.bind(mainMod .. " + A", hl.dsp.exec_cmd(anime), { description = "Open anime" })
 hl.bind(mainMod .. " + Space", hl.dsp.exec_cmd(launcher), { description = "Open app launcher" })
-hl.bind(shiftMod .. " + Space", hl.dsp.exec_cmd(runner), { description = "Run command" })
 hl.bind(mainMod .. " + C", hl.dsp.exec_cmd(codeCamp), { description = "Open codeCamp" })
+hl.bind(shiftMod .. " + Space", hl.dsp.exec_cmd(runner), { description = "Run command" })
 hl.bind(shiftMod .. " + C", hl.dsp.exec_cmd(whatsapp), { description = "Open Whatsapp" })
+
+-- ===============================================
+-- Update system
+-- ===============================================
+hl.bind(mainMod .. "+ S", hl.dsp.exec_cmd(updater), { description = "Perform full system upgrade" })
 
 -- ===============================================
 -- Hypr
