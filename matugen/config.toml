@@ -72,6 +72,14 @@ input_path = "~/.config/matugen/templates/btop.theme"
 output_path = "~/.config/btop/themes/matugen.theme"
 post_hook = "pkill -USR2 btop 2>/dev/null || true"
 
+# --- Spicetify (theme dir linked from the repo; color.ini is generated) ---
+# Direct matugen runs restyle a live client here. Coordinated wallpaper runs
+# skip post_hooks and send the same signal from palette.py instead.
+[templates.spicetify]
+input_path = "~/.config/matugen/templates/spicetify-color.ini"
+output_path = "~/.config/spicetify/Themes/matugen/color.ini"
+post_hook = "spicetify -q refresh 2>/dev/null || true"
+
 # --- Neovim palette for matugen.nvim (opt-in; repo untouched) ---
 [templates.nvim]
 input_path = "~/.config/matugen/templates/nvim-colors.json"

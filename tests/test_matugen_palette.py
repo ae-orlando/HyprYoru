@@ -97,6 +97,41 @@ class RenderTests(unittest.TestCase):
                 for index in range(8, 16):
                     self.assertNotEqual(kitty[f"color{index}"], kitty[f"color{index - 8}"])
 
+    def test_spicetify_scheme_is_complete_and_contrast_checked(self):
+        expected = {
+            "text", "subtext", "main", "main-elevated", "highlight",
+            "highlight-elevated", "sidebar", "player", "card", "shadow",
+            "selected-row", "button", "button-active", "button-disabled",
+            "tab-active", "notification", "notification-error", "misc",
+        }
+        for key, output in self.samples.items():
+            with self.subTest(key=key):
+                ini = output["spicetify-color.ini"]
+                self.assertIn("[matugen]", ini)
+                raw = dict(re.findall(r"^([\w-]+)\s*=\s*([0-9a-fA-F]{6})$", ini, re.M))
+                self.assertEqual(set(raw), expected)
+                # Bare hex is Spicetify's shipped format; contrast() wants '#'.
+                colors = {key: f"#{value}" for key, value in raw.items()}
+                # Surfaces carry ordinary text in both modes.
+                for surface in ("main", "sidebar", "player"):
+                    self.assertGreaterEqual(contrast(colors["text"], colors[surface]),
+                                            4.5, (key, surface))
+                    self.assertGreaterEqual(contrast(colors["subtext"], colors[surface]),
+                                            4.5, (key, surface))
+                # Accent text appears on main; card hover must clear the player
+                # (Material light mode keeps elevation deltas subtle).
+                self.assertGreaterEqual(contrast(colors["button"], colors["main"]), 3.0, key)
+                self.assertGreaterEqual(contrast(colors["selected-row"], colors["main"]),
+                                        3.0, key)
+                self.assertGreaterEqual(contrast(colors["card"], colors["player"]), 1.03, key)
+                # CTA pills paint --spice-sidebar on --spice-button-active.
+                self.assertGreaterEqual(
+                    contrast(colors["sidebar"], colors["button-active"]), 4.5, key)
+                # Mid-tone containers host text in both directions.
+                for container in ("tab-active", "notification", "notification-error"):
+                    self.assertGreaterEqual(
+                        contrast(colors["text"], colors[container]), 4.5, (key, container))
+
     def test_css_json_and_lua_roles_are_generated(self):
         for output in self.samples.values():
             self.assertIn("@define-color fg #", output["waybar-matugen.css"])

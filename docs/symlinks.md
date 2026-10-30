@@ -1,6 +1,6 @@
 # Symlinks
 
-`install.sh` `LINK_MAP` (13 entries). Target is replaced with a symlink to the repo source.
+`install.sh` `LINK_MAP` (14 entries). Target is replaced with a symlink to the repo source.
 
 | Target (`$HOME/...`) | Source (`$DOTFILES_ROOT/...`) |
 | -------------------- | ----------------------------- |
@@ -17,6 +17,7 @@
 | `.config/fastfetch`  | `fastfetch`                   |
 | `.config/gtk-3.0`    | `gtk-setting/gtk-3.0`         |
 | `.config/gtk-4.0`    | `gtk-setting/gtk-4.0`         |
+| `.config/spicetify/Themes/matugen` | `spicetify/Themes/matugen` |
 
 ## Related Paths
 

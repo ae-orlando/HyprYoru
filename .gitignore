@@ -41,6 +41,7 @@ btop/themes/matugen.theme
 matugen/themes/nvim-colors.json
 zsh/generated/colors.sh
 waypaper/config.ini
+spicetify/Themes/matugen/color.ini
 
 # Secrets guard: never commit credentials even if tooling drops them here.
 .env

@@ -281,6 +281,7 @@ def reload_consumers():
         ["swaync-client", "-rs"],
         ["pkill", "-SIGUSR1", "kitty"],
         ["pkill", "-USR2", "btop"],
+        ["spicetify", "-q", "refresh"],
     ):
         try:
             subprocess.run(

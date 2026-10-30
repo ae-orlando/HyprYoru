@@ -20,7 +20,7 @@ isolated config with temporary output paths and no hooks, checks every output,
 and publishes them with a durable journal and rollback on publication failure.
 Only the latest request can publish. It saves `~/.cache/matugen/current-wallpaper` and
 `current-mode` with the palette, then reloads Hyprland, Waybar, SwayNC, Kitty,
-and btop once. An explicit theme toggle changes GTK preferences with
+btop, and Spicetify once. An explicit theme toggle changes GTK preferences with
 `gsettings`; wallpaper changes do not override GTK preferences if application
 defaults were not selected at install time. The tracked `settings.ini` files
 are never edited. Lock-screen and Rofi backdrops are prepared during the
@@ -93,6 +93,7 @@ transaction journal.
 | `gtk-colors.css` | `~/.config/gtk-3.0/colors.css`, `~/.config/gtk-4.0/colors.css` | GTK 3/4 |
 | `qtct-colors.conf` | `~/.config/qt6ct/colors/matugen.conf` | Qt6CT |
 | `btop.theme` | `~/.config/btop/themes/matugen.theme` | btop |
+| `spicetify-color.ini` | `~/.config/spicetify/Themes/matugen/color.ini` | Spicetify (theme dir is a repo symlink; `user.css` rice ships in it) |
 | `nvim-colors.json` | `~/.config/matugen/themes/nvim-colors.json` | Opt-in Neovim palette |
 | `shell-colors.sh` | `~/.config/zsh/generated/colors.sh` | Zsh/fzf |
 

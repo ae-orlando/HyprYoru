@@ -87,6 +87,7 @@ LINK_MAP=(
   '.config/fastfetch:fastfetch'
   '.config/gtk-3.0:gtk-setting/gtk-3.0'
   '.config/gtk-4.0:gtk-setting/gtk-4.0'
+  '.config/spicetify/Themes/matugen:spicetify/Themes/matugen'
 )
 SYSTEM_SERVICES=()
 USER_SERVICES=(pipewire.socket pipewire-pulse.socket wireplumber.service gnome-keyring-daemon.socket)

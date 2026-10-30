@@ -53,7 +53,8 @@ class PalettePipelineTests(unittest.TestCase):
         self.second.write_bytes(tiny_png((48, 88, 212)))
         bins = self.root / "bin"
         bins.mkdir()
-        for program in ("awww", "hyprctl", "pkill", "swaync-client", "gsettings"):
+        for program in ("awww", "hyprctl", "pkill", "swaync-client", "gsettings",
+                        "spicetify"):
             stub = bins / program
             stub.write_text(
                 "#!/bin/bash\n"
@@ -132,6 +133,7 @@ class PalettePipelineTests(unittest.TestCase):
         log = self.log.read_text()
         self.assertEqual(log.count("pkill -SIGUSR2 waybar"), 2)
         self.assertEqual(log.count("pkill -SIGUSR1 kitty"), 2)
+        self.assertEqual(log.count("spicetify -q refresh"), 2)
         self.assertEqual(log.count("swaync-client -rs"), 2)
         self.assertIn("gsettings set org.gnome.desktop.interface gtk-theme adw-gtk3\n", log)
 
