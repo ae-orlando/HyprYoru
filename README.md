@@ -75,7 +75,7 @@ The installer links desktop and shell configs only. Developer-tool configs (tmux
 ├── zsh/           # .zshrc + conf.d/pre + conf.d/post + generated/
 ├── waypaper/      # config.ini (backend=none)
 ├── btop/          # btop.conf + themes/
-├── fastfetch/     # config.jsonc + png/ + snaps/
+├── fastfetch/     # config.jsonc + png/
 ├── gtk-setting/   # gtk-3.0/ + gtk-4.0/
 ├── qt6ct/         # qt6ct.conf + colors/
 └── docs/          # per-module guides

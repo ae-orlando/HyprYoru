@@ -15,8 +15,9 @@ Launcher + applets. Base config: `rofi/config.rasi` (`modi: drun,run,filebrowser
 | `launchers/launcher.sh`            | Alt launcher (`styles/launcher`)                                                                             |
 | `launchers/powermenu.sh`           | Lock/logout/suspend/hibernate/reboot                                                                         |
 | `launchers/screenshot.sh`          | Desktop/area/window via `hyprshot`                                                                           |
-| `launchers/wifi.sh`                | `nmcli` network picker                                                                                       |
-| `launchers/rofi-bluetooth`         | `bluetoothctl` device menu                                                                                   |
+| `launchers/wifi.sh`                | Compatibility entry point: native GTK4 drawer by default (`connectivity/launch.py wifi`), `--legacy` for Rofi |
+| `launchers/rofi-bluetooth`         | Compatibility entry point: native GTK4 drawer by default (`connectivity/launch.py bluetooth`), `--legacy` for Rofi |
+| `launchers/connectivity/`          | Native network/Bluetooth drawers, hotspot control, sliders, and shared presentation (Python + GTK4 layer-shell) |
 | `launchers/wall-changer.sh`        | Thumbnail picker + `set-wall.sh`                                                                             |
 | `launchers/quicklinks.sh`          | Browser quick links                                                                                          |
 
@@ -45,6 +46,6 @@ rofi -dump-config
 
 ## Notes
 
-- Default bindings: SUPER+Space app launcher, SHIFT+SUPER+Space run prompt (`hyprland/modules/binds.lua:37-38`); Waybar `custom/apps` also opens `yoru-main.sh`. Type-6 stays as fallback.
+- Default bindings: SUPER+Space app launcher, SHIFT+SUPER+Space run prompt (`hyprland/modules/binds.lua:38`, `:40`); Waybar `custom/apps` also opens `yoru-main.sh`. Type-6 stays as fallback.
 - `install.sh` forces `+x` on `launchers/*.sh`, `type-6/*.sh`, `rofi-bluetooth` (repo has two `644` files).
 - `type-6/style-9.rasi` references `~/.config/rofi/images/i.jpg`, which does not exist (blank imagebox, harmless).

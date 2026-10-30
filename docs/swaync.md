@@ -6,9 +6,11 @@ Notification daemon + control center. Daemon: `swaync`. Bar helper: `swaync-clie
 
 | Path                         | Purpose                                   |
 | ---------------------------- | ----------------------------------------- |
-| `config.json`                | Widgets: mpris, buttons-grid, volume, DND |
-| `style.css`                  | Imports generated + static styles         |
+| `config.json`                | Widgets: menubar, toggles/connections grids, volume, backlight, mpris, DND, inhibitors, notifications |
+| `style.css`                  | Imports generated + static styles (tokens, base, notifications, control center) |
 | `matugen/colors.css`         | Generated palette                         |
+| `Styles/tokens.css`          | Semantic token mapping from matugen roles  |
+| `Styles/base.css`            | Shared base styling                       |
 | `Styles/notifications.css`   | Popup styling                             |
 | `Styles/central_control.css` | Control-center styling                    |
 

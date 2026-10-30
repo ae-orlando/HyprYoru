@@ -10,7 +10,7 @@
    - `02-plugins.zsh` (`git`, `archlinux`, `extract`, `sudo`, `gh`, `tmux`, `python`).
 3. `oh-my-zsh.sh`.
 4. `conf.d/post/*.zsh`:
-   - `10-aliases.zsh` (`eza`, `nvim`, `git`, `pacman`, `python`/`uv`, `bat`/`cat`, `diff --color`, `grep --color`).
+   - `10-aliases.zsh` (`eza`, `nvim`, `git`, `pacman`, `python`/`uv`, `bat`/`cat`, `diff --color`, `grep --color`, `cspeed`).
    - `15-matugen.zsh` (sources `generated/colors.sh`, `precmd` reload).
    - `20-functions.zsh` (`ascii` banner, `fonts` list, `shot` screenshots, `bak` backups).
    - `40-zoxide.zsh` (guarded zoxide initialization; `z`/`zi` directory jumping).
@@ -59,8 +59,8 @@ slots, not literal hues: Kitty's Matugen palette supplies their actual colors.
   Token-heavy long lines cost more than one long argument, so the cap stays
   conservative instead of disabling the performance guard.
 
-Autosuggestions use regular-weight Matugen `on_surface_variant` text instead
-of the too-faint `outline_variant` border color. ANSI gray (`fg=8`) is the
+Autosuggestions use regular-weight Matugen `outline` text instead of the
+too-faint `outline_variant` border color. ANSI gray (`fg=8`) is the
 fallback without a generated palette. Existing shells refresh suggestion
 styles before each prompt, after the palette reload hook.
 

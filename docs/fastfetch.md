@@ -7,20 +7,21 @@ System info with kitty image protocol. Config: `fastfetch/config.jsonc`.
 | Path                | Purpose                      |
 | ------------------- | ---------------------------- |
 | `config.jsonc`      | Logo + display + module list |
-| `png/`              | 4 anime logos                |
-| `snaps/`            | Preview screenshot           |
-| `PROTECTED`         | Empty marker file            |
-| `config.jsonc.back` | Inactive backup              |
+| `png/`              | 12 logos                     |
 
 ## Logo
 
 ```jsonc
 "logo": {
-    "type": "kitty",
-    "source": "~/.config/fastfetch/png/Satoru_gojo.png",
-    "width": 26,
-    "height": 15
+    "source": "~/.config/fastfetch/png/nobara-brown.png",
+    "type": "auto",
+    "width": 18,
+    "padding": {
+        "top": 1,
+        "right": 3,
+        "left": 1
+    }
 }
 ```
 
-Requires kitty terminal for image rendering.
+`type: "auto"` detects the best image protocol for the terminal; no kitty-specific setting is required.
