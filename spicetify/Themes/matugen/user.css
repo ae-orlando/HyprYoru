@@ -69,6 +69,8 @@ the retinted --background-base tokens above). */
 	background-color: rgba(var(--spice-rgb-main), 0.3) !important;
 	backdrop-filter: blur(20px) saturate(1.3);
 	-webkit-backdrop-filter: blur(20px) saturate(1.3);
+	/* Edge lighting: a lit ceiling where content scrolls beneath. */
+	box-shadow: inset 0 -1px 0 rgba(var(--spice-rgb-text), 0.09);
 }
 /* Back/forward: round, tinted, accent on hover. */
 .main-topBar-historyButtons .main-topBar-button {
@@ -111,13 +113,20 @@ the retinted --background-base tokens above). */
 	font-weight: 700;
 }
 
-/* Play button: the loudest accent moment in the app. */
-.main-playButton-PlayButton {
+/* Play button: the single solid accent CTA in the app (verified hook:
+control-button-playpause). Everything else stays ghost so this reads as
+*the* action. */
+[data-testid="control-button-playpause"] {
+	background-color: var(--spice-button) !important;
+	color: var(--spice-main) !important;
 	transition: transform 0.15s, box-shadow 0.15s;
 }
-.main-playButton-PlayButton:hover {
-	transform: scale(1.07);
-	box-shadow: 0 4px 14px rgba(var(--spice-rgb-button), 0.4);
+[data-testid="control-button-playpause"]:hover {
+	transform: scale(1.08);
+	box-shadow: 0 0 20px rgba(var(--spice-rgb-button), 0.6);
+}
+[data-testid="control-button-playpause"] svg {
+	fill: var(--spice-main) !important;
 }
 
 /* --- Cards ------------------------------------------------------------ */
@@ -133,6 +142,17 @@ the retinted --background-base tokens above). */
 	outline-offset: -1px;
 	box-shadow: 0 10px 28px rgba(var(--spice-rgb-shadow), 0.45),
 		0 0 0 4px rgba(var(--spice-rgb-button), 0.1);
+}
+/* Art zooms inside its mask on hover; the card clips it (overflow hidden). */
+.main-card-imageContainer {
+	overflow: hidden;
+	border-radius: 8px;
+}
+.main-card-imageContainer img {
+	transition: transform 0.4s cubic-bezier(0.2, 0, 0.2, 1);
+}
+.main-card-card:hover .main-card-imageContainer img {
+	transform: scale(1.05);
 }
 .main-cardImage-imageWrapper,
 .main-cardImage-imageWrapper img {
@@ -155,6 +175,28 @@ the retinted --background-base tokens above). */
 [data-playing-indicator] {
 	color: var(--spice-button) !important;
 }
+/* The playing row is the hero: a glowing accent rail down its left edge
+plus a faint accent wash, so the current track is findable at a glance.
+Reached structurally via :has() on the verified playing indicator. */
+.main-trackList-trackListRow:has([data-playing-indicator]) {
+	background-color: rgba(var(--spice-rgb-button), 0.07) !important;
+	position: relative;
+}
+.main-trackList-trackListRow:has([data-playing-indicator])::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 6px;
+	bottom: 6px;
+	width: 3px;
+	border-radius: 0 3px 3px 0;
+	background-color: var(--spice-button);
+	box-shadow: 0 0 8px rgba(var(--spice-rgb-button), 0.7);
+}
+/* The row's own EQ marker scales up to match the rail. */
+.main-trackList-rowMarker {
+	transform: scale(1.15);
+}
 
 /* --- Sidebar navigation ----------------------------------------------- */
 /* Active item gets a pill; the stock class only changes text color.
@@ -171,6 +213,15 @@ Fixed padding (no hover shift - the old slide-in caused text jitter). */
 	background-color: var(--spice-tab-active);
 	color: var(--spice-text) !important;
 }
+/* Library section headers ("Playlists" / "Recents") become tracked
+uppercase micro-labels - an editorial beat down the sidebar. */
+.e-10860-accordion-title__button {
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--spice-subtext) !important;
+}
 
 /* --- Context menus / dropdowns ------------------------------------------ */
 /* ARIA-based: the panel is ul[role=menu] (JSX factory verified in
@@ -182,7 +233,8 @@ ul[role="menu"] {
 	-webkit-backdrop-filter: blur(28px) saturate(1.4);
 	border-radius: 12px;
 	border: 1px solid rgba(var(--spice-rgb-text), 0.08);
-	box-shadow: 0 8px 24px rgba(var(--spice-rgb-shadow), 0.5);
+	box-shadow: 0 8px 24px rgba(var(--spice-rgb-shadow), 0.5),
+		inset 0 1px 0 rgba(var(--spice-rgb-text), 0.1);
 }
 ul[role="menu"] [role="menuitem"],
 ul[role="menu"] [role="menuitemcheckbox"],
@@ -236,9 +288,18 @@ input:focus {
 * ===================================================================== */
 
 /* --- Floating frame ---------------------------------------------------- */
-/* Desk = shadow deepened toward main; the frame sits inset with a hairline. */
+/* Desk = shadow deepened toward main; the frame sits inset with a hairline.
+Ambient bloom: a soft accent halo bleeding from behind the panel - the
+desk is lit by the wallpaper's own color (re-tinted on every change). */
 html {
 	background-color: color-mix(in srgb, var(--spice-shadow), var(--spice-main) 60%) !important;
+	background-image: radial-gradient(
+		120% 90% at 50% 0%,
+		rgba(var(--spice-rgb-button), 0.16),
+		rgba(var(--spice-rgb-button), 0.05) 45%,
+		transparent 75%
+	) !important;
+	background-repeat: no-repeat !important;
 	overflow: hidden;
 }
 body {
@@ -252,7 +313,9 @@ body {
 	overflow: hidden !important;
 	background-color: var(--spice-main);
 	border: 1px solid rgba(var(--spice-rgb-text), 0.1);
-	box-shadow: 0 16px 48px rgba(var(--spice-rgb-shadow), 0.55);
+	box-shadow: 0 16px 48px rgba(var(--spice-rgb-shadow), 0.55),
+		0 0 90px rgba(var(--spice-rgb-button), 0.14),
+		inset 0 1px 0 rgba(var(--spice-rgb-text), 0.08);
 }
 
 /* --- Detached glass now-playing bar ------------------------------------ */
@@ -273,7 +336,11 @@ div:has(> .main-nowPlayingBar-container) {
 	-webkit-backdrop-filter: blur(24px) saturate(1.4);
 	border-radius: 16px !important;
 	border: 1px solid rgba(var(--spice-rgb-text), 0.08);
-	box-shadow: 0 12px 32px rgba(var(--spice-rgb-shadow), 0.5);
+	/* Accent underglow: the panel appears to float over its own light;
+	inset top edge keeps the lit-glass language from the frame. */
+	box-shadow: 0 10px 40px rgba(var(--spice-rgb-button), 0.22),
+		0 12px 32px rgba(var(--spice-rgb-shadow), 0.5),
+		inset 0 1px 0 rgba(var(--spice-rgb-text), 0.1);
 	height: 76px !important;
 }
 
@@ -296,6 +363,23 @@ div:has(> .main-nowPlayingBar-container) {
 [data-playing-indicator] {
 	color: var(--spice-button) !important;
 	transform: scale(1.15);
+}
+
+/* --- Page glide: content eases in on navigation ------------------------ */
+/* The scroll node remounts per route, so the entry animation replays on
+each navigation. Opacity + a small rise; disabled under reduced-motion. */
+.main-view-container__scroll-node {
+	animation: matugen-page-in 0.35s cubic-bezier(0.2, 0, 0.2, 1);
+}
+@keyframes matugen-page-in {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
 }
 
 /* =====================================================================
