@@ -160,6 +160,7 @@ tooltip label {
 #custom-updates,
 #battery,
 #power-profiles-daemon,
+#idle_inhibitor,
 #custom-notification {
     background: transparent;
     border: 1px solid transparent;
@@ -181,6 +182,7 @@ tooltip label {
 #memory:hover,
 #temperature:hover,
 #custom-updates:hover,
+#idle_inhibitor:hover,
 #power-profiles-daemon:hover {
     background: alpha(@fg, 0.065);
     color: @fg;
@@ -214,6 +216,7 @@ tooltip label {
 #custom-network,
 #bluetooth,
 #power-profiles-daemon,
+#idle_inhibitor,
 #custom-notification {
     font-family: "GoMono Nerd Font Propo", sans-serif;
     font-size: 16px;
@@ -342,6 +345,7 @@ tooltip label {
     color: @green;
 }
 
+#idle_inhibitor.active,
 #power-profiles-daemon.performance {
     color: @yellow;
 }

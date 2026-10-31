@@ -76,17 +76,16 @@
         }
     },
 
-
-"hyprland/window": {
-    "format": "{}",
-    "max-length": 20,
-    "rewrite": {
-        "(.*) - [Cc]hromium": "🌐 · $1",
-        "(.*) — Mozilla Firefox": "🌎 · $1",
-        "(.*) - Brave": "🌐 · $1",
-        "^$": "🏠 Desktop"
-    }
-},
+    "hyprland/window": {
+        "format": "{}",
+        "max-length": 20,
+        "rewrite": {
+            "(.*) - [Cc]hromium": "🌐 · $1",
+            "(.*) — Mozilla Firefox": "🌎 · $1",
+            "(.*) - Brave": "🌐 · $1",
+            "^$": "🏠 Desktop"
+        }
+    },
 
     "pulseaudio": {
         "format": "{icon} {volume}%",
@@ -162,6 +161,15 @@
             "default": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
         },
         "max-length": 25
+    },
+
+    "idle_inhibitor": {
+        "format": "{icon}",
+        "format-icons": {
+            "activated": "󰈈",
+            "deactivated": ""
+        },
+        "timeout": 120
     },
 
     "custom/notification": {
@@ -285,6 +293,6 @@
 
     "group/power": {
         "orientation": "horizontal",
-        "modules": ["battery", "power-profiles-daemon"]
+        "modules": ["battery", "power-profiles-daemon", "idle_inhibitor"]
     }
 }
