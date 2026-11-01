@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Report patched desktop versions and restart one daemon safely.
 
-Author: ae Orland
+Author: ae. Orland
 GitHub: https://github.com/ae-orlando
 """
 
