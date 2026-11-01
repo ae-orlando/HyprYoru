@@ -29,16 +29,16 @@ local shiftMod = "SUPER + SHIFT"
 -- ==============================================
 -- Apps
 -- ==============================================
-hl.bind(mainMod .. " + return", hl.dsp.exec_cmd(terminal), { description = "Open terminal" })
 hl.bind(mainMod .. " + F", hl.dsp.exec_cmd(fileManager), { description = "Open file manager" })
 hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(browser), { description = "Open browser" })
 hl.bind(mainMod .. " + M", hl.dsp.exec_cmd(music), { description = "Open music" })
 hl.bind(mainMod .. " + O", hl.dsp.exec_cmd(odel), { description = "Open ODeL" })
 hl.bind(mainMod .. " + A", hl.dsp.exec_cmd(anime), { description = "Open anime" })
-hl.bind(mainMod .. " + Space", hl.dsp.exec_cmd(launcher), { description = "Open app launcher" })
 hl.bind(mainMod .. " + C", hl.dsp.exec_cmd(codeCamp), { description = "Open codeCamp" })
-hl.bind(shiftMod .. " + Space", hl.dsp.exec_cmd(runner), { description = "Run command" })
 hl.bind(shiftMod .. " + C", hl.dsp.exec_cmd(whatsapp), { description = "Open Whatsapp" })
+hl.bind(mainMod .. " + Space", hl.dsp.exec_cmd(launcher), { description = "Open app launcher" })
+hl.bind(shiftMod .. " + Space", hl.dsp.exec_cmd(runner), { description = "Run command" })
+hl.bind(mainMod .. " + return", hl.dsp.exec_cmd(terminal), { description = "Open terminal" })
 
 -- ===============================================
 -- Update system
