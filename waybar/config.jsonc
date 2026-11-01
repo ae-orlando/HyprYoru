@@ -169,6 +169,9 @@
             "activated": "󰈈",
             "deactivated": ""
         },
+        "tooltip": true,
+        "tooltip-format-activated": "Idle Inhibitor: {status}",
+        "tooltip-format-deactivated": "Idle Inhibitor: off",
         "timeout": 120
     },
 

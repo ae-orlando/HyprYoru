@@ -216,7 +216,6 @@ tooltip label {
 #custom-network,
 #bluetooth,
 #power-profiles-daemon,
-#idle_inhibitor,
 #custom-notification {
     font-family: "GoMono Nerd Font Propo", sans-serif;
     font-size: 16px;
@@ -345,9 +344,32 @@ tooltip label {
     color: @green;
 }
 
-#idle_inhibitor.active,
 #power-profiles-daemon.performance {
     color: @yellow;
+}
+
+/* Idle inhibitor: dim while the screen may sleep, tinted pill while it's held
+ * awake. Shares the #power island's 16px glyph metrics so the pill lands on
+ * the same centerline as battery and power-profiles-daemon. */
+#idle_inhibitor {
+    font-family: "GoMono Nerd Font Propo", sans-serif;
+    font-size: 16px;
+    min-width: 18px;
+    color: @grey0;
+}
+
+#idle_inhibitor.activated {
+    background: alpha(@yellow, 0.10);
+    color: @yellow;
+}
+
+#idle_inhibitor.activated:hover {
+    background: alpha(@yellow, 0.16);
+    color: @yellow;
+}
+
+#idle_inhibitor.activated:active {
+    background: alpha(@yellow, 0.22);
 }
 
 /* The center island is independent of workspace/status widths. */
