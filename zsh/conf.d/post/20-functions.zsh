@@ -78,3 +78,11 @@ bak() {
     done
     return $result
 }
+
+#=================== CLEAR TERIMAL SCREEN AND SCROLLBACK ====
+# compensates kitty terminals clear behaviour as kitty lacks E3
+# so /usr/bin/clear only erases the visible screen (like Ctrl + L)
+cls() {
+    command clear "$@"
+    (( $# == 0 )) && printf '\e[3j'
+}
