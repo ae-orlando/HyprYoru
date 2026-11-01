@@ -6,7 +6,7 @@ Top bar. Config: `waybar/config.jsonc`. Style entry: `waybar/style.css` imports 
 
 - Left: `custom/apps` (opens `yoru-main.sh`), `hyprland/workspaces`, `hyprland/window` (active window indicator).
 - Center: the date/time clock, independently centered.
-- Right: `group/system` (`cpu` + `memory` + `temperature` drawer), `custom/updates` (pending Arch/AUR count + on-click upgrade), `group/connections` (`custom/network` + `bluetooth`), `group/audio` (`pulseaudio` + `custom/mic`), `group/power` (`battery` + `power-profiles-daemon`), `tray`, `custom/notification`.
+- Right: `group/system` (`cpu` + `memory` + `temperature` drawer), `custom/updates` (pending Arch/AUR count + on-click upgrade), `group/connections` (`custom/network` + `bluetooth`), `group/audio` (`pulseaudio` + `custom/mic`), `group/power` (`battery` + `power-profiles-daemon` + `idle_inhibitor`), `tray`, `custom/notification`.
 
 These form three floating islands. An active/muted microphone stays visible;
 only the system statistics use a hover drawer. Radio clicks open the native
