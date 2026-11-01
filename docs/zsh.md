@@ -28,7 +28,7 @@
 | `conf.d/pre/02-plugins.zsh`          | OMZ plugin list                                                |
 | `conf.d/post/10-aliases.zsh`         | Aliases                                                        |
 | `conf.d/post/15-matugen.zsh`         | Palette reload hook                                            |
-| `conf.d/post/20-functions.zsh`       | `ascii`, `fonts`, `shot`, `bak`                                |
+| `conf.d/post/20-functions.zsh`       | `ascii`, `fonts`, `shot`, `bak`, `cls`                                |
 | `conf.d/post/25-fzf.zsh`             | fzf keybindings (CTRL-R/T, ALT-C)                              |
 | `conf.d/post/30-history.zsh`         | History dedup/sharing tuning                                   |
 | `conf.d/post/40-zoxide.zsh`          | `z`/`zi` directory jumping via zoxide                          |
