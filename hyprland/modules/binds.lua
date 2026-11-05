@@ -22,6 +22,7 @@ local codeCamp = browser .. " --app=https://www.freecodecamp.org/lear"
 local whatsapp = browser .. " --app=https://web.whatsapp.com/"
 local waybarReload = "~/.config/waybar/scripts/launch.sh"
 local updater = "$HOME/.config/waybar/scripts/update-now.sh"
+local wallpaperPicker = "~/.config/rofi/launchers/wall-changer.sh"
 
 local mainMod = "SUPER"
 local shiftMod = "SUPER + SHIFT"
@@ -187,10 +188,10 @@ hl.bind(
 )
 hl.bind(shiftMod .. " + N", hl.dsp.exec_cmd("swaync-client -t -sw"), { description = "Toggle notification center" })
 
--- Wallpaper picker (waypaper GUI, selector only) + system palette via post_command (matugen)
-hl.bind(mainMod .. " + W", hl.dsp.exec_cmd("waypaper"), { description = "Pick wallpaper + regenerate palette" })
+-- Wallpaper picker (a Rofi launcher template for picking wallpaper. picker only)
+hl.bind(mainMod .. " + W", hl.dsp.exec_cmd(wallpaperPicker), { description = "Pick wallpaper + regenerate palette" })
 hl.bind(
     shiftMod .. " + W",
-    hl.dsp.exec_cmd("waypaper --random"),
+    hl.dsp.exec_cmd(wallpaperPicker .. " --random"),
     { description = "Random wallpaper + regenerate palette" }
 )
