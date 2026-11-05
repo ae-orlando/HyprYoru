@@ -391,6 +391,7 @@ tooltip label {
 #tray {
     background: transparent;
     border-left: 1px solid alpha(@bg3, 0.65);
+    border-right: 1px solid alpha(@bg3, 0.65);
     margin-left: 5px;
     padding: 0 10px;
 }
@@ -400,15 +401,13 @@ tooltip label {
 }
 
 #custom-notification {
-    background: alpha(@blue, 0.09);
     color: @blue;
     min-width: 22px;
-    margin-left: 4px;
-    padding: 0 7px;
+    margin:0px 5px;
+    padding: 0 5px;
 }
 
 #custom-notification:hover,
-#custom-notification.notification,
 #custom-notification.cc-open {
     background: alpha(@blue, 0.18);
     color: @blue;
