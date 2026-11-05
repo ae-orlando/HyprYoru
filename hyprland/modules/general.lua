@@ -52,7 +52,6 @@ hl.config({
             enabled = true,
             size = 8,
             passes = 3,
-            xray = true,
             noise = 0.008,
             contrast = 1.0,
             brightness = 0.9,
@@ -80,7 +79,7 @@ hl.curve("quick", { type = "bezier", points = { { 0.15, 0 }, { 0.1, 1 } } })
 hl.curve("easy", { type = "spring", mass = 1, stiffness = 238.1191, dampening = 24.21279333 })
 
 -- ===================================================================================================
--- Animations
+-- animations
 -- ===================================================================================================
 hl.animation({ leaf = "global", enabled = true, speed = 10, bezier = "default" })
 hl.animation({ leaf = "border", enabled = true, speed = 5.39, bezier = "easeOutQuint" })
