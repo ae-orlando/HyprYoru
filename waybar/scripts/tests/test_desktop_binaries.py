@@ -41,6 +41,12 @@ class DesktopTests(unittest.TestCase):
         binary.chmod(0o755)
         self.assertEqual(desktop.selected_binary("waybar"), binary)
 
+    def test_version_ignores_waybar_startup_log_lines(self):
+        binary = self.root / "fake-waybar"
+        binary.write_text("#!/bin/sh\nprintf '%s\\n' '[info] no JOURNAL_STREAM' 'Waybar v9.9.9'\n")
+        binary.chmod(0o755)
+        self.assertEqual(desktop.version(binary), "Waybar v9.9.9")
+
     def test_manifest_detects_changed_binary(self):
         binary = desktop.local_binary("waybar")
         binary.parent.mkdir(parents=True)

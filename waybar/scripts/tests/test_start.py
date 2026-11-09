@@ -36,7 +36,7 @@ class StartupTests(unittest.TestCase):
             env = os.environ | {"XDG_DATA_HOME": directory}
             result = subprocess.run(["bash", str(SCRIPTS / "start-waybar.sh"), "--version"],
                                     env=env, capture_output=True, text=True, check=True)
-            self.assertTrue(result.stdout.startswith("Waybar v"))
+            self.assertIn("Waybar v", result.stdout)
 
     def test_reload_helper_starts_its_sibling_launcher_if_bar_is_stopped(self):
         with tempfile.TemporaryDirectory(prefix="waybar-start-", dir="/tmp/opencode") as directory:

@@ -16,7 +16,7 @@ connection drawers rather than toggling power.
 
 | Path                  | Purpose                                           |
 | --------------------- | ------------------------------------------------- |
-| `config.jsonc`        | Bar definition (Waybar `v0.15.0` reads `jsonc`)   |
+| `config.jsonc`        | Bar definition (Waybar `v0.16.0` reads `jsonc`)   |
 | `style.css`           | Two `@import` lines for generated + static colors |
 | `colors/matugen.css`  | Generated palette                                 |
 | `colors/style.css`    | Static pill/workspaces styling                    |
@@ -30,7 +30,7 @@ connection drawers rather than toggling power.
 | `scripts/updates.sh`          | Pending-count JSON for `custom/updates`: repos via `checkupdates`, AUR via one batched RPC; hidden when up to date |
 | `scripts/update-now.sh`       | On-click `yay -Syu` runner for `custom/updates`; refreshes the count on exit                           |
 | `scripts/network.py`          | Read-only NetworkManager status, including hotspot mode                                          |
-| `scripts/start-waybar.sh`     | Local compatibility binary, or distro fallback                                                   |
+| `scripts/start-waybar.sh`     | Optional local test build, or distro Waybar                                                     |
 | `scripts/desktop-binaries.py` | Status and controlled daemon restarts (`yoru-desktop`)                                           |
 | `scripts/launch.sh`           | In-place Waybar reload + SwayNC CSS reload; no daemon kill                                       |
 
@@ -46,4 +46,4 @@ yoru-desktop restart waybar
 
 - System drawer: `group/system` (`waybar/config.jsonc:188`) expands on hover; `cpu`/`memory`/`temperature` open `kitty -e btop` on click. `temperature` reads `thermal-zone: 0`, critical at 80°C.
 - Theme reloads: the palette coordinator sends `SIGUSR2` once after all outputs are published; direct Matugen runs use their configured `post_hook`. Super+R manually reloads configuration/style without replacing the executable.
-- Pacman owns `/usr/bin/waybar`. The user-local `0.15.0-yoru1` executable is not a pacman/AUR package; it fixes workspace buttons for Hyprland Lua. Build, activation, updates and rollback are covered in [patched desktop maintenance](patched-desktop.md).
+- Pacman owns `/usr/bin/waybar` `0.16.0`, which includes native Hyprland Lua dispatch support. No local Waybar patch is maintained; `scripts/start-waybar.sh` only prefers an optional local test build.

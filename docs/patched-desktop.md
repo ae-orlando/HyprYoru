@@ -1,26 +1,22 @@
 # Patched desktop binaries
 
-Waybar and SwayNC use small local source patches. Their normal Arch packages
-remain installed and untouched.
+SwayNC uses a small local source patch. Waybar follows the normal Arch package,
+which now handles Hyprland's Lua dispatch protocol natively. The normal Arch
+packages remain installed and untouched.
 
-Git stores the patches, helpers and configuration, not the built executables or
-build caches. On a fresh machine the launchers use the distro binaries until
-the build/install commands below are run; `install.sh` does not compile them.
+Git stores the SwayNC patch, helper and configuration, not the built executable
+or build cache. On a fresh machine the launcher uses the distro binary until the
+build/install command below is run; `install.sh` does not compile it.
 
 ## What is installed
 
-| Program | Local version               | Why it is patched                                                                                                                                   |
+| Program | Version                     | Notes                                                                                                                                               |
 | ------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Waybar  | `0.15.0-yoru1`              | Workspace buttons use Hyprland's Lua dispatchers, including named workspaces, scratchpads and move-to-monitor behavior.                             |
+| Waybar  | `0.16.0` (Arch package)     | No local patch. Upstream handles Hyprland's Lua dispatch protocol, including named workspaces, scratchpads and move-to-monitor behavior.             |
 | SwayNC  | `0.12.6 (Yoru backports 1)` | Live brightness synchronization without feedback writes; bounded popup previews; full messages in the center; sensitive authentication-code copies. |
 
-### What the patches change
+### What the SwayNC patch changes
 
-- **Waybar:** the packaged `0.15.0` workspace buttons send legacy Hyprland
-  dispatch strings, which this Lua-based Hyprland rejects. The local patch sends
-  Lua dispatchers for numbered and named workspaces and scratchpads, preserving
-  `move-to-monitor` behavior. Workspace names are escaped as Lua strings.
-  Source: `waybar/backports/hyprland-lua-0.15.0.patch:26`.
 - **SwayNC:** the packaged `0.12.6` backlight widget cancels and reuses its file
   monitor, so it cannot reliably follow brightness-key changes after reopening.
   The patch recreates the monitor, serializes drag writes and prevents readback
@@ -42,11 +38,11 @@ the drawer's code, independently of SwayNC's “copy code” change.
 ### Pacman package or local binary?
 
 The unmodified `/usr/bin/waybar` and `/usr/bin/swaync` are pacman-owned Arch
-packages. The binaries in `~/.local/share/yoru/` are manually built
-**user-local files**: neither pacman packages nor AUR packages, and not
-registered in pacman's database. They do not replace or conflict with the
-pacman-owned files. Installing build prerequisites through pacman does not turn
-the finished local binaries into pacman packages.
+packages. The SwayNC binary in `~/.local/share/yoru/swaync/` is a manually built
+**user-local file**: neither a pacman package nor an AUR package, and not
+registered in pacman's database. It does not replace or conflict with the
+pacman-owned file. Installing build prerequisites through pacman does not turn
+the finished local binary into a pacman package.
 
 ```bash
 pacman -Q waybar swaync
@@ -55,10 +51,10 @@ yoru-desktop status
 ```
 
 The first two commands describe the _packaged copies_; the last shows which
-binary each running process actually uses. Running `pacman -Qo` on a user-local
-binary instead reports “No package owns” (and exits nonzero). `pacman -Qm`
-will not list these files either. Pacman updates `/usr/bin` and system
-libraries, **not** your user-local executables or their pinned patches.
+binary each running process actually uses. Running `pacman -Qo` on the local
+SwayNC binary instead reports “No package owns” (and exits nonzero). `pacman -Qm`
+will not list it either. Pacman updates `/usr/bin` and system libraries,
+**not** the user-local SwayNC executable or its pinned patch.
 
 ### The terms
 
@@ -67,56 +63,56 @@ libraries, **not** your user-local executables or their pinned patches.
 | Source              | The human-readable upstream C++ or Vala program.                                                                            |
 | Patch               | A small `.patch` file describing our changes to that source.                                                                |
 | Build / compilation | Turning the patched source into a runnable program.                                                                         |
-| Binary              | That finished executable: `waybar` or `swaync`. It does not compile itself when launched.                                   |
+| Binary              | That finished executable: `swaync`. It does not compile itself when launched.                                              |
 | Build cache         | Downloaded source, generated files and compiler output used to speed up a later rebuild. It is not the running application. |
 | Manifest            | A `manifest.json` receipt recording the upstream version and source, patch and binary checksums.                            |
 | Launcher            | A short script that selects the local binary, or the distro fallback if the local executable is absent.                     |
 
-`cc1plus` is GCC's C++ compiler. It builds waybar may. U may notice high cpu ussage, do not panic it goes back to normal once build is done. Multiple build jobs can each use a CPU core. Finishing
-or interrupting the build ends those compiler processes.
+`cc1plus` is GCC's C++ compiler. It builds SwayNC. You may notice high CPU
+usage; that is normal and stops once the build finishes. Multiple build jobs can
+each use a CPU core. Finishing or interrupting the build ends those compiler
+processes.
 
 Other development tools have similar build-only roles: Meson configures the
-build, Ninja schedules it, `valac` compiles SwayNC's Vala, `gdbus-codegen`
-(from `glib2-devel`) generates Waybar's D-Bus code, and `blueprint-compiler` /
-`sassc` generate SwayNC UI and styling resources. Keep runtime libraries such as
-GLib and GTK; removing them is not a way to control compiler CPU use.
+build, Ninja schedules it, `valac` compiles SwayNC's Vala, and
+`blueprint-compiler` / `sassc` generate SwayNC UI and styling resources. Keep
+runtime libraries such as GLib and GTK; removing them is not a way to control
+compiler CPU use.
 
 ## Where the files live
 
-These are the default XDG paths in this setup
+These are the default XDG paths in this setup:
 
 | Path                                        | Purpose                                                           |
 | ------------------------------------------- | ----------------------------------------------------------------- |
-| `~/.local/share/yoru/waybar/waybar`         | Installed local Waybar executable                                 |
 | `~/.local/share/yoru/swaync/swaync`         | Installed local SwayNC executable                                 |
-| `~/.local/share/yoru/<app>/manifest.json`   | Installed build receipt                                           |
-| `~/.cache/yoru/waybar-build/`               | Persistent Waybar build cache                                     |
+| `~/.local/share/yoru/swaync/manifest.json`  | Installed build receipt                                           |
 | `~/.cache/yoru/swaync-build/`               | Persistent SwayNC build cache                                     |
 | `~/.local/state/yoru/waybar.log`            | Log for a Waybar process started by the maintenance helper        |
 | `~/.local/state/yoru/swaync.log`            | Log for a SwayNC process started by the maintenance helper        |
-| `waybar/backports/` and `swaync/backports/` | Version-controlled patches, build helpers and regression fixtures |
-| `/usr/bin/waybar` and `/usr/bin/swaync`     | Pacman-managed fallback executables                               |
+| `swaync/backports/`                         | Version-controlled patches, build helper and regression fixtures  |
+| `/usr/bin/waybar` and `/usr/bin/swaync`     | Pacman-managed primary and fallback executables                   |
 
-The launchers follow `XDG_DATA_HOME` when it is set. Builders also respect
-`XDG_CONFIG_HOME` and `XDG_CACHE_HOME`; the maintenance helper follows
+The launchers follow `XDG_DATA_HOME` when it is set. The SwayNC builder also
+respects `XDG_CONFIG_HOME` and `XDG_CACHE_HOME`; the maintenance helper follows
 `XDG_STATE_HOME` for its logs.
 
 Hyprland starts the launcher scripts directly, so its inherited `PATH` does not
-need `~/.local/bin`. The terminal commands `waybar` and `swaync` also point to
-those launchers through user-local links. SwayNC's user D-Bus activation files
-and both programs' systemd user overrides select the same launchers.
+need `~/.local/bin`. The optional terminal links `waybar` and `swaync` point to
+those launchers. SwayNC's user D-Bus activation files and systemd user override
+select the same launcher.
 
-The `yoru-desktop` command is linked into `~/.local/bin` by Waybar's
+The `yoru-desktop` command is linked into `~/.local/bin` by the SwayNC
 `--install` step; on a fresh checkout before that step, invoke
 `python3 -B waybar/scripts/desktop-binaries.py status` from the repo instead.
 
 **Do not enable a second startup mechanism unnecessarily.** Hyprland already
-starts both applications. The systemd overrides only keep binary selection
-consistent if a user service is used; they do not enable those services.
+starts both applications. The SwayNC systemd override only keeps binary
+selection consistent if a user service is used; it does not enable that service.
 
 Sources: `hyprland/modules/autostart.lua:13`,
 `waybar/scripts/start-waybar.sh:7`, `swaync/scripts/start-swaync.sh:7`,
-`waybar/backports/build-waybar.py:60`, `swaync/backports/build-swaync.py:45`.
+`swaync/backports/build-swaync.py:45`.
 
 ## Everyday use: no compilation
 
@@ -126,9 +122,10 @@ Check the selected versions **and the actual running executables**:
 yoru-desktop status
 ```
 
-Both programs should say `current selected binary`, with matching checksums and
-repository patches. A version printed by `waybar --version` alone identifies
-the selected file, not necessarily the already-running process.
+Both programs should say `current selected binary`. SwayNC should also show
+matching checksums and repository patches. A version printed by
+`waybar --version` alone identifies the selected file, not necessarily the
+already-running process.
 
 For ordinary layout/theme edits, press **Super+R**, or run:
 
@@ -158,14 +155,12 @@ the desktop responsive:
 
 ```bash
 cd ~/Dev/dotfiles
-nice -n 10 python3 -B waybar/backports/build-waybar.py --install --jobs 1
 nice -n 10 python3 -B swaync/backports/build-swaync.py --install --jobs 1
 ```
 
-Run the commands separately; do not launch both builds in parallel. `--jobs 1`
-limits build parallelism, but a single compiler may still show 100% of one CPU
-core. `nice` lowers its scheduling priority, not its maximum percentage.
-Both helpers default to two jobs if the option is omitted.
+`--jobs 1` limits build parallelism, but a single compiler may still show 100%
+of one CPU core. `nice` lowers its scheduling priority, not its maximum
+percentage. The helper defaults to two jobs if the option is omitted.
 
 For the extra compiled GTK/backlight regression suite:
 
@@ -177,20 +172,18 @@ That test suite builds an additional test executable. It uses a fake backlight,
 private D-Bus session and private runtime directory; it can briefly display
 synthetic popups, but does not change real brightness, radios or inbox contents.
 
-Use the default persistent cache. `--source` on the Waybar helper is an advanced
-option for verifying and reusing an existing build tree, not a normal requirement.
-Do not rely on a source checkout in `/tmp` surviving a reboot.
+The SwayNC helper uses the default persistent cache. Do not rely on a source
+checkout in `/tmp` surviving a reboot.
 
-**Do not use `sudo` for either builder.** Root is only needed for normal pacman
+**Do not use `sudo` for the builder.** Root is only needed for normal pacman
 package operations. Download checksums are pinned, patch application is strict,
 and a failed build/test does not proceed to installation. Build output stays in
 the cache; installation copies the finished binary into the user-local data path.
 
-Neither `--install` command restarts a running daemon. Load the new executable
-as a separate step:
+The `--install` command does not restart a running daemon. Load the new
+executable as a separate step:
 
 ```bash
-yoru-desktop restart waybar
 yoru-desktop restart swaync
 yoru-desktop status
 ```
@@ -227,9 +220,9 @@ Sources: `waybar/scripts/desktop-binaries.py:94` (status),
 4. Periodically review upstream releases to see whether the local fixes are now
    included. Test the distro binary before retiring a patch.
 
-**Pacman does not update these private binaries.** It continues maintaining the
-separate `/usr/bin` copies and system libraries. The build helpers also do not
-fetch "latest": they reproduce their pinned versions. A new upstream version
+**Pacman does not update the private SwayNC binary.** It continues maintaining
+the separate `/usr/bin` copy and system libraries. The build helper also does
+not fetch "latest": it reproduces its pinned version. A new upstream version
 requires reviewing/porting the patch and updating its source checksum and pin,
 not just changing a version string or disabling checksum checks.
 
@@ -239,23 +232,21 @@ changed patch set; checksums do not replace reviewing code changes.
 
 ## Recovery and logs
 
-If a newly built executable fails, the distro copy is still available. For a
-temporary Waybar fallback, move only the local executable aside:
+If a newly built SwayNC executable fails, the distro copy is still available.
+Move only the local executable aside:
 
 ```bash
-mv -i ~/.local/share/yoru/waybar/waybar ~/.local/share/yoru/waybar/waybar.disabled
-yoru-desktop restart waybar
+mv -i ~/.local/share/yoru/swaync/swaync ~/.local/share/yoru/swaync/swaync.disabled
+yoru-desktop restart swaync
 ```
 
-The launchers and terminal links then select `/usr/bin/waybar`. Re-enable it by
-moving `waybar.disabled` back to `waybar` and restarting again. `mv -i` asks
-before overwriting an existing backup.
+The launcher then selects `/usr/bin/swaync`. Re-enable it by moving
+`swaync.disabled` back to `swaync` and restarting again. `mv -i` asks before
+overwriting an existing backup.
 
-For SwayNC, the same approach uses the `swaync` executable in its own directory,
-but **review and empty the inbox before restarting it**. A fallback loses the
+**Review and empty the inbox before restarting SwayNC.** A fallback loses the
 local brightness, bounded-preview and sensitive-copy fixes; it is a recovery
-route, not proof that the distro version contains those fixes. Waybar's
-workspace-button fix belongs to its own binary, not SwayNC. Moving a file
+route, not proof that the distro version contains those fixes. Moving a file
 aside alone does not replace a process already running from it.
 
 Read user logs when the maintenance helper started the application:

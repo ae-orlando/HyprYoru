@@ -88,7 +88,11 @@ def version(binary):
     )
     if result.returncode:
         raise RuntimeError(f"Cannot run {binary}: {result.stderr.strip()}")
-    return result.stdout.strip()
+    lines = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    for line in lines:
+        if line.startswith("Waybar v") or line.startswith("swaync "):
+            return line
+    return lines[-1] if lines else ""
 
 
 def status():

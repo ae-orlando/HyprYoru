@@ -57,6 +57,14 @@ def install(binary, patch_hash):
         not link.is_symlink() or link.resolve() not in (target.resolve(), launcher.resolve())
     ):
         raise RuntimeError(f"Refusing to overwrite an unmanaged command: {link}")
+    manager = config / "waybar/scripts/desktop-binaries.py"
+    if not manager.is_file() or not os.access(manager, os.X_OK):
+        raise RuntimeError(f"Missing executable maintenance helper: {manager}")
+    manager_link = Path.home() / ".local/bin/yoru-desktop"
+    if (manager_link.exists() or manager_link.is_symlink()) and (
+        not manager_link.is_symlink() or manager_link.resolve() != manager.resolve()
+    ):
+        raise RuntimeError(f"Refusing to overwrite an unmanaged command: {manager_link}")
     # Preflight all user-level activation overrides before changing anything.
     activation = {
         data
@@ -101,6 +109,11 @@ def install(binary, patch_hash):
         staging = Path(directory) / "command"
         staging.symlink_to(launcher)
         staging.replace(link)
+    manager_link.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix=".yoru-link-", dir=manager_link.parent) as directory:
+        staging = Path(directory) / "command"
+        staging.symlink_to(manager)
+        staging.replace(manager_link)
     subprocess.run(["systemctl", "--user", "daemon-reload"], check=True)
     print(
         f"Installed: {target}\nDistro /usr/bin/swaync is unchanged. The running daemon has not been restarted."

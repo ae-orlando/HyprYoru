@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Select the tested local compatibility build, or the distro fallback.
+# Prefer an optional local test build; otherwise use the distro Waybar.
 # Author: ae Orland
 # GitHub: https://github.com/ae-orlando
 set -euo pipefail

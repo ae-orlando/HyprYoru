@@ -11,7 +11,7 @@ HyprYoru holds the desktop config (Hyprland, Waybar, Rofi, SwayNC, Kitty, btop, 
 - An installed Arch Linux system and a normal user account; do not install as root.
 - `sudo` and `pacman` for system installation; `flock` from `util-linux` for the install lock.
 - Network access for packages, shell frameworks, or an approved UI download. `--link-only --ui plain` needs no downloads.
-- Verified versions on source: Hyprland `0.56.2`, matugen `4.2.0`, Waybar `v0.15.0`.
+- Verified versions on source: Hyprland `0.56.2`, matugen `4.2.0`, Waybar `v0.16.0`.
 
 ## Installation
 
@@ -54,7 +54,7 @@ The installer links desktop and shell configs only. Developer-tool configs (tmux
 - Set wallpaper + regenerate palette: `~/.config/hypr/scripts/set-wall.sh <wallpaper>`.
 - Toggle night light: `~/.config/hypr/scripts/nightlight.sh`.
 - Reload the bar and notification CSS without killing either daemon: `~/.config/waybar/scripts/launch.sh`.
-- For locally installed patched builds, check the running binaries with `yoru-desktop status`. The binaries are **user-local files, not pacman/AUR packages**; pacman still owns separate `/usr/bin` copies. See [patched desktop maintenance](docs/patched-desktop.md) for setup, package ownership, updates and controlled restarts.
+- For the local SwayNC backport, check the running binary with `yoru-desktop status`. The SwayNC binary is a **user-local file, not a pacman/AUR package**; pacman still owns `/usr/bin/swaync`. See [patched desktop maintenance](docs/patched-desktop.md) for setup, package ownership, updates and controlled restarts.
 - Re-check system state without changes: `./install.sh --check`.
 
 ## Project Structure
