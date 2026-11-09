@@ -148,8 +148,7 @@
         "events": {
             "on-discharging-warning": "notify-send -u normal 'Low battery' 'You might want to connect your charger'",
             "on-discharging-low": "notify-send -u normal 'Low battery' 'Connect your charger! Didn't you see the last message?!",
-            "on-discharging-critical": "notify-send -u critical 'Critically low battery' 'CONNECT YOUR CHARGER NOW!!'",
-            "on-charging-100": "notify-send -u normal 'Battery Full!'"
+            "on-discharging-critical": "notify-send -u critical 'Critically low battery' 'CONNECT YOUR CHARGER NOW!!'"
         },
         "format": "{icon}  {capacity}%",
         "format-charging": "󰠠 {capacity}%",

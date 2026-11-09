@@ -72,8 +72,7 @@ libraries, **not** your user-local executables or their pinned patches.
 | Manifest            | A `manifest.json` receipt recording the upstream version and source, patch and binary checksums.                            |
 | Launcher            | A short script that selects the local binary, or the distro fallback if the local executable is absent.                     |
 
-`cc1plus` is GCC's C++ compiler. It was busy building Waybar, not running the
-bar in the background. Multiple build jobs can each use a CPU core. Finishing
+`cc1plus` is GCC's C++ compiler. It builds waybar may. U may notice high cpu ussage, do not panic it goes back to normal once build is done. Multiple build jobs can each use a CPU core. Finishing
 or interrupting the build ends those compiler processes.
 
 Other development tools have similar build-only roles: Meson configures the
@@ -84,7 +83,7 @@ GLib and GTK; removing them is not a way to control compiler CPU use.
 
 ## Where the files live
 
-These are the default XDG paths on this machine:
+These are the default XDG paths in this setup
 
 | Path                                        | Purpose                                                           |
 | ------------------------------------------- | ----------------------------------------------------------------- |
