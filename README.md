@@ -95,3 +95,13 @@ bash -n lib/install-wizard.sh
 bash -n lib/gum-runtime.sh
 python3 -B tests/test_install.py
 ```
+
+## License
+
+HyprYoru is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+HyprYoru is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the [GNU General Public License](LICENSE) for more details.
+
+Copyright (C) 2026 Orlando and HyprYoru contributors.
+
+Bundled artwork — including wallpapers under `hyprland/wallpapers/` and character images under `fastfetch/png/` — is third-party work, remains the property of its respective authors, and is not covered by the GPL. Redistributors must verify they have the right to share those assets or replace them.
