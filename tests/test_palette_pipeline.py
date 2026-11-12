@@ -4,6 +4,7 @@
 import importlib.util
 import os
 from pathlib import Path
+import shlex
 import shutil
 import struct
 import subprocess
@@ -62,13 +63,15 @@ class PalettePipelineTests(unittest.TestCase):
                 'printf "%s %s\\n" "${0##*/}" "$*" >>"$PALETTE_TEST_LOG"\n'
             )
             stub.chmod(0o755)
+        matugen = shutil.which("matugen")
+        self.assertIsNotNone(matugen)
         (bins / "matugen").write_text(
             "#!/bin/bash\n"
             'if [[ -n "${PALETTE_SLOW_WALL:-}" && "$*" == *"$PALETTE_SLOW_WALL"* ]]; then\n'
             '  touch "$PALETTE_SLOW_MARKER"\n'
             '  sleep 1\n'
             'fi\n'
-            'exec /usr/bin/matugen "$@"\n'
+            f'exec {shlex.quote(matugen)} "$@"\n'
         )
         (bins / "matugen").chmod(0o755)
         (bins / "rofi").write_text("#!/bin/sh\nexit 1\n")
