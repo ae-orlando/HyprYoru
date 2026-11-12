@@ -95,6 +95,10 @@ python3 -B -m unittest discover -s tests -p 'test_*.py'
 
 Palette tests need `matugen` (and `imagemagick` for the pipeline test); Zsh tests need `zsh`. Missing tools cause those cases to skip. CI runs the full suite plus shell syntax checks on every push and pull request.
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for local checks, repository conventions, and the pull-request process. Report security issues privately as described in [SECURITY.md](SECURITY.md).
+
 ## License
 
 HyprYoru is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.

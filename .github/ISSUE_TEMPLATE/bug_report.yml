@@ -1,0 +1,108 @@
+name: Bug report
+description: Report a reproducible problem with HyprYoru
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a problem. Redact usernames, hostnames, SSIDs, tokens, and other personal data from logs and screenshots before posting.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Pre-flight checks
+      options:
+        - label: I searched the open and closed issues.
+          required: true
+        - label: I read the relevant guide under `docs/`.
+          required: true
+        - label: I reproduced this on the latest `main` commit.
+          required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      multiple: false
+      options:
+        - Installer / upgrade
+        - Hyprland
+        - Waybar
+        - Rofi
+        - SwayNC
+        - Matugen / palette
+        - Kitty / Zsh
+        - Fastfetch / btop / GTK / Qt
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the problem and its impact.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Run `./install.sh ...`
+        2. Press ...
+        3. See ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: Run `./install.sh --check --verbose` and paste the full output. Redact personal paths and identifiers.
+      placeholder: |
+        <details>
+        <summary>./install.sh --check --verbose</summary>
+
+        ```text
+        ...
+        ```
+        </details>
+    validations:
+      required: true
+
+  - type: input
+    id: commit
+    attributes:
+      label: HyprYoru commit
+      description: Output of `git rev-parse --short HEAD`.
+      placeholder: "2b2b3de"
+    validations:
+      required: true
+
+  - type: input
+    id: versions
+    attributes:
+      label: Package versions
+      description: Output of `pacman -Q hyprland matugen waybar kitty zsh`.
+      placeholder: "hyprland 0.56.2-1 ..."
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Installer logs are in `~/.local/state/dotfiles-install/logs/`; Waybar and SwayNC logs are in `~/.local/state/yoru/`. Paste only the relevant tail.
+      placeholder: |
+        ```text
+        ...
+        ```
