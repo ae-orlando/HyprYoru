@@ -45,6 +45,10 @@ Palette tests need `matugen` (and `imagemagick` for the pipeline test); Zsh test
 - **Include visual evidence.** Bar, launcher, notification, lock-screen, and palette changes should include before/after screenshots.
 - **Respect third-party work.** Bundled wallpapers and character images are not covered by the project license; do not add artwork you cannot redistribute.
 
+## Community
+
+Be respectful and constructive. Participation in issues, pull requests, and discussions is covered by the [Code of Conduct](CODE_OF_CONDUCT.md).
+
 ## Commit messages
 
 Use an imperative, scoped summary:

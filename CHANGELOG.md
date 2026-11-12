@@ -7,6 +7,7 @@ All notable changes to HyprYoru are documented here. The format follows [Keep a 
 ### Added
 
 - README screenshots for the orange and twilight palettes.
+- Contributor Covenant 2.1 code of conduct.
 
 ## [0.1.0] - 2026-11-12
 
