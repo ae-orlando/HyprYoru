@@ -182,14 +182,13 @@ UI preparation is separate from the installation plan: approving it may create c
 ## Local validation without a VM
 
 ```bash
-bash -n install.sh
-bash -n lib/install-ui.sh
-bash -n lib/install-plan.sh
-bash -n lib/install-wizard.sh
-bash -n lib/gum-runtime.sh
-python3 -B tests/test_install.py
+bash -n install.sh lib/*.sh
+shellcheck --severity=error install.sh lib/*.sh
+python3 -B -m unittest discover -s tests -p 'test_*.py'
 systemd-analyze verify services/wwan-enable.service
 ```
+
+Palette tests need `matugen` (and `imagemagick` for the pipeline test); Zsh tests need `zsh`. Missing tools cause those cases to skip. CI runs the full suite plus shell syntax checks on every push and pull request.
 
 The Python standard-library suite uses temporary homes, an independent fixture repository, real pseudo-terminals, and mocked package/service/desktop commands. It covers manifest validation, zero-write read-only modes, backup failures, symlinks, shell opt-out and palette isolation, shared-plan execution, widget/fallback navigation, cancellation, result actions, and mocked install/rerun flows. Runtime-preparation tests use local archives and mocked transports to cover consent, cache reuse, tampering, checksums, staging cleanup, unsafe paths, and offline fallback without real network requests. Apply-mode cases skip when the host is not a normal-user Arch environment; runtime-download cases also require a non-root user.
 
