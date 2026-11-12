@@ -88,13 +88,12 @@ Per-module docs live in `docs/`. Start with `docs/install.md`, then `docs/hyprla
 Run local regression tests without installing packages or changing the live desktop:
 
 ```bash
-bash -n install.sh
-bash -n lib/install-ui.sh
-bash -n lib/install-plan.sh
-bash -n lib/install-wizard.sh
-bash -n lib/gum-runtime.sh
-python3 -B tests/test_install.py
+bash -n install.sh lib/*.sh
+shellcheck --severity=error install.sh lib/*.sh
+python3 -B -m unittest discover -s tests -p 'test_*.py'
 ```
+
+Palette tests need `matugen` (and `imagemagick` for the pipeline test); Zsh tests need `zsh`. Missing tools cause those cases to skip. CI runs the full suite plus shell syntax checks on every push and pull request.
 
 ## License
 

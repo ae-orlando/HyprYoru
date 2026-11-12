@@ -1,0 +1,60 @@
+name: Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Shell and palette
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y imagemagick shellcheck zsh
+
+      - name: Install matugen
+        env:
+          MATUGEN_VERSION: 4.2.0
+        run: |
+          url="https://github.com/InioX/matugen/releases/download/v${MATUGEN_VERSION}/matugen-${MATUGEN_VERSION}-x86_64.tar.gz"
+          curl -fsSL "$url" -o /tmp/matugen.tar.gz
+          tar -xzf /tmp/matugen.tar.gz -C /tmp
+          sudo install -m 0755 /tmp/matugen /usr/local/bin/matugen
+          matugen --version
+
+      - name: Check shell syntax
+        run: |
+          while IFS= read -r -d '' file; do
+            bash -n "$file"
+          done < <(git ls-files -z '*.sh')
+
+      - name: Run ShellCheck
+        run: |
+          git ls-files -z '*.sh' ':!matugen/templates/*' \
+            | xargs -0 shellcheck --severity=error
+
+      - name: Run regression tests
+        run: |
+          mkdir -p /tmp/opencode
+          python3 -B -m unittest discover -s tests -p 'test_*.py' -v
