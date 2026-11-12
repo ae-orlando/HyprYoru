@@ -5,6 +5,7 @@
 set -Eeuo pipefail
 
 DOTFILES_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+HYPRYORU_VERSION="0.1.0"
 STATE_ROOT="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles-install"
 RUN_ID="$(date +%Y%m%d-%H%M%S)-$$"
 LOG_DIR_DEFAULT="$STATE_ROOT/logs"
@@ -38,6 +39,7 @@ UI_BACKEND=plain
 UI_SESSION=0
 SCOPE_EXPLICIT=0
 HELP=0
+SHOW_VERSION=0
 
 TOTAL_PHASES=8
 PHASE_NUM=0
@@ -127,6 +129,7 @@ Output and automation
   --ui auto|plain|gum   Prefer Gum [auto]; offer a verified runtime if missing; no sudo
   --log-file PATH       Use a NEW log file instead of the default state directory
   --no-color            Disable colors (also NO_COLOR=1); NO_EMOJI=1 selects ASCII
+  --version, -V         Show the HyprYoru version and exit
   --help, -h            Show this help
 
 Examples
@@ -173,6 +176,7 @@ parse_args() {
         LOG_FILE="$2"; LOG_FILE_EXPLICIT=1; shift 2 ;;
       --log-file=*) LOG_FILE="${1#*=}"; LOG_FILE_EXPLICIT=1; shift ;;
       --no-color) NO_COLOR=1; shift ;;
+      --version|-V) SHOW_VERSION=1; shift ;;
       --help|-h) HELP=1; shift ;;
       *) arg_error "Unknown option: $1"; return 2 ;;
     esac
@@ -974,6 +978,7 @@ main() {
   setup_ui
   parse_args "$@"
   setup_ui
+  if [[ "$SHOW_VERSION" -eq 1 ]]; then printf 'HyprYoru %s\n' "$HYPRYORU_VERSION"; return 0; fi
   if [[ "$HELP" -eq 1 ]]; then usage; return 0; fi
   if (( DRY_RUN == 0 && CHECK_ONLY == 0 && ASSUME_YES == 0 )) && [[ ! -t 0 || ! -t 1 ]]; then
     arg_error 'Installation without a terminal requires --yes; use --dry-run to preview first'

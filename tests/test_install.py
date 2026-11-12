@@ -305,6 +305,9 @@ printf '%s\\n' "$0 $*" >>"$CASE_ROOT/unexpected"; exit 97
         result = self.cli("--help")
         self.success(result)
         self.assertIn("--check", result.stdout)
+        version = self.cli("--version")
+        self.success(version)
+        self.assertEqual(version.stdout.strip(), "HyprYoru 0.1.0")
         self.assertEqual(before, self.snapshot())
 
     def test_manifests_and_profile_boundaries(self):

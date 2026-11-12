@@ -65,6 +65,7 @@ Installed packages are skipped. Failed batches are retried individually; recover
 | `--ui MODE`       | `auto`, `plain`, or `gum`; Gum preparation is offered before fallback       |
 | `--log-file PATH` | Use a new log file; existing files/symlinks are not overwritten             |
 | `--no-color`      | Disable colors; also supported through `NO_COLOR=1`                         |
+| `--version`, `-V` | Print the HyprYoru version and exit                                         |
 | `--help`, `-h`    | Print usage                                                                 |
 
 `--link-only` cannot be combined with account-shell/default-application changes. `--no-shell` cannot be combined with `--change-shell`. GDM/WWAN require system installation, not `--only-dotfiles`. `--check` and `--dry-run` are mutually exclusive. Preview/check modes do not write even an explicitly requested log file.
@@ -80,6 +81,7 @@ Installed packages are skipped. Failed batches are retried individually; recover
 ./install.sh --check --verbose
 ./install.sh --no-shell --no-aur --dry-run
 ./install.sh --ui plain
+./install.sh --version
 ```
 
 ## Phases
