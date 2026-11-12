@@ -1,5 +1,8 @@
 # HyprYoru
 
+[![Checks](https://github.com/ae-orlando/HyprYoru/actions/workflows/checks.yml/badge.svg?branch=main)](https://github.com/ae-orlando/HyprYoru/actions/workflows/checks.yml)
+[![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg)](LICENSE)
+
 Arch Linux + Hyprland (Lua) desktop configuration with a matugen-driven palette and a guided installer. GDM is optional ([ae-orlando/HyprYoru](https://github.com/ae-orlando/HyprYoru/tree/main)).
 
 ## Overview
