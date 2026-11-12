@@ -97,7 +97,7 @@ Palette tests need `matugen` (and `imagemagick` for the pipeline test); Zsh test
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for local checks, repository conventions, and the pull-request process. Report security issues privately as described in [SECURITY.md](SECURITY.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md) for local checks, repository conventions, and the pull-request process. Report security issues privately as described in [SECURITY.md](SECURITY.md). Release notes are tracked in [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 
