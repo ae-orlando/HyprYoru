@@ -1,0 +1,17 @@
+# Normalize text files to LF in both the repository and the working tree.
+# HyprYoru targets Arch Linux, so CRLF is never wanted.
+* text=auto eol=lf
+
+# Binary assets: never diff, merge, or convert.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+
+# Documentation is not part of the project's language statistics.
+docs/** linguist-documentation
