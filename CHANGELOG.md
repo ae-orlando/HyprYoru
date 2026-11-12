@@ -4,6 +4,10 @@ All notable changes to HyprYoru are documented here. The format follows [Keep a 
 
 ## [Unreleased]
 
+### Added
+
+- README screenshots for the orange and twilight palettes.
+
 ## [0.1.0] - 2026-11-12
 
 First tagged release. HyprYoru is usable on an existing Arch Linux installation but remains pre-1.0: flags, defaults, and file layout may change between minor versions.

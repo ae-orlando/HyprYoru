@@ -6,6 +6,12 @@ Arch Linux + Hyprland (Lua) desktop configuration with a matugen-driven palette 
 
 HyprYoru holds the desktop config (Hyprland, Waybar, Rofi, SwayNC, Kitty, btop, GTK/Qt, Waypaper, Zsh, Fastfetch) plus `install.sh` for an existing Arch installation. Matugen is the palette hub: one wallpaper run regenerates all app themes.
 
+## Screenshots
+
+![HyprYoru with the Rofi launcher and the Yoru Deck control center](docs/assets/screenshot-orange.png)
+
+![HyprYoru with the SwayNC connections panel, fastfetch, and cava](docs/assets/screenshot-twilight.png)
+
 ## Prerequisites
 
 - An installed Arch Linux system and a normal user account; do not install as root.
