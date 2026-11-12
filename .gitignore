@@ -46,7 +46,13 @@ spicetify/Themes/matugen/color.ini
 # Secrets guard: never commit credentials even if tooling drops them here.
 .env
 .env.*
+!.env.example
 *.pem
 *.key
 *credentials*
-*token*
+# Token files, without catching ordinary names like swaync/Styles/tokens.css.
+token
+token.*
+*.token
+*_token*
+*-token*
