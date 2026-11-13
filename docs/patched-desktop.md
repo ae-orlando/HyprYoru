@@ -13,20 +13,23 @@ build/install command below is run; `install.sh` does not compile it.
 | Program | Version                     | Notes                                                                                                                                               |
 | ------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Waybar  | `0.16.0` (Arch package)     | No local patch. Upstream handles Hyprland's Lua dispatch protocol, including named workspaces, scratchpads and move-to-monitor behavior.             |
-| SwayNC  | `0.12.6 (Yoru backports 1)` | Live brightness synchronization without feedback writes; bounded popup previews; full messages in the center; sensitive authentication-code copies. |
+| SwayNC  | `0.12.6 (main.b8017a4, Yoru backports 2)` | Latest upstream main; live brightness synchronization without feedback writes; bounded popup previews; full messages in the center; sensitive authentication-code copies; notification-click activation. |
 
 ### What the SwayNC patch changes
 
-- **SwayNC:** the packaged `0.12.6` backlight widget cancels and reuses its file
-  monitor, so it cannot reliably follow brightness-key changes after reopening.
-  The patch recreates the monitor, serializes drag writes and prevents readback
-  from writing a value back. It flattens paragraph breaks _only in floating
+- **SwayNC:** the backport is pinned to upstream main commit
+  `b8017a4d1a53` after the `0.12.6` tag. The patch serializes backlight drag
+  writes and prevents slider readback from writing a value back, while keeping
+  the file monitor alive. It flattens paragraph breaks _only in floating
   previews_, limits them to five lines, and caps/scrolls stacked popups to the
   configured height or available screen space. Full body text remains in the
   notification center. Its own “copy code” action also advertises a sensitive
-  clipboard offer. Sources: `swaync/backports/yoru-0.12.6.patch:58`,
-  `swaync/backports/yoru-0.12.6.patch:183`,
-  `swaync/backports/yoru-0.12.6.patch:269`.
+  clipboard offer. It attaches the last pointer serial to the XDG activation
+  token, so Hyprland 0.57.2+ focuses the sender instead of only marking it
+  urgent. Sources: `swaync/backports/yoru-main.patch:101`,
+  `swaync/backports/yoru-main.patch:207`,
+  `swaync/backports/yoru-main.patch:317`,
+  `swaync/backports/yoru-main.patch:387`.
 
 The three-island bar design, hotspot indicator, Tools shortcuts, native radio
 drawers and the 300px popup-height setting are **dotfile configuration, CSS and
@@ -222,9 +225,11 @@ Sources: `waybar/scripts/desktop-binaries.py:94` (status),
 
 **Pacman does not update the private SwayNC binary.** It continues maintaining
 the separate `/usr/bin` copy and system libraries. The build helper also does
-not fetch "latest": it reproduces its pinned version. A new upstream version
-requires reviewing/porting the patch and updating its source checksum and pin,
-not just changing a version string or disabling checksum checks.
+not fetch "latest" on every run: it reproduces the reviewed `SOURCE_REF` in
+`swaync/backports/build-swaync.py`. To move to a newer upstream commit, review
+and rebase `yoru-main.patch`, update `SOURCE_REF` and `SOURCE_SHA256` together,
+then rebuild and test before restarting the daemon. Do not change only a version
+string or disable checksum checks.
 
 Keep source edits in the repository's `.patch` files, not in cached source trees.
 The installed manifest and `yoru-desktop status` help identify an old install or
@@ -245,9 +250,10 @@ The launcher then selects `/usr/bin/swaync`. Re-enable it by moving
 overwriting an existing backup.
 
 **Review and empty the inbox before restarting SwayNC.** A fallback loses the
-local brightness, bounded-preview and sensitive-copy fixes; it is a recovery
-route, not proof that the distro version contains those fixes. Moving a file
-aside alone does not replace a process already running from it.
+local brightness, bounded-preview, sensitive-copy and notification-activation
+fixes; it is a recovery route, not proof that the distro version contains those
+fixes. Moving a file aside alone does not replace a process already running from
+it.
 
 Read user logs when the maintenance helper started the application:
 

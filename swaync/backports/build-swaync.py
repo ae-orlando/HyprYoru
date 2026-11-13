@@ -24,7 +24,10 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 VERSION = "0.12.6"
-SOURCE_SHA256 = "0c844eb5c9524f924495bd4145e5db575096de36f3ec87fb37e4c1ed6eacb897"
+# Upstream main after the 0.12.6 tag. Bump SOURCE_REF and SOURCE_SHA256 together.
+SOURCE_REF = "b8017a4d1a53debdf0e8766628fb80357eae31e7"
+SOURCE_NAME = f"SwayNotificationCenter-{SOURCE_REF}"
+SOURCE_SHA256 = "ceb2cd3e5904a12d56e5636cb1e7210e646c0d5f2fe93be0b58df27776f6ee37"
 MARKER = "# Managed by Yoru SwayNC backports"
 CREDIT = "# Author: ae Orland\n# GitHub: https://github.com/ae-orlando\n"
 
@@ -94,6 +97,7 @@ def install(binary, patch_hash):
         json.dumps(
             {
                 "upstream": VERSION,
+                "source_ref": SOURCE_REF,
                 "source_sha256": SOURCE_SHA256,
                 "patch_sha256": patch_hash,
                 "binary_sha256": digest(target),
@@ -153,10 +157,10 @@ def main():
         / "yoru/swaync-build"
     )
     cache.mkdir(parents=True, exist_ok=True)
-    archive = cache / f"v{VERSION}.tar.gz"
+    archive = cache / f"main-{SOURCE_REF[:12]}.tar.gz"
     if not archive.exists():
         with urllib.request.urlopen(
-            f"https://codeload.github.com/ErikReider/SwayNotificationCenter/tar.gz/refs/tags/v{VERSION}",
+            f"https://codeload.github.com/ErikReider/SwayNotificationCenter/tar.gz/{SOURCE_REF}",
             timeout=60,
         ) as response:
             downloaded = response.read(20_000_001)
@@ -168,8 +172,8 @@ def main():
         archive.write_bytes(downloaded)
     if digest(archive) != SOURCE_SHA256:
         raise RuntimeError(f"Cached source checksum mismatch; inspect {archive}")
-    work = cache / f"{VERSION}-{patch_hash[:12]}"
-    source = work / f"SwayNotificationCenter-{VERSION}"
+    work = cache / f"{VERSION}-main-{SOURCE_REF[:12]}-{patch_hash[:12]}"
+    source = work / SOURCE_NAME
     stamp = work / "patches-applied"
     if not stamp.exists():
         if source.exists():
