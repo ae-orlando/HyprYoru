@@ -13,7 +13,7 @@ build/install command below is run; `install.sh` does not compile it.
 | Program | Version                     | Notes                                                                                                                                               |
 | ------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Waybar  | `0.16.0` (Arch package)     | No local patch. Upstream handles Hyprland's Lua dispatch protocol, including named workspaces, scratchpads and move-to-monitor behavior.             |
-| SwayNC  | `0.12.6 (main.b8017a4, Yoru backports 2)` | Latest upstream main; live brightness synchronization without feedback writes; bounded popup previews; full messages in the center; sensitive authentication-code copies; notification-click activation. |
+| SwayNC  | `0.12.6 (main.b8017a4, Yoru backports 2)` | Latest upstream main; live brightness synchronization without feedback writes; bounded popup previews; full messages in the center; sensitive authentication-code copies; notification-click focus fallback. |
 
 ### What the SwayNC patch changes
 
@@ -24,9 +24,10 @@ build/install command below is run; `install.sh` does not compile it.
   previews_, limits them to five lines, and caps/scrolls stacked popups to the
   configured height or available screen space. Full body text remains in the
   notification center. Its own “copy code” action also advertises a sensitive
-  clipboard offer. It attaches the last pointer serial to the XDG activation
-  token, so Hyprland 0.57.2+ focuses the sender instead of only marking it
-  urgent. Sources: `swaync/backports/yoru-main.patch:101`,
+  clipboard offer. GTK does not expose the pointer serial Hyprland 0.57.2+
+  requires for XDG activation, so after an action SwayNC asks Hyprland to focus
+  the window marked urgent by the sender. The fallback is a no-op outside
+  Hyprland. Sources: `swaync/backports/yoru-main.patch:101`,
   `swaync/backports/yoru-main.patch:207`,
   `swaync/backports/yoru-main.patch:317`,
   `swaync/backports/yoru-main.patch:387`.

@@ -15,7 +15,7 @@ All notable changes to HyprYoru are documented here. The format follows [Keep a 
 
 ### Fixed
 
-- Notification clicks focus the sender again on Hyprland 0.57.2+ by attaching the last pointer serial to SwayNC's XDG activation token. Previously Hyprland treated the token as urgent-only, so Chromium/WhatsApp Web did not come to the front.
+- Notification clicks focus the sender again on Hyprland 0.57.2+. Hyprland treats tokens without a pointer serial as urgent-only and GTK does not expose that serial, so SwayNC now focuses the urgent sender window shortly after the action signal. Chromium/WhatsApp Web comes to the front instead of only marking its workspace urgent.
 - SwayNC backlight changes keep the file monitor alive during drag writes, so brightness keys continue to update the slider.
 
 ## [0.1.0] - 2026-11-12

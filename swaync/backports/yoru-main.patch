@@ -1,5 +1,5 @@
 SwayNC 0.12.6 main (b8017a4d1a53): live brightness, bounded previews,
-screen-aware popups, sensitive auth copies, and notification-click activation.
+screen-aware popups, sensitive auth copies, and notification-click focus.
 Author: ae Orland
 GitHub: https://github.com/ae-orlando
 
@@ -159,7 +159,7 @@ index 0653786..6d5451d 100644
  
          // get current brightness and emit signal
 diff --git a/src/notification/notification.vala b/src/notification/notification.vala
-index 637762a..3ba1d1b 100644
+index 637762a..d693b0d 100644
 --- a/src/notification/notification.vala
 +++ b/src/notification/notification.vala
 @@ -1,3 +1,5 @@
@@ -244,7 +244,15 @@ index 637762a..3ba1d1b 100644
          /** Returns the first code found, else null */
          private string ?parse_body_codes () {
              if (!ConfigModel.instance.notification_2fa_action) {
-@@ -571,7 +591,12 @@ namespace SwayNotificationCenter {
+@@ -475,6 +495,7 @@ namespace SwayNotificationCenter {
+                 }
+ 
+                 noti_daemon.ActionInvoked (param.applied_id, action.identifier);
++                app.xdg_activation.focus_urgent_window ();
+                 if (ConfigModel.instance.hide_on_action) {
+                     try {
+                         swaync_daemon.set_visibility (false);
+@@ -571,7 +592,12 @@ namespace SwayNotificationCenter {
                          "COPY \"%s\"".printf (code));
                      action_button.clicked.connect (() => {
                          // Copy to clipboard
@@ -258,7 +266,7 @@ index 637762a..3ba1d1b 100644
                          // Dismiss notification
                          action_clicked (null);
                      });
-@@ -588,6 +613,13 @@ namespace SwayNotificationCenter {
+@@ -588,6 +614,13 @@ namespace SwayNotificationCenter {
                      alt_actions_box.append (flowbox_child);
  
                      Gtk.Button action_button = new Gtk.Button.with_label (action.text);
@@ -385,56 +393,48 @@ index 51c65da..ed79ff5 100644
          }
      }
 diff --git a/src/xdg_activation.vala b/src/xdg_activation.vala
-index 618a080..ae1af5e 100644
+index 618a080..745bea4 100644
 --- a/src/xdg_activation.vala
 +++ b/src/xdg_activation.vala
-@@ -6,6 +6,14 @@ public class XdgActivationHelper : Object {
-         global = registry_handle_global,
-     };
-     private Activation *xdg_activation = null;
-+    private unowned Wl.Seat ?wl_seat = null;
-+    private uint32 last_input_serial = 0;
-+
-+    private static Wl.PointerListener pointer_listener = Wl.PointerListener () {
-+        button = (data, pointer, serial, time, button, state) => {
-+            ((XdgActivationHelper) data).last_input_serial = serial;
-+        },
-+    };
+@@ -1,3 +1,4 @@
++using GLib;
+ using SwayNotificationCenter;
+ using XDG.Activation;
  
-     public XdgActivationHelper () {
-         unowned Wl.Display wl_display = Functions.get_wl_display ();
-@@ -15,6 +23,24 @@ public class XdgActivationHelper : Object {
-         if (wl_display.roundtrip () < 0) {
-             return;
+@@ -74,4 +75,36 @@ public class XdgActivationHelper : Object {
          }
-+
-+        // Hyprland 0.57.2 treats tokens without an input serial as
-+        // urgent-only. Remember the last click so the sender can focus.
-+        unowned Gdk.Display ?display = Gdk.Display.get_default ();
-+        if (display != null) {
-+            unowned Gdk.Seat ?seat = display.get_default_seat ();
-+            if (seat != null && seat is Gdk.Wayland.Seat) {
-+                wl_seat = ((Gdk.Wayland.Seat) seat).get_wl_seat ();
-+                unowned Gdk.Device ?pointer = seat.get_pointer ();
-+                if (pointer != null && pointer is Gdk.Wayland.Device) {
-+                    unowned Wl.Pointer wl_pointer =
-+                        ((Gdk.Wayland.Device) pointer).get_wl_pointer ();
-+                    if (wl_pointer != null) {
-+                        wl_pointer.add_listener (pointer_listener, this);
-+                    }
-+                }
-+            }
-+        }
+         return null;
      }
- 
-     ~XdgActivationHelper () {
-@@ -61,6 +87,9 @@ public class XdgActivationHelper : Object {
- 
-         Token *token = xdg_activation->get_activation_token ();
-         token->add_listener (TOKEN_LISTENER, &token_value);
-+        if (last_input_serial != 0 && wl_seat != null) {
-+            token->set_serial (last_input_serial, wl_seat);
++
++    /**
++     * Hyprland 0.57.2 treats a token without a pointer serial as urgent-only.
++     * GTK does not expose that serial, so after the action signal give the
++     * compositor a moment to mark the sender urgent, then focus that window.
++     * This is a no-op outside Hyprland.
++     */
++    public void focus_urgent_window () {
++        if (Environment.get_variable ("HYPRLAND_INSTANCE_SIGNATURE") == null) {
++            return;
 +        }
-         token->set_surface (wl_surface);
-         token->commit ();
-         while (wl_display.dispatch () >= 0 && token_value.get_string () == null) {
++
++        uint[] delays = { 80, 200, 400 };
++        foreach (uint delay in delays) {
++            Timeout.add (delay, () => {
++                try {
++                    var proc = new Subprocess.newv (
++                        {
++                            "hyprctl", "repl",
++                            "if hl.get_urgent_window() then " +
++                            "hl.dispatch(hl.dsp.focus({urgent_or_last=true})) end"
++                        },
++                        SubprocessFlags.NONE);
++                    proc.wait_check ();
++                } catch (Error e) {
++                    warning ("Could not focus urgent notification window: %s",
++                             e.message);
++                }
++                return Source.REMOVE;
++            });
++        }
++    }
+ }
