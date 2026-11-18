@@ -1,4 +1,4 @@
-#!/usr/env bash
+#!/usr/bin/env bash
 #     __ __         _____         __  _____          __           __
 #    / //_/__ __ __/ ___/__ ____ / /_/ ___/__  ___  / /________  / /
 #   / ,< / -_) // / /__/ _ `(_-</ __/ /__/ _ \/ _ \/ __/ __/ _ \/ /
@@ -21,4 +21,4 @@ fi
 #: Initial configurations for the desired behaviour.
 #: Feel free to tweak these to your liking.
 # -A: no settings, -k: show keys window, -C: click-through
-showmethekey-gtk -A -K -C >/dev/null 2>/&1 & disonw
+showmethekey-gtk -A -K -C >/dev/null 2>&1 & disown

@@ -23,6 +23,7 @@ local whatsapp = browser .. " --app=https://web.whatsapp.com/"
 local waybarReload = "~/.config/waybar/scripts/launch.sh"
 local updater = "$HOME/.config/waybar/scripts/update-now.sh"
 local wallpaperPicker = "~/.config/rofi/launchers/wall-changer.sh"
+local keyCast = "$HOME/.config/hypr/scripts/keycast-toggle.sh"
 
 local mainMod = "SUPER"
 local shiftMod = "SUPER + SHIFT"
@@ -40,6 +41,7 @@ hl.bind(shiftMod .. " + C", hl.dsp.exec_cmd(whatsapp), { description = "Open Wha
 hl.bind(mainMod .. " + Space", hl.dsp.exec_cmd(launcher), { description = "Open app launcher" })
 hl.bind(shiftMod .. " + Space", hl.dsp.exec_cmd(runner), { description = "Run command" })
 hl.bind(mainMod .. " + return", hl.dsp.exec_cmd(terminal), { description = "Open terminal" })
+hl.bind(shiftMod .. "+ K", hl.dsp.exec_cmd(keyCast), { description = "Toggle keystroke overlay" })
 
 -- ===============================================
 -- Update system

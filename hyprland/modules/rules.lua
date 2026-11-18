@@ -113,3 +113,14 @@ hl.layer_rule({
     match = { namespace = "swaync-control-center" },
     animation = "slide top",
 })
+
+hl.window_rule({
+    name = "keycast-overlay",
+    match = { class = "^(one\\.alynx\\.showmethekey|showmethekey-gtk$" },
+
+    float = true,
+    pin = true,
+    no_focus = true,
+    move = "monitor_w/2-1000 monitor_h-160",
+    size = "2000 120",
+})
