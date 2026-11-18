@@ -41,7 +41,7 @@ hl.bind(shiftMod .. " + C", hl.dsp.exec_cmd(whatsapp), { description = "Open Wha
 hl.bind(mainMod .. " + Space", hl.dsp.exec_cmd(launcher), { description = "Open app launcher" })
 hl.bind(shiftMod .. " + Space", hl.dsp.exec_cmd(runner), { description = "Run command" })
 hl.bind(mainMod .. " + return", hl.dsp.exec_cmd(terminal), { description = "Open terminal" })
-hl.bind(shiftMod .. "+ K", hl.dsp.exec_cmd(keyCast), { description = "Toggle keystroke overlay" })
+hl.bind(shiftMod .. " + K", hl.dsp.exec_cmd(keyCast), { description = "Toggle keystroke overlay" })
 
 -- ===============================================
 -- Update system

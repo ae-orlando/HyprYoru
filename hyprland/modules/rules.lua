@@ -116,11 +116,19 @@ hl.layer_rule({
 
 hl.window_rule({
     name = "keycast-overlay",
-    match = { class = "^(one\\.alynx\\.showmethekey|showmethekey-gtk$" },
+    match = { class = "^(one\\.alynx\\.showmethekey|showmethekey-gtk)$" },
 
     float = true,
     pin = true,
     no_focus = true,
-    move = "monitor_w/2-1000 monitor_h-160",
-    size = "2000 120",
+    -- Borderless + transparent: no border, no drop shadow, 75%
+    -- opacity so the global blur (decoration:blur size 8 / 3 passes)
+    -- shows through behind the keys.
+    border_size = 0,
+    no_shadow = true,
+    opacity = 0.75,
+    -- No forced position: it spawns centered (via the catch-all)
+    -- and is dragged anywhere with SUPER + LMB. Size must match
+    -- the showmethekey gsettings width/height (600x100).
+    size = "600 100",
 })
