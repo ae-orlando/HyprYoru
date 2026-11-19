@@ -14,3 +14,18 @@
   --active-toggle-bg-color: @active_toggle_bg_color;
   --active-toggle-fg-color: @active_toggle_fg_color;
 }
+
+/* keycast: collapse the showmethekey keys-window titlebar row.
+ * It renders the "Clickable" drag handle, which wastes a whole row
+ * of the strip. Scoped to `window.smtk-keys-win` so no other GTK4
+ * app is affected; drag the strip with SUPER + LMB instead. */
+window.smtk-keys-win headerbar windowhandle box windowtitle {
+  font-size: 0px;
+  color: transparent;
+}
+window.smtk-keys-win headerbar {
+  min-height: 0px;
+  margin: 0px;
+  padding-top: 0px;
+  padding-bottom: 0px;
+}

@@ -127,8 +127,9 @@ hl.window_rule({
     border_size = 0,
     no_shadow = true,
     opacity = 0.75,
-    -- No forced position: it spawns centered (via the catch-all)
-    -- and is dragged anywhere with SUPER + LMB. Size must match
-    -- the showmethekey gsettings width/height (600x100).
+    -- Bottom-right of eDP-1 (1920x1080), 40px margins: x = 1920-600-40,
+    -- y = 1080-100-40. Still draggable anywhere with SUPER + LMB.
+    -- Size must match the showmethekey gsettings width/height (600x100).
+    move = "monitor_w-640 monitor_h-140",
     size = "600 100",
 })
