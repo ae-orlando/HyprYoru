@@ -89,6 +89,7 @@ LINK_MAP=(
   '.config/fastfetch:fastfetch'
   '.config/gtk-3.0:gtk-setting/gtk-3.0'
   '.config/gtk-4.0:gtk-setting/gtk-4.0'
+  '.config/git:git'
   '.config/spicetify/Themes/matugen:spicetify/Themes/matugen'
 )
 SYSTEM_SERVICES=()

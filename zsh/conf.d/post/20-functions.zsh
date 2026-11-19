@@ -86,3 +86,28 @@ cls() {
     command clear "$@"
     (( $# == 0 )) && printf '\e[3j'
 }
+
+# ================= NOTES ===========================
+# Create an inbox note from a title and open it in the editor.
+note() {
+    local note_file
+    [[ $# -gt 0 ]] || { print -u2 "note: usage: note <title>"; return 1 }
+    note_file=$(python3 "$HOME/Documents/Notes/90-tools/notes.py" capture "$*") || return
+    "${EDITOR:-nvim}" "$note_file"
+}
+
+# Open the Obsidian vault, forwarding any editor arguments.
+vault() {
+    cd "$HOME/Documents/Notes" && "${EDITOR:-nvim}" "$@"
+}
+
+# Run the vault link and lab check.
+vcheck() {
+    python3 "$HOME/Documents/Notes/90-tools/check-vault.py" "$@"
+}
+
+# ================= COMMITS =========================
+# Verbose commit with the shared template.
+gcm() {
+    git commit -v "$@"
+}
