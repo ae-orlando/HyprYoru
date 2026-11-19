@@ -12,7 +12,7 @@
 4. `conf.d/post/*.zsh`:
    - `10-aliases.zsh` (`eza`, `nvim`, `git`, `pacman`, `python`/`uv`, `bat`/`cat`, `diff --color`, `grep --color`, `cspeed`).
    - `15-matugen.zsh` (sources `generated/colors.sh`, `precmd` reload).
-   - `20-functions.zsh` (`ascii` banner, `fonts` list, `shot` screenshots, `bak` backups, `note`/`vault`/`vcheck` notes helpers, `gcm` commit).
+   - `20-functions.zsh` (`ascii` banner, `fonts` list, `shot` screenshots, `bak` backups, `note`/`vault`/`vcheck` notes helpers, `gcom` commit).
    - `40-zoxide.zsh` (guarded zoxide initialization; `z`/`zi` directory jumping).
    - `50-autosuggestions.zsh` (system plugin + `MATUGEN_AUTOSUGGEST` style).
    - `99-syntaxh.zsh` (system plugin + `main/brackets/regexp/cursor/root` highlighters, ANSI tokens, foreground-only emphasis).
@@ -28,7 +28,7 @@
 | `conf.d/pre/02-plugins.zsh`          | OMZ plugin list                                                |
 | `conf.d/post/10-aliases.zsh`         | Aliases                                                        |
 | `conf.d/post/15-matugen.zsh`         | Palette reload hook                                            |
-| `conf.d/post/20-functions.zsh`       | `ascii`, `fonts`, `shot`, `bak`, `cls`, `note`, `vault`, `vcheck`, `gcm` |
+| `conf.d/post/20-functions.zsh`       | `ascii`, `fonts`, `shot`, `bak`, `cls`, `note`, `vault`, `vcheck`, `gcom` |
 | `conf.d/post/25-fzf.zsh`             | fzf keybindings (CTRL-R/T, ALT-C)                              |
 | `conf.d/post/30-history.zsh`         | History dedup/sharing tuning                                   |
 | `conf.d/post/40-zoxide.zsh`          | `z`/`zi` directory jumping via zoxide                          |

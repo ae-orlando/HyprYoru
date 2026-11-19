@@ -108,6 +108,6 @@ vcheck() {
 
 # ================= COMMITS =========================
 # Verbose commit with the shared template.
-gcm() {
+gcom() {
     git commit -v "$@"
 }
