@@ -53,29 +53,44 @@ hl.bind(mainMod .. "+ S", hl.dsp.exec_cmd(updater), { description = "Perform ful
 -- ===============================================
 -- Hypr
 -- ===============================================
+-- Toogling waybar modes.
 hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(waybarReload), { description = "Reload Waybar" })
 hl.bind(altMod .. " +R", hl.dsp.exec_cmd(waybarToggle), { description = "Toggle Waybar"})
 
+-- Quite ative window
 hl.bind(mainMod .. " + Q", hl.dsp.window.close(), { description = "Close window" })
 
 hl.bind(
+    -- Log out of hyprland
     shiftMod .. " + Q",
     hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch exit"),
     { description = "Quit Hyprland (hyprshutdown preferred)" }
 )
 hl.bind(mainMod .. " + T", hl.dsp.window.float({ action = "toggle" }), { description = "Toggle floating" })
+
 hl.bind(
+    -- Mximizes active window if multiple are open
     shiftMod .. " + F",
     hl.dsp.window.fullscreen({ mode = "maximized" }),
     { description = "Fullscreen (maximized)" }
 )
+
 hl.bind(
+    -- Fullscreen windows.
     altMod .. " + F",
     hl.dsp.window.fullscreen({ mode = "fullscreen", action = "toggle" }),
     { description = "Fullscreen (true, hides waybar)" }
 )
+
+-- Pseudo tiling where a window asumes floating size in tile dmode.
 hl.bind(mainMod .. " + P", hl.dsp.window.pseudo(), { description = "Toggle pseudotile" })
 -- hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"))    -- dwindle only
+
+hl.bind(
+    shiftMod .. " + return",
+    hl.dsp.exec_cmd(terminal, { float = true, size = "700 450", center = true }),
+    {description = "Open floating mini terminal"}
+)
 
 -- Move focus with mainMod + arrow keys
 hl.bind(mainMod .. " + h", hl.dsp.focus({ direction = "left" }), { description = "Focus left" })
