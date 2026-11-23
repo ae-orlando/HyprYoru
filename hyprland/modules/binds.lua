@@ -24,9 +24,11 @@ local waybarReload = "~/.config/waybar/scripts/launch.sh"
 local updater = "$HOME/.config/waybar/scripts/update-now.sh"
 local wallpaperPicker = "~/.config/rofi/launchers/wall-changer.sh"
 local keyCast = "$HOME/.config/hypr/scripts/keycast-toggle.sh"
+local waybarToggle = "$HOME/.config/waybar/scripts/toggle-waybar.sh"
 
 local mainMod = "SUPER"
 local shiftMod = "SUPER + SHIFT"
+local altMod = "SUPER + ALT"
 
 -- ==============================================
 -- Apps
@@ -52,6 +54,7 @@ hl.bind(mainMod .. "+ S", hl.dsp.exec_cmd(updater), { description = "Perform ful
 -- Hypr
 -- ===============================================
 hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(waybarReload), { description = "Reload Waybar" })
+hl.bind(altMod .. " +R", hl.dsp.exec_cmd(waybarToggle), { description = "Toggle Waybar"})
 
 hl.bind(mainMod .. " + Q", hl.dsp.window.close(), { description = "Close window" })
 
@@ -65,6 +68,11 @@ hl.bind(
     shiftMod .. " + F",
     hl.dsp.window.fullscreen({ mode = "maximized" }),
     { description = "Fullscreen (maximized)" }
+)
+hl.bind(
+    altMod .. " + F",
+    hl.dsp.window.fullscreen({ mode = "fullscreen", action = "toggle" }),
+    { description = "Fullscreen (true, hides waybar)" }
 )
 hl.bind(mainMod .. " + P", hl.dsp.window.pseudo(), { description = "Toggle pseudotile" })
 -- hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"))    -- dwindle only
