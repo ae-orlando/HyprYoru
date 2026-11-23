@@ -77,7 +77,7 @@ hl.layer_rule({
 hl.layer_rule({
     name = "rofi-animations",
     match = { namespace = "rofi" },
-    animation = "popin 87%",
+    animation = "popin 82%",
 })
 
 -- Hyprland-run popup placement.

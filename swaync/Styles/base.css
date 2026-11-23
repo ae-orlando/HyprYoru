@@ -29,9 +29,9 @@ button {
     background-image: none;
     box-shadow: none;
     transition:
-        background-color 160ms ease,
-        border-color 160ms ease,
-        color 160ms ease;
+        background-color 180ms ease-out,
+        border-color 180ms ease-out,
+        color 180ms ease-out;
 }
 
 .control-center button:focus-visible:not(:checked) {
@@ -92,4 +92,13 @@ tooltip label {
 .notification-row:focus-visible .notification-default-action,
 .notification-group:focus-visible .notification-default-action {
     background: alpha(@ink, 0.04);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
 }

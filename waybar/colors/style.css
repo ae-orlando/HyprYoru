@@ -83,9 +83,9 @@ tooltip label {
     padding: 0 5px;
     margin: 0 1px;
     transition:
-        background-color 160ms ease,
-        color 160ms ease,
-        opacity 160ms ease;
+        background-color 180ms ease-out,
+        color 180ms ease-out,
+        opacity 180ms ease-out;
 }
 
 #workspaces button label {
@@ -170,8 +170,8 @@ tooltip label {
     padding: 0 8px;
     margin: 0 1px;
     transition:
-        background-color 160ms ease,
-        color 160ms ease;
+        background-color 180ms ease-out,
+        color 180ms ease-out;
 }
 
 #custom-network:hover,
@@ -380,7 +380,7 @@ tooltip label {
     min-width: 132px;
     padding: 0 10px;
     color: @fg;
-    transition: background-color 160ms ease;
+    transition: background-color 180ms ease-out;
 }
 
 #clock:hover {
