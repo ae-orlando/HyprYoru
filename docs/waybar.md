@@ -33,6 +33,7 @@ connection drawers rather than toggling power.
 | `scripts/start-waybar.sh`     | Optional local test build, or distro Waybar                                                     |
 | `scripts/desktop-binaries.py` | Status and controlled daemon restarts (`yoru-desktop`)                                           |
 | `scripts/launch.sh`           | In-place Waybar reload + SwayNC CSS reload; no daemon kill                                       |
+| `scripts/toggle-waybar.sh`    | Toggle Waybar on/off (kill or restart via `start-waybar.sh`)                                     |
 
 ## Commands
 

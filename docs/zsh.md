@@ -75,6 +75,26 @@ python3 -B tests/test_zsh_highlighting.py
 python3 -B tests/test_matugen_palette.py
 ```
 
+## Vi-mode terminal navigation
+
+`zsh/conf.d/post/01-binds.zsh` sets vi mode as the primary line editor and adds
+terminal navigation bindings that work in vi insert mode:
+
+- `bindkey -v` — vi mode with `KEYTIMEOUT=1` for snappy mode switching.
+- `Alt+Right` / `Alt+Left` — forward/backward word (several escape sequences covered).
+- `Home` / `End` — beginning/end of line.
+- `PageUp` / `PageDown` — beginning/end of history.
+- `Delete` / `Insert` — delete char / quoted-insert.
+- `Ctrl+A` / `Ctrl+E` — beginning/end of line (Emacs-style, kept in vi insert mode).
+- `Ctrl+W` / `Ctrl+U` / `Ctrl+K` — kill word / line.
+- `Ctrl+Y` — yank.
+- `Ctrl+X Ctrl+E` (insert) / `vv` (normal) — open the command line in Neovim via `edit-command-line`.
+- `k` / `j` in vi normal mode — history up/down.
+
+Emacs-style shortcuts are deliberately retained alongside vi mode so muscle memory
+for `Ctrl+A`/`Ctrl+E`/`Ctrl+W`/`Ctrl+U`/`Ctrl+K`/`Ctrl+Y` keeps working while
+inserting text.
+
 ## Zoxide
 
 The guarded initialization in `zsh/conf.d/post/40-zoxide.zsh:13` enables directory jumping when zoxide is installed. It learns directories as you visit them; regular `cd` remains unchanged.

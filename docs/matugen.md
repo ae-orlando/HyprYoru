@@ -96,6 +96,7 @@ transaction journal.
 | `spicetify-color.ini` | `~/.config/spicetify/Themes/matugen/color.ini` | Spicetify (theme dir is a repo symlink; `user.css` rice ships in it) |
 | `nvim-colors.json` | `~/.config/matugen/themes/nvim-colors.json` | Opt-in Neovim palette |
 | `shell-colors.sh` | `~/.config/zsh/generated/colors.sh` | Zsh/fzf |
+| `obsidian-colors.css` | `~/.config/obsidian/matugen.css` | Obsidian CSS snippet (enable `matugen`) |
 
 OpenCode V2 uses its `system` theme to derive colors from Kitty's foreground,
 background, and ANSI slots. This repo no longer generates the old-format
@@ -121,6 +122,17 @@ The default is a tonal-spot palette with a restrained contrast. Waybar status
 colors, Qt widget states, GTK surfaces, and Kitty ANSI slots use Material roles
 rather than fixed white/gray values; hues remain wallpaper-derived. For a
 different look, change `matugen/config.toml` or a template, then regenerate.
+
+## Obsidian sync hook
+
+`matugen/templates/obsidian-colors.css` renders `~/.config/obsidian/matugen.css`
+as a matugen template, and `matugen/config.toml` registers it under
+`[templates.obsidian]` with `post_hook =
+"~/.config/hypr/scripts/obsidian-theme.sh"`. After each palette publish, that
+hook symlinks the generated CSS into every registered Obsidian vault's
+`.obsidian/snippets/` directory and enables the `matugen` snippet in each
+vault's `appearance.json`. Enable the "matugen" snippet in Obsidian Appearance
+to apply it.
 
 ## Tests (sandboxed; no desktop reload)
 

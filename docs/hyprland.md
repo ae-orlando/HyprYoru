@@ -55,6 +55,29 @@ hyprctl monitors
 ~/.config/hypr/scripts/nightlight.sh
 ```
 
+## Keybindings
+
+All keybindings live in `hyprland/modules/binds.lua` using `mainMod` (SUPER) and
+`shiftMod` (SUPER + SHIFT). Notable bindings:
+
+- `shiftMod + return` — open a floating, centered mini terminal (700×450).
+- `shiftMod + K` — toggle the showmethekey keystroke overlay (keycast).
+- `altMod + R` (SUPER + ALT + R) — toggle Waybar on/off.
+- `altMod + F` (SUPER + ALT + F) — true fullscreen (hides the waybar).
+- `mainMod + R` — reload Waybar (`launch.sh`).
+- `mainMod + T` — toggle floating.
+- `shiftMod + F` — maximize window.
+- `mainMod + P` — toggle pseudotile.
+
+The keycast overlay (`one.alynx.showmethekey`) has a matching window rule
+(`hyprland/modules/rules.lua`): floating, pinned, no focus, borderless, no
+shadow, 75% opacity, sized 600×100 and placed bottom-right. See
+`hyprland/scripts/keycast-toggle.sh` for the toggle script.
+
+Animations and blur were re-tuned: blur passes reduced to 1 (size 6), window
+animations use `popin 82%`/`slidefade 20%` styles, and Rofi animations use
+`popin 82%`.
+
 ## Notes
 
 - `monitors.lua` hardcodes one `eDP-1` mode (this machine's laptop panel); other/hot-plugged outputs use the empty-output fallback.

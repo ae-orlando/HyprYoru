@@ -4,19 +4,43 @@ All notable changes to HyprYoru are documented here. The format follows [Keep a 
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-24
+
 ### Added
 
-- README screenshots for the orange and twilight palettes.
-- Contributor Covenant 2.1 code of conduct.
+- Zsh: vi-mode terminal navigation binds (`zsh/conf.d/post/01-binds.zsh`). Vi mode is primary (`bindkey -v`, `KEYTIMEOUT=1`) with word/line/history navigation in insert mode, Emacs-style shortcuts kept (`Ctrl+A/E/W/U/K/Y`), and `edit-command-line` via `Ctrl+X Ctrl+E` / `vv`.
+- Hyprland: floating mini terminal binding (`shiftMod + return`, 700×450 centered).
+- Hyprland: keycast keystroke overlay — `keycast-toggle.sh` script, `shiftMod + K` bind, and a dedicated window rule (floating, pinned, no focus, borderless, no shadow, 75% opacity, 600×100 bottom-right).
+- Hyprland: Waybar toggle binding (`altMod + R`) and `waybar/scripts/toggle-waybar.sh` script.
+- Matugen: Obsidian CSS snippet template (`obsidian-colors.css`), `[templates.obsidian]` in `config.toml`, and `hyprland/scripts/obsidian-theme.sh` post_hook that symlinks the generated CSS into every registered Obsidian vault's `.obsidian/snippets/` and enables the `matugen` snippet.
+- Zsh: vault helpers (`note`, `vault`, `vcheck`) and the `gcom` commit function (`zsh/conf.d/post/20-functions.zsh`).
+- CI: GitHub Actions checkout/setup-python bumped to v7; zsh-syntax-highlighting installed in CI.
+- README: CI and license badges; desktop screenshots for the orange and twilight palettes.
+- Git: narrowed the token ignore guard so ordinary names like `swaync/Styles/tokens.css` are no longer caught.
 
 ### Changed
 
-- SwayNC backport now tracks upstream `main` at `b8017a4d1a53`, labelled `0.12.6 (main.b8017a4, Yoru backports 2)`; the build helper pins the commit and checksum.
+- Hyprland: animations and blur re-tuned — blur passes 3→1 (size 6), brightness 0.9→0.5, new `easeInCubic` curve, `popin 82%`/`slidefade 20%` animation styles, Rofi animation `popin 82%`.
+- SwayNC: backport now tracks upstream `main` at `b8017a4d1a53`, labelled `0.12.6 (main.b8017a4, Yoru backports 2)`; patch file renamed `yoru-0.12.6.patch` → `yoru-main.patch`; `SOURCE_REF`/`SOURCE_SHA256` pin the commit.
+- Kitty: bold font reverted from `ExtraBold` to `bold`; cursor trail decay tuned (0.2/0.8 → 0.15/0.6).
+- Zsh: `gcm` helper renamed to `gcom`.
+- Powerlevel10k: prompt made fluent on git status; VCS/command execution time/context/toolbox prefixes uncommented.
+- Installer link map: added `.config/git:git` (15 entries total).
+- SwayNC/Waybar: transitions 160ms ease → 180ms ease-out; SwayNC `transition-time` 200→180; reduced-motion media query added to `base.css`.
+- Docs: README now links the Code of Conduct; screenshots and badges added.
 
 ### Fixed
 
-- Notification clicks focus the sender again on Hyprland 0.57.2+. Hyprland treats tokens without a pointer serial as urgent-only and GTK does not expose that serial, so SwayNC now focuses the urgent sender window shortly after the action signal. Chromium/WhatsApp Web comes to the front instead of only marking its workspace urgent.
-- SwayNC backlight changes keep the file monitor alive during drag writes, so brightness keys continue to update the slider.
+- Matugen: shadow color value quoted in `hypr-colors.lua` and `colors-fallback.lua`.
+- Matugen: autosuggestions ghost text uses `outline` color instead of too-faint `outline_variant`.
+- SwayNC: notification clicks focus the sender again on Hyprland 0.57.2+ (urgent-window fallback).
+- SwayNC: backlight changes keep the file monitor alive during drag writes, so brightness keys continue to update the slider.
+- Tests: resolve `matugen` from PATH instead of hardcoding `/usr/bin/matugen`.
+
+### Notes
+
+- This is not an Arch base-system installer: kernels, bootloaders, and GPU drivers are intentionally out of scope.
+- CI validates the installer and palette logic in isolation; fresh-system installation still requires manual testing on Arch.
 
 ## [0.1.0] - 2026-11-12
 
@@ -41,5 +65,6 @@ First tagged release. HyprYoru is usable on an existing Arch Linux installation 
 - This is not an Arch base-system installer: kernels, bootloaders, and GPU drivers are intentionally out of scope.
 - CI validates the installer and palette logic in isolation; fresh-system installation still requires manual testing on Arch.
 
-[Unreleased]: https://github.com/ae-orlando/HyprYoru/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/ae-orlando/HyprYoru/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/ae-orlando/HyprYoru/releases/tag/v0.2.0
 [0.1.0]: https://github.com/ae-orlando/HyprYoru/releases/tag/v0.1.0
