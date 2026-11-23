@@ -13,7 +13,7 @@ local colors = {
     -- gradient table for the active border (must provide a "colors" array)
     active_border   = { colors = { "rgba({{colors.primary.default.hex_stripped}}ee)", "rgba({{colors.secondary.default.hex_stripped}}ee)" }, angle = 45 },
     inactive_border = "rgba({{colors.outline.default.hex_stripped}}aa)",
-    shadow          = 0xee{{colors.shadow.default.hex_stripped}},
+    shadow          = "0xee{{colors.shadow.default.hex_stripped}}",
 }
 
 return colors

@@ -12,7 +12,7 @@ local colors = {
     -- gradient table for the active border (must provide a "colors" array)
     active_border   = { colors = { "rgba(8ad6b7ee)", "rgba(b3ccbfee)" }, angle = 45 },
     inactive_border = "rgba(89938daa)",
-    shadow          = 0xee000000,
+    shadow          = "0xee000000",
 }
 
 return colors
