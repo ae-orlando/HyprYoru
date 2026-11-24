@@ -54,7 +54,7 @@ hl.config({
             passes = 1,
             noise = 0.008,
             contrast = 1.0,
-            brightness = 0.5,
+            brightness = 0.6,
             new_optimizations = true,
         },
     },
