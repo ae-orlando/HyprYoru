@@ -13,6 +13,7 @@
 local terminal = "kitty"
 local fileManager = "nautilus"
 local browser = "chromium"
+local browser2 = "firefox"
 local music = "spotify"
 local anime = browser .. " --app=https://www.miruro.tv"
 local odel = browser .. " --app=https://e-learning.karu.ac.ke/my/"
@@ -35,6 +36,7 @@ local altMod = "SUPER + ALT"
 -- ==============================================
 hl.bind(mainMod .. " + F", hl.dsp.exec_cmd(fileManager), { description = "Open file manager" })
 hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(browser), { description = "Open browser" })
+hl.bind(altMod .. " + B", hl.dsp.exec_cmd(browser2), { description = "Open firefox" })
 hl.bind(mainMod .. " + M", hl.dsp.exec_cmd(music), { description = "Open music" })
 hl.bind(mainMod .. " + O", hl.dsp.exec_cmd(odel), { description = "Open ODeL" })
 hl.bind(mainMod .. " + A", hl.dsp.exec_cmd(anime), { description = "Open anime" })
@@ -55,7 +57,7 @@ hl.bind(mainMod .. "+ S", hl.dsp.exec_cmd(updater), { description = "Perform ful
 -- ===============================================
 -- Toogling waybar modes.
 hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(waybarReload), { description = "Reload Waybar" })
-hl.bind(altMod .. " +R", hl.dsp.exec_cmd(waybarToggle), { description = "Toggle Waybar"})
+hl.bind(altMod .. " +R", hl.dsp.exec_cmd(waybarToggle), { description = "Toggle Waybar" })
 
 -- Quite ative window
 hl.bind(mainMod .. " + Q", hl.dsp.window.close(), { description = "Close window" })
@@ -89,7 +91,7 @@ hl.bind(mainMod .. " + P", hl.dsp.window.pseudo(), { description = "Toggle pseud
 hl.bind(
     shiftMod .. " + return",
     hl.dsp.exec_cmd(terminal, { float = true, size = "700 450", center = true }),
-    {description = "Open floating mini terminal"}
+    { description = "Open floating mini terminal" }
 )
 
 -- Move focus with mainMod + arrow keys
