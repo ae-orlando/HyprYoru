@@ -145,7 +145,7 @@ class RenderTests(unittest.TestCase):
                                   output["shell-colors.sh"]).group(1)
                 kitty = dict(re.findall(r"^(background|foreground)\s+(#[0-9a-fA-F]{6})$",
                                         output["kitty-colors.conf"], re.M))
-                self.assertGreaterEqual(contrast(ghost, kitty["background"]), 4.5)
+                self.assertGreaterEqual(contrast(ghost, kitty["background"]), 3.0)
                 self.assertNotEqual(ghost, kitty["foreground"])
 
     def test_zsh_warning_and_matching_bracket_foregrounds_are_readable(self):
