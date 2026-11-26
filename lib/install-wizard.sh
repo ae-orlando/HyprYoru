@@ -11,6 +11,7 @@ UI_OPTION_GDM='GDM graphical login'
 UI_OPTION_WWAN='Fibocom WWAN modem service'
 UI_OPTION_LOGIN='Use Zsh as my account login shell'
 UI_OPTION_DEFAULTS='Apply application defaults and GTK preferences'
+UI_OPTION_BLESH='Install ble.sh (bash line editor) for bash prompt parity'
 
 select_ui_backend() {
   UI_BACKEND=plain
@@ -188,18 +189,21 @@ ui_customize() {
     if [[ "$WITH_SHELL" -eq 1 ]]; then
       options+=("$UI_OPTION_LOGIN")
       [[ "$CHANGE_SHELL" -eq 0 ]] || defaults+=("$UI_OPTION_LOGIN")
+      options+=("$UI_OPTION_BLESH")
+      [[ "$USE_BLESH_CLONE" -eq 0 ]] || defaults+=("$UI_OPTION_BLESH")
     fi
     options+=("$UI_OPTION_DEFAULTS")
     [[ "$SET_DEFAULTS" -eq 0 ]] || defaults+=("$UI_OPTION_DEFAULTS")
   fi
   if (( ${#options[@]} > 0 )); then
     ui_multiselect 'Optional system and preference changes' defaults options || return 1
-    WITH_GDM=0; WITH_WWAN=0; CHANGE_SHELL=0; SET_DEFAULTS=0
+    WITH_GDM=0; WITH_WWAN=0; CHANGE_SHELL=0; SET_DEFAULTS=0; USE_BLESH_CLONE=0
     for choice in "${UI_SELECTED[@]}"; do
       case "$choice" in
         "$UI_OPTION_GDM") WITH_GDM=1 ;;
         "$UI_OPTION_WWAN") WITH_WWAN=1 ;;
         "$UI_OPTION_LOGIN") CHANGE_SHELL=1 ;;
+        "$UI_OPTION_BLESH") USE_BLESH_CLONE=1 ;;
         "$UI_OPTION_DEFAULTS") SET_DEFAULTS=1 ;;
       esac
     done
@@ -235,6 +239,7 @@ show_plan() {
   if [[ "${PLAN_OPTIONS[CHANGE_SHELL]}" -eq 1 ]]; then field 'Login shell' 'Change account shell to Zsh'; else field 'Login shell' 'Keep existing account shell'; fi
   if [[ "${PLAN_OPTIONS[SET_DEFAULTS]}" -eq 1 ]]; then field 'Preferences' 'Apply installed-app MIME defaults and GTK preferences'
   else field 'Preferences' 'Keep existing defaults and GTK preferences'; fi
+  if [[ "${PLAN_OPTIONS[WITH_SHELL]}" -eq 1 && "${PLAN_OPTIONS[USE_BLESH_CLONE]}" -eq 1 ]]; then field 'ble.sh' 'Clone upstream v0.4.0-devel4 to ~/.local/share/blesh'; fi
   if [[ "${PLAN_OPTIONS[WITH_SHELL]}" -eq 0 ]]; then say 'Zsh stays untouched; a private Matugen config excludes its shell output.'; fi
   if [[ "${PLAN_OPTIONS[NO_AUR]}" -eq 1 ]]; then say 'Skipping AUR does not provide Waypaper (SUPER+W) or the supplied cursor/icon themes.'; fi
   say 'Kernels/bootloaders/GPU drivers are not added. Server/firewall services are not enabled.'
@@ -294,6 +299,7 @@ run_reviewed_checks() {
   local -a args=(--check --ui plain --profile "${PLAN_OPTIONS[PROFILE]}")
   [[ "${PLAN_OPTIONS[NO_AUR]}" -eq 0 ]] || args+=(--no-aur)
   [[ "${PLAN_OPTIONS[WITH_SHELL]}" -eq 1 ]] || args+=(--no-shell)
+  [[ "${PLAN_OPTIONS[USE_BLESH_CLONE]}" -eq 1 ]] || args+=(--no-blesh-clone)
   if [[ "${PLAN_OPTIONS[LINK_ONLY]}" -eq 1 ]]; then args+=(--link-only)
   elif [[ "${PLAN_OPTIONS[ONLY_DOTFILES]}" -eq 1 ]]; then args+=(--only-dotfiles); fi
   [[ "${PLAN_OPTIONS[WITH_GDM]}" -eq 0 ]] || args+=(--with-gdm)

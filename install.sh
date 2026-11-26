@@ -34,6 +34,7 @@ WITH_WWAN=0
 CHANGE_SHELL=0
 SET_DEFAULTS=0
 WITH_SHELL=1
+USE_BLESH_CLONE=1
 UI_MODE=auto
 UI_BACKEND=plain
 UI_SESSION=0
@@ -115,6 +116,7 @@ Scope
   --link-only           Link configs + set ZDOTDIR; no setup downloads or services
   --no-aur              Skip AUR packages AND helper bootstrap
   --no-shell            Skip the Zsh package bundle, config, frameworks, and shell palette
+  --no-blesh-clone      Do not clone ble.sh upstream (use Arch blesh-git package instead)
   --with-gdm            Install/enable GDM only if no other display manager owns login
   --with-wwan           Install ModemManager + the source machine's Fibocom WWAN unit
   --change-shell        Also change your login shell to zsh (requires a terminal)
@@ -193,6 +195,11 @@ parse_args() {
             ;;
         --no-shell)
             WITH_SHELL=0
+            SCOPE_EXPLICIT=1
+            shift
+            ;;
+        --no-blesh-clone)
+            USE_BLESH_CLONE=0
             SCOPE_EXPLICIT=1
             shift
             ;;
@@ -1110,15 +1117,19 @@ phase_shell() {
     clone_framework oh-my-zsh https://github.com/ohmyzsh/ohmyzsh.git "$HOME/.oh-my-zsh" oh-my-zsh.sh
     clone_framework powerlevel10k https://github.com/romkatv/powerlevel10k.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k" powerlevel10k.zsh-theme
     # bash: ble.sh (pinned tag v0.4.0-devel4) — used by our bash config when not on Arch blesh-git package
-    local ble_target="$HOME/.local/share/blesh"
-    if [[ ! -f "$ble_target/ble.sh" ]]; then
-        if [[ "$DRY_RUN" -eq 1 ]]; then
-            dry "Clone ble.sh v0.4.0-devel4 to $ble_target"
+    if [[ "$USE_BLESH_CLONE" -eq 1 ]]; then
+        local ble_target="$HOME/.local/share/blesh"
+        if [[ ! -f "$ble_target/ble.sh" ]]; then
+            if [[ "$DRY_RUN" -eq 1 ]]; then
+                dry "Clone ble.sh v0.4.0-devel4 to $ble_target"
+            else
+                spin "Clone ble.sh" git clone --depth=1 --branch v0.4.0-devel4 https://github.com/akinomyoga/ble.sh.git "$ble_target"
+            fi
         else
-            spin "Clone ble.sh" git clone --depth=1 --branch v0.4.0-devel4 https://github.com/akinomyoga/ble.sh.git "$ble_target"
+            skip "ble.sh already installed at $ble_target"
         fi
     else
-        skip "ble.sh already installed at $ble_target"
+        skip 'ble.sh clone skipped (--no-blesh-clone or Arch blesh-git package preferred)'
     fi
     if [[ "$CHANGE_SHELL" -eq 1 ]]; then
         if [[ "$DRY_RUN" -eq 1 ]]; then
@@ -1247,6 +1258,14 @@ phase_verify() {
         else vfail 'powerlevel10k is missing/incomplete'; fi
         if command -v zsh >/dev/null 2>&1; then
             if env ZDOTDIR=/dev/null zsh -f -n "$HOME/.config/zsh/.zshrc"; then vpass 'zshrc syntax'; else vfail 'zshrc syntax'; fi
+        fi
+        if [[ "$USE_BLESH_CLONE" -eq 1 ]]; then
+            if [[ -f "$HOME/.local/share/blesh/ble.sh" ]]; then vpass 'ble.sh cloned to ~/.local/share/blesh'; else vfail 'ble.sh not found at ~/.local/share/blesh/ble.sh'; fi
+        else
+            if [[ -f /usr/share/blesh/ble.sh ]]; then vpass 'ble.sh available via Arch blesh-git package'; else vwarn 'ble.sh not found (Arch package not installed and --no-blesh-clone set)'; fi
+        fi
+        if command -v bash >/dev/null 2>&1; then
+            if bash -n "$HOME/.config/bash/.bashrc"; then vpass 'bashrc syntax'; else vfail 'bashrc syntax'; fi
         fi
     fi
     if command -v pacman >/dev/null 2>&1; then

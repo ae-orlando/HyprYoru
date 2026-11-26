@@ -816,6 +816,7 @@ printf '%s\\n' "$BACKUP_DIR"
             "hyprland/hyprland.lua": "-- fixture config\n",
             "waybar/config.jsonc": "{}\n",
             "zsh/.zshrc": "# fixture shell\n",
+            "bash/.bashrc": "# fixture bash\n",
             "waypaper/config.ini.example": "[Settings]\nbackend=none\n",
             "qt6ct/qt6ct.conf": "[Appearance]\ncolor_scheme_path=/home/previous/palette.conf\n",
             "hyprland/wallpapers/mystical-night-in-town.jpg": "fixture wallpaper\n",
@@ -882,6 +883,7 @@ mkdir -p -- "$target"
 case "$*" in
   *ohmyzsh*) printf '# fixture\\n' >"$target/oh-my-zsh.sh" ;;
   *powerlevel10k*) printf '# fixture\\n' >"$target/powerlevel10k.zsh-theme" ;;
+  *akinomyoga/ble.sh*) printf '# fixture\\n' >"$target/ble.sh" ;;
   *) exit 97 ;;
 esac
 """,
