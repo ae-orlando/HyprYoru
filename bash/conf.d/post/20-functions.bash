@@ -1,0 +1,112 @@
+#     ____              __  _
+#    / __/_ _____  ____/ /_(_)__  ___  ___
+#   / _// // / _ \/ __/ __/ / _ \/ _ \(_-<
+#  /_/  \_,_/_//_/\__/\__/_/\___/_//_/___/
+
+# Author: ae. Orlando
+# Github: https://github.com/ae-orlando
+
+# ================ ASCII =====================
+# Render an ASCII banner with figlet and copy it to the Wayland clipboard.
+# Usage: ascii [-f font] <text...>   (prompts when no text given)
+ascii() {
+    local font=smslant text
+    if [[ $1 == "-f" ]]; then font=$2; shift 2; fi
+    text="$*"
+    if [[ -z $text ]]; then
+        read -r -p "Enter the text for ascii encoding: " text
+    fi
+    [[ -z $text ]] && return 1
+    if ! command -v figlet >/dev/null 2>&1; then
+        printf '%s\n' "ascii: figlet not installed (sudo pacman -S figlet)" >&2
+        return 1
+    fi
+    local art
+    art=$(figlet -f "$font" "$text") || return 1
+    printf '%s\n' "$art"
+    if printf '%s\n' "$art" | wl-copy 2>/dev/null; then
+        printf '%s\n' "Text copied to clipboard!"
+    fi
+}
+
+# =========== FONTS =============================
+# List installed fonts, optionally filtered: fonts [pattern]
+# No args -> unique family names; with args -> full fc-list lines incl. file + style.
+fonts() {
+    if [[ $# -eq 0 ]]; then
+        fc-list : family | sort -u
+    else
+        fc-list | grep -i "$*"
+    fi
+}
+
+# =========== SCREENSHOT ==========================
+# Timestamped screenshots: shot [area|full|window] (default: area)
+shot() {
+    local dir=~/Pictures/screenshots mode=${1:-area} file geom
+    mkdir -p "$dir"
+    file="$dir/shot-$(date +%Y%m%d-%H%M%S).png"
+    case $mode in
+        full) grim "$file" || return 1 ;;
+        area) geom=$(slurp) || return 1; grim -g "$geom" "$file" || return 1 ;;
+        window)
+            command -v jq >/dev/null || { printf '%s\n' "shot: window mode needs jq" >&2; return 1; }
+            geom=$(hyprctl activewindow -j | jq -r '"\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"')
+            grim -g "$geom" "$file" || return 1 ;;
+        *) printf '%s\n' "shot: usage: shot [area|full|window]" >&2; return 1 ;;
+    esac
+    notify-send "Screenshot" "$file"
+}
+
+# =============== BCKUP =============================
+# Timestamped backup: bak <file>... (.bak-<epoch>, then .1, .2, ... on collision)
+bak() {
+    local f base backup result=0
+    local -i suffix
+    [[ $# -eq 0 ]] && { printf '%s\n' "bak: usage: bak <file>..." >&2; return 1; }
+    for f; do
+        [[ -f $f ]] || { printf '%s\n' "bak: not found: $f" >&2; result=1; continue; }
+        base="$f.bak-$(date +%s)" || { result=1; continue; }
+        backup=$base
+        suffix=0
+        while [[ -e "$backup" || -L "$backup" ]]; do
+            (( ++suffix ))
+            backup="$base.$suffix"
+        done
+        command cp -v -T --update=none-fail -- "$f" "$backup" || result=1
+    done
+    return $result
+}
+
+#=================== CLEAR TERIMAL SCREEN AND SCROLLBACK ====
+# compensates kitty terminals clear behaviour as kitty lacks E3
+# so /usr/bin/clear only erases the visible screen (like Ctrl + L)
+cls() {
+    command clear "$@"
+    (( $# == 0 )) && printf '\e[3j'
+}
+
+# ================= NOTES ===========================
+# Create an inbox note from a title and open it in the editor.
+note() {
+    local note_file
+    [[ $# -gt 0 ]] || { printf '%s\n' "note: usage: note <title>" >&2; return 1; }
+    note_file=$(python3 "$HOME/Documents/Notes/90-tools/notes.py" capture "$*") || return
+    "${EDITOR:-nvim}" "$note_file"
+}
+
+# Open the Obsidian vault, forwarding any editor arguments.
+vault() {
+    cd "$HOME/Documents/Notes" && "${EDITOR:-nvim}" "$@"
+}
+
+# Run the vault link and lab check.
+vcheck() {
+    python3 "$HOME/Documents/Notes/90-tools/check-vault.py" "$@"
+}
+
+# ================= COMMITS =========================
+# Verbose commit with the shared template.
+gcom() {
+    git commit -v "$@"
+}
