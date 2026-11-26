@@ -10,10 +10,16 @@
 # If not running interactively, don't do anything
 [[ $- == *i* ]] || return
 
-# ble.sh must load with --attach=none at the top and attach at the bottom
-if [[ -f "$HOME/.local/share/blesh/ble.sh" ]]; then
-  source "$HOME/.local/share/blesh/ble.sh" --attach=none
-fi
+# ble.sh must load with --attach=none at the top and attach at the bottom.
+# Two locations: the user install (install.sh phase_shell) and the Arch
+# blesh-git package.
+for _yoru_ble in "$HOME/.local/share/blesh/ble.sh" /usr/share/blesh/ble.sh; do
+  if [[ -f $_yoru_ble ]]; then
+    source "$_yoru_ble" --attach=none
+    break
+  fi
+done
+unset _yoru_ble
 
 # Pre-shell: env, completion
 for f in "$HOME/.config/bash"/conf.d/pre/*.bash; do

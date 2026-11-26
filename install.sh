@@ -86,6 +86,7 @@ LINK_MAP=(
     '.config/waybar:waybar'
     '.config/waypaper:waypaper'
     '.config/zsh:zsh'
+    '.config/bash:bash'
     '.config/fastfetch:fastfetch'
     '.config/gtk-3.0:gtk-setting/gtk-3.0'
     '.config/gtk-4.0:gtk-setting/gtk-4.0'
@@ -1104,9 +1105,21 @@ clone_framework() {
 }
 
 phase_shell() {
-    step 'Prepare zsh'
+    step 'Prepare shell frameworks'
+    # zsh: oh-my-zsh + powerlevel10k
     clone_framework oh-my-zsh https://github.com/ohmyzsh/ohmyzsh.git "$HOME/.oh-my-zsh" oh-my-zsh.sh
     clone_framework powerlevel10k https://github.com/romkatv/powerlevel10k.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k" powerlevel10k.zsh-theme
+    # bash: ble.sh (pinned tag v0.4.0-devel4) — used by our bash config when not on Arch blesh-git package
+    local ble_target="$HOME/.local/share/blesh"
+    if [[ ! -f "$ble_target/ble.sh" ]]; then
+        if [[ "$DRY_RUN" -eq 1 ]]; then
+            dry "Clone ble.sh v0.4.0-devel4 to $ble_target"
+        else
+            spin "Clone ble.sh" git clone --depth=1 --branch v0.4.0-devel4 https://github.com/akinomyoga/ble.sh.git "$ble_target"
+        fi
+    else
+        skip "ble.sh already installed at $ble_target"
+    fi
     if [[ "$CHANGE_SHELL" -eq 1 ]]; then
         if [[ "$DRY_RUN" -eq 1 ]]; then
             dry 'Change the account login shell to zsh with chsh'
@@ -1127,6 +1140,7 @@ phase_shell() {
         skip 'Login shell left unchanged (--change-shell to opt in)'
     fi
     run env ZDOTDIR=/dev/null zsh -f -n "$HOME/.config/zsh/.zshrc"
+    run bash -n "$HOME/.config/bash/.bashrc"
 }
 
 phase_theming() {

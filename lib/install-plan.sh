@@ -87,7 +87,7 @@ build_plan() {
     PLAN_LINKS+=("$entry")
   done
   PLAN_SOURCE_FILES=(hyprland/hyprland.lua hyprland/scripts/palette.py hyprland/scripts/palette_store.py hyprland/scripts/start-themed-desktop.sh waybar/config.jsonc matugen/config.toml waypaper/config.ini.example)
-  [[ "$WITH_SHELL" -eq 0 ]] || PLAN_SOURCE_FILES+=(zsh/.zshrc)
+  [[ "$WITH_SHELL" -eq 0 ]] || PLAN_SOURCE_FILES+=(zsh/.zshrc bash/.bashrc)
   PLAN_COMMANDS=(Hyprland kitty nautilus chromium imv rofi hyprctl hyprlock hypridle hyprsunset
     waybar swaync swaync-client nm-applet awww awww-daemon grim slurp wl-copy playerctl wpctl
     brightnessctl matugen magick python3 pavucontrol bluetoothctl nmcli checkupdates jq notify-send
@@ -201,7 +201,7 @@ render_palette_config() {
   local line section='' pattern='^\[([^]]+)\]'
   while IFS= read -r line || [[ -n "$line" ]]; do
     if [[ "$line" =~ $pattern ]]; then section="${BASH_REMATCH[1]}"; fi
-    if [[ "${PLAN_OPTIONS[WITH_SHELL]:-$WITH_SHELL}" -eq 0 && "$section" == templates.shell ]]; then continue; fi
+    if [[ "${PLAN_OPTIONS[WITH_SHELL]:-$WITH_SHELL}" -eq 0 && "$section" == templates.shell* ]]; then continue; fi
     printf '%s\n' "$line"
   done <"$DOTFILES_ROOT/matugen/config.toml"
 }

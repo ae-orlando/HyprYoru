@@ -4,3 +4,4 @@ kora-icon-theme
 whitesur-icon-theme
 tela-icon-theme
 waypaper
+blesh-git

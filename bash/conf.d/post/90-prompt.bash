@@ -575,14 +575,28 @@ _yoru_prompt() {
     PS1+='❯\[\e[0m\] '
     PS2='\[\e[37m\]├─\[\e[0m\] '
 
+    # ble.sh transient prompt (p10k TRANSIENT_PROMPT=always): on accept,
+    # ble.sh erases the old prompt and redraws prompt_ps1_final plus the
+    # typed line — one "❯ cmd" line in the status colour of the command
+    # just run (matches the zsh/p10k transcript byte-for-byte).
+    if [[ -n ${BLE_VERSION-} ]]; then
+        if ((last_status == 0)); then
+            bleopt prompt_ps1_final=$'\n''\[\e[32m\]❯\[\e[0m\] '
+        else
+            bleopt prompt_ps1_final=$'\n''\[\e[31m\]❯\[\e[0m\] '
+        fi
+    fi
+
     _yoru_prompting=''
 }
 
 # =====================================================================
-# Exec-time source: stamp _yoru_cmd_start before every top-level
-# command. ble.sh's preexec hook (Step 4) writes the same variable;
-# this DEBUG trap is the fallback so the segment works without ble.sh.
-# Skipped when another DEBUG trap already exists (its owner keeps it).
+# Exec-time source: stamp _yoru_cmd_start before every command line.
+# With ble.sh, 50-blesh.bash registers the PREEXEC hook (once per line —
+# p10k parity); this DEBUG trap is the plain-bash fallback, where it
+# fires per simple command. Skipped while ble.sh is active (its hook
+# owns the stamping) and when another DEBUG trap already exists (its
+# owner keeps it).
 # =====================================================================
 _yoru_preexec_debug() {
     # Inside our own prompt build: BASH_COMMAND matches the dispatcher or
@@ -595,7 +609,7 @@ _yoru_preexec_debug() {
     _yoru_cmd_start=$EPOCHREALTIME
 }
 
-if [[ -z $(trap -p DEBUG 2>/dev/null) ]]; then
+if [[ -z ${BLE_VERSION-} && -z $(trap -p DEBUG 2>/dev/null) ]]; then
     trap '_yoru_preexec_debug' DEBUG
 fi
 
@@ -604,7 +618,49 @@ fi
 # bash-5.1+ array form), then become the single dispatcher.
 # Idempotent — re-sourcing never duplicates anything.
 # =====================================================================
-if [[ ${PROMPT_COMMAND-} != *_yoru_prompt* ]]; then
+# Re-source normalization: re-running .bashrc makes 15-matugen,
+# 40-zoxide and 50-blesh re-register around the dispatcher (their own
+# guards look for their name in PROMPT_COMMAND, which no longer
+# contains it). Fold those entries back into the child list —
+# deduplicated — and reset PROMPT_COMMAND to the sole dispatcher.
+# Without this, "reload" would execute BEFORE _yoru_prompt and clobber
+# the very $?/PIPESTATUS the dispatcher captures atomically.
+_yoru_pc_refold() {
+    local pc e seg joined=';' prev
+    if [[ $(declare -p PROMPT_COMMAND 2>/dev/null) == 'declare -a'* ]]; then
+        for e in "${PROMPT_COMMAND[@]}"; do
+            [[ -n $pc ]] && pc+=';'
+            pc+=$e
+        done
+        unset PROMPT_COMMAND # scalar-assign on an array keeps old [1..]
+    else
+        pc=${PROMPT_COMMAND-}
+    fi
+    pc=${pc//$'\n'/;}
+    local -a segs=()
+    while [[ $pc == *';'* ]]; do
+        segs+=("${pc%%;*}")
+        pc=${pc#*;}
+    done
+    segs+=("$pc")
+    for prev in "${_yoru_prev_prompt_command[@]}"; do
+        prev=${prev//$'\n'/;}
+        joined+=$prev';'
+    done
+    for seg in "${segs[@]}"; do
+        seg=${seg#"${seg%%[![:space:]]*}"}
+        seg=${seg%"${seg##*[![:space:]]}"}
+        [[ -n $seg ]] || continue
+        [[ $seg == *_yoru_prompt* ]] && continue
+        if [[ $joined != *";$seg;"* ]]; then
+            _yoru_prev_prompt_command+=("$seg")
+            joined+=$seg';'
+        fi
+    done
+    PROMPT_COMMAND=_yoru_prompt
+}
+
+if [[ ${PROMPT_COMMAND[*]-} != *_yoru_prompt* ]]; then
     _yoru_prev_prompt_command=()
     if [[ -n ${PROMPT_COMMAND-} ]]; then
         if [[ $(declare -p PROMPT_COMMAND 2>/dev/null) == 'declare -a'* ]]; then
@@ -615,4 +671,6 @@ if [[ ${PROMPT_COMMAND-} != *_yoru_prompt* ]]; then
         fi
     fi
     PROMPT_COMMAND=_yoru_prompt
+else
+    _yoru_pc_refold
 fi
