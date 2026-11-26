@@ -58,11 +58,11 @@ jobs:
         run: |
           while IFS= read -r -d '' file; do
             bash -n "$file"
-          done < <(git ls-files -z '*.sh')
+          done < <(git ls-files -z '*.sh' 'bash/**')
 
       - name: Run ShellCheck
         run: |
-          git ls-files -z '*.sh' ':!matugen/templates/*' \
+          git ls-files -z '*.sh' 'bash/**' ':!matugen/templates/*' \
             | xargs -0 shellcheck --severity=error
 
       - name: Run regression tests

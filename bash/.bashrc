@@ -1,9 +1,10 @@
+#!/usr/bin/env bash
 #       __            __
 #      / /  ___ ____ / /  ________
 #   _ / _ \/ _ `(_-</ _ \/ __/ __/
 #  (_)_.__/\_,_/___/_//_/_/  \__/
 
-# Athor: ae. Orlando
+# Author: ae. Orlando
 # github: https://github.com/ae-orlando
 # .................................................
 
